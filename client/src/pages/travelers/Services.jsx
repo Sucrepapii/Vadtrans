@@ -48,45 +48,6 @@ const Services = () => {
       priceFrom: "₦15,000/day",
       routes: "Available in major cities nationwide",
     },
-    {
-      icon: FaTrain,
-      title: "Train Travel",
-      description: "Fast and reliable train services for intercity travel",
-      features: [
-        "Economy & First Class",
-        "Dining car available",
-        "Scenic routes",
-        "Punctual departures",
-      ],
-      priceFrom: "₦3,500",
-      routes: "Lagos-Ibadan, Abuja-Kaduna routes",
-    },
-    {
-      icon: FaPlane,
-      title: "Flight Booking",
-      description: "Book domestic and international flights with ease",
-      features: [
-        "Multiple airlines",
-        "Flexible booking",
-        "E-tickets",
-        "Travel insurance",
-      ],
-      priceFrom: "₦45,000",
-      routes: "All major Nigerian and African cities",
-    },
-    {
-      icon: FaShip,
-      title: "Ferry Services",
-      description: "Water transportation for coastal and river routes",
-      features: [
-        "Safe vessels",
-        "Life jackets provided",
-        "Luggage storage",
-        "Refreshments available",
-      ],
-      priceFrom: "₦5,000",
-      routes: "Lagos-Badagry, Port Harcourt routes",
-    },
   ];
 
   const additionalServices = [
@@ -151,7 +112,7 @@ const Services = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             {transportServices.map((service, index) => (
               <div
                 key={index}

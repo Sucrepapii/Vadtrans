@@ -84,6 +84,11 @@ const Navbar = ({ variant = "desktop" }) => {
                   className="text-charcoal hover:text-primary transition-colors font-medium">
                   Contact Us
                 </Link>
+                <Link
+                  to="/company/register"
+                  className="text-charcoal hover:text-primary transition-colors font-medium">
+                  List Your Company
+                </Link>
               </div>
 
               {/* Right side buttons */}
@@ -155,6 +160,11 @@ const Navbar = ({ variant = "desktop" }) => {
                 to="/help"
                 className="block py-2 hover:text-primary transition-colors">
                 Contact Us
+              </Link>
+              <Link
+                to="/company/register"
+                className="block py-2 hover:text-primary transition-colors">
+                List Your Company
               </Link>
 
               {isAuthenticated ? (
