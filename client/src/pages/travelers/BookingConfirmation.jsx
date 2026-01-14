@@ -5,6 +5,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
+import { calculateServiceFee } from "../../utils/pricing";
 import {
   FaCheckCircle,
   FaDownload,
@@ -65,7 +66,7 @@ const BookingConfirmation = () => {
   const pricePerPerson =
     Number(finalTrip.price) || finalTotal / (finalPassengers.length || 1);
   const subtotal = pricePerPerson * finalPassengers.length;
-  const serviceFee = 10; // Fixed service fee
+  const serviceFee = calculateServiceFee(subtotal);
 
   // Calculate arrival time based on departure time and duration
   const calculateArrivalTime = () => {

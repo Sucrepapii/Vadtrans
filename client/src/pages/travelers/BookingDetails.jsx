@@ -5,6 +5,7 @@ import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import Card from "../../components/Card";
+import { calculateServiceFee } from "../../utils/pricing";
 import {
   FaUser,
   FaEnvelope,
@@ -50,8 +51,8 @@ const BookingDetails = () => {
   };
 
   const handleContinue = () => {
-    const serviceFee = 5;
     const subtotal = trip.price * passengers;
+    const serviceFee = calculateServiceFee(subtotal);
     const totalAmount = subtotal + serviceFee;
 
     navigate("/booking/payment", {
@@ -71,8 +72,8 @@ const BookingDetails = () => {
     return null;
   }
 
-  const serviceFee = 5;
   const subtotal = trip.price * passengers;
+  const serviceFee = calculateServiceFee(subtotal);
   const totalAmount = subtotal + serviceFee;
 
   return (

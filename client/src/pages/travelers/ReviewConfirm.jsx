@@ -6,6 +6,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
+import { calculateServiceFee } from "../../utils/pricing";
 import {
   FaUser,
   FaChair,
@@ -25,7 +26,7 @@ const ReviewConfirm = () => {
 
   const pricePerPerson = Number(tripData?.price) || 0;
   const subtotal = (passengers?.length || 0) * pricePerPerson;
-  const serviceFee = 5; // Fixed service fee to match backend
+  const serviceFee = calculateServiceFee(subtotal);
   const total = subtotal + serviceFee;
 
   const handleConfirmPayment = async () => {
