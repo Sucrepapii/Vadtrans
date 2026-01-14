@@ -16,9 +16,9 @@ exports.getDashboardStats = async (req, res) => {
     const totalTrips = await Trip.count();
     const totalBookings = await Booking.count();
 
-    // Calculate revenue (sum of completed bookings)
+    // Calculate revenue (sum of paid bookings)
     const revenueData = await Booking.findAll({
-      where: { bookingStatus: "completed" },
+      where: { paymentStatus: "paid" },
       attributes: [
         [sequelize.fn("SUM", sequelize.col("totalAmount")), "total"],
       ],

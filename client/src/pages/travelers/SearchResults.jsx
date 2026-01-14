@@ -90,20 +90,15 @@ const SearchResults = () => {
   };
 
   const getTransportIcon = (type) => {
-    if (type.includes("bus")) {
-      return FaBus;
-    } else if (type.includes("car")) {
-      return FaCar;
-    }
+    // All transport types use bus icon
     return FaBus;
   };
 
   const getTransportLabel = (type) => {
     const labels = {
-      "bus-domestic": "Bus (Domestic)",
-      "bus-international": "Bus (International)",
-      "car-domestic": "Car (Domestic)",
-      "car-international": "Car (International)",
+      "inter-state": "Inter-State (Nigeria)",
+      international: "International (West Africa)",
+      "intra-state": "Intra-State (City-to-City)",
     };
     return labels[type] || type;
   };

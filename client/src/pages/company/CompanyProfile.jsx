@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { authAPI, tripAPI } from "../../services/api";
@@ -25,7 +25,11 @@ import {
   FaFileInvoice,
   FaTicketAlt,
 } from "react-icons/fa";
-import { nigerianStates, africanCountries } from "../../data/locations";
+import {
+  nigerianStates,
+  westAfricanCountries,
+  nigerianStatesWithCities,
+} from "../../data/locations";
 
 const CompanyProfile = () => {
   const { user, updateUser } = useAuth();
@@ -65,11 +69,13 @@ const CompanyProfile = () => {
   const [formData, setFormData] = useState({
     from: "",
     to: "",
-    transportType: "bus-domestic",
+    transportType: "inter-state",
     departureTime: "",
     duration: "",
     price: "",
     seats: "",
+    fromState: "",
+    toState: "",
   });
 
   const tabs = [
@@ -181,7 +187,7 @@ const CompanyProfile = () => {
       setFormData({
         from: "",
         to: "",
-        transportType: "bus-domestic",
+        transportType: "inter-state",
         departureTime: "",
         duration: "",
         price: "",
@@ -211,9 +217,30 @@ const CompanyProfile = () => {
     }
   };
 
-  const locationOptions = formData.transportType.includes("international")
-    ? africanCountries
-    : nigerianStates;
+  const locationOptions = useMemo(() => {
+    if (formData.transportType === "international") {
+      return westAfricanCountries;
+    } else if (formData.transportType === "inter-state") {
+      return nigerianStates;
+    } else if (formData.transportType === "intra-state") {
+      return Object.keys(nigerianStatesWithCities);
+    }
+    return nigerianStates;
+  }, [formData.transportType]);
+
+  const fromCities = useMemo(() => {
+    if (formData.transportType === "intra-state" && formData.fromState) {
+      return nigerianStatesWithCities[formData.fromState] || [];
+    }
+    return [];
+  }, [formData.transportType, formData.fromState]);
+
+  const toCities = useMemo(() => {
+    if (formData.transportType === "intra-state" && formData.toState) {
+      return nigerianStatesWithCities[formData.toState] || [];
+    }
+    return [];
+  }, [formData.transportType, formData.toState]);
 
   if (loading) {
     return (

@@ -4,7 +4,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
-import { nigerianStates, africanCountries } from "../../data/locations";
+import { nigerianStates, westAfricanCountries } from "../../data/locations";
 import {
   FaMapMarkerAlt,
   FaCalendar,
@@ -27,11 +27,9 @@ const LandingPage = () => {
 
   // Determine location options based on transport type
   const locationOptions = useMemo(() => {
-    // Check if it's an international route
-    if (searchData.transportType.includes("international")) {
-      return africanCountries;
+    if (searchData.transportType === "international") {
+      return westAfricanCountries;
     }
-    // Domestic routes show Nigerian states only
     return nigerianStates;
   }, [searchData.transportType]);
 

@@ -18,13 +18,10 @@ const Trip = sequelize.define(
       allowNull: false,
     },
     transportType: {
-      type: DataTypes.ENUM(
-        "bus-domestic",
-        "bus-international",
-        "car-domestic",
-        "car-international"
-      ),
+      type: DataTypes.ENUM("inter-state", "international", "intra-state"),
       allowNull: false,
+      comment:
+        "inter-state: Nigeria state-to-state | international: West Africa cross-border | intra-state: City-to-city within same state",
     },
     departureTime: {
       type: DataTypes.STRING,
