@@ -10,14 +10,16 @@ dotenv.config();
 const authRoutes = require("./routes/auth");
 const tripRoutes = require("./routes/trips");
 const bookingRoutes = require("./routes/bookings");
+const adminRoutes = require("./routes/admin");
 
 // Initialize all models
 const User = require("./models/User");
 const Trip = require("./models/Trip");
 const Booking = require("./models/Booking");
+const Fare = require("./models/Fare");
 
 // Set up model associations
-const models = { User, Trip, Booking };
+const models = { User, Trip, Booking, Fare };
 
 // Call associate methods if they exist
 Object.values(models).forEach((model) => {
@@ -90,6 +92,7 @@ initializeDatabase();
 app.use("/api/auth", authRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/admin", adminRoutes);
 
 // Health check route
 app.get("/api/health", (req, res) => {

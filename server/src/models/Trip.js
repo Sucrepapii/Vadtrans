@@ -71,6 +71,10 @@ Trip.associate = (models) => {
     foreignKey: "companyId",
     as: "company",
   });
+  Trip.hasMany(models.Booking, {
+    foreignKey: "tripId",
+    as: "bookings",
+  });
 };
 
 module.exports = Trip;

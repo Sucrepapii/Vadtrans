@@ -1,59 +1,48 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/admin/Sidebar";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Table from "../../components/Table";
 import Pagination from "../../components/Pagination";
 import { FaSearch, FaEye, FaTimes } from "react-icons/fa";
+import { adminAPI } from "../../services/api";
+import { toast } from "react-toastify";
 
 const BookingManagement = () => {
-  const [bookings, setBookings] = useState([
-    {
-      id: "BK-001",
-      customer: "John Doe",
-      company: "Swift Transport",
-      route: "Lagos - Abuja",
-      date: "2026-01-15",
-      passengers: 2,
-      amount: 90,
-      status: "confirmed",
-      paymentStatus: "paid",
-    },
-    {
-      id: "BK-002",
-      customer: "Jane Smith",
-      company: "Sky Airlines",
-      route: "Lagos - Port Harcourt",
-      date: "2026-01-16",
-      passengers: 1,
-      amount: 280,
-      status: "pending",
-      paymentStatus: "pending",
-    },
-    {
-      id: "BK-003",
-      customer: "Bob Johnson",
-      company: "Rail Express",
-      route: "Abuja - Kano",
-      date: "2026-01-14",
-      passengers: 3,
-      amount: 165,
-      status: "completed",
-      paymentStatus: "paid",
-    },
-  ]);
-
+  const [bookings, setBookings] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
+  useEffect(() => {
+    fetchBookings();
+  }, []);
+
+  const fetchBookings = async () => {
+    try {
+      setLoading(true);
+      const response = await adminAPI.getAllBookings();
+      if (response.data.success) {
+        setBookings(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching bookings:", error);
+      toast.error("Failed to load bookings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredBookings = bookings.filter((booking) => {
     const matchesSearch =
-      booking.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      booking.customer.toLowerCase().includes(searchTerm.toLowerCase());
+      (booking.bookingId &&
+        booking.bookingId.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (booking.user?.name &&
+        booking.user.name.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus =
-      selectedStatus === "all" || booking.status === selectedStatus;
+      selectedStatus === "all" || booking.bookingStatus === selectedStatus;
     return matchesSearch && matchesStatus;
   });
 
@@ -74,7 +63,7 @@ const BookingManagement = () => {
 
   const columns = [
     {
-      key: "id",
+      key: "bookingId",
       label: "Booking ID",
       sortable: true,
       render: (value) => <span className="font-mono font-medium">{value}</span>,
@@ -83,33 +72,39 @@ const BookingManagement = () => {
       key: "customer",
       label: "Customer",
       sortable: true,
+      render: (_, row) => row.user?.name || "N/A",
     },
     {
       key: "company",
       label: "Company",
       sortable: true,
+      render: (_, row) => row.trip?.company?.name || "N/A",
     },
     {
       key: "route",
       label: "Route",
+      render: (_, row) =>
+        row.trip ? `${row.trip.from} - ${row.trip.to}` : "N/A",
     },
     {
       key: "date",
-      label: "Travel Date",
+      label: "Booking Date",
       sortable: true,
+      render: (_, row) => new Date(row.createdAt).toLocaleDateString(),
     },
     {
       key: "passengers",
       label: "Passengers",
+      render: (_, row) => row.passengers?.length || 0,
     },
     {
-      key: "amount",
+      key: "totalAmount",
       label: "Amount",
       sortable: true,
-      render: (value) => `₦${value}`,
+      render: (value) => `₦${parseFloat(value || 0).toLocaleString()}`,
     },
     {
-      key: "status",
+      key: "bookingStatus",
       label: "Status",
       render: (value) => (
         <span
@@ -128,7 +123,7 @@ const BookingManagement = () => {
           <Button variant="text" className="text-blue-600">
             <FaEye />
           </Button>
-          {row.status !== "cancelled" && (
+          {row.bookingStatus !== "cancelled" && (
             <Button variant="text" className="text-red-600">
               <FaTimes />
             </Button>
@@ -144,15 +139,15 @@ const BookingManagement = () => {
     currentPage * itemsPerPage
   );
 
-  // Calculate statistics
+  // Calculate statistics from real data
   const stats = {
     total: bookings.length,
-    confirmed: bookings.filter((b) => b.status === "confirmed").length,
-    pending: bookings.filter((b) => b.status === "pending").length,
-    completed: bookings.filter((b) => b.status === "completed").length,
+    confirmed: bookings.filter((b) => b.bookingStatus === "confirmed").length,
+    pending: bookings.filter((b) => b.bookingStatus === "pending").length,
+    completed: bookings.filter((b) => b.bookingStatus === "completed").length,
     revenue: bookings
       .filter((b) => b.paymentStatus === "paid")
-      .reduce((sum, b) => sum + b.amount, 0),
+      .reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0),
   };
 
   return (
@@ -226,15 +221,27 @@ const BookingManagement = () => {
 
           {/* Bookings Table */}
           <Card>
-            <Table columns={columns} data={paginatedBookings} />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={itemsPerPage}
-              totalItems={filteredBookings.length}
-              onItemsPerPageChange={setItemsPerPage}
-            />
+            {loading ? (
+              <div className="py-12 text-center text-neutral-500">
+                Loading bookings...
+              </div>
+            ) : paginatedBookings.length > 0 ? (
+              <>
+                <Table columns={columns} data={paginatedBookings} />
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={filteredBookings.length}
+                  onItemsPerPageChange={setItemsPerPage}
+                />
+              </>
+            ) : (
+              <div className="py-12 text-center text-neutral-500">
+                No bookings found
+              </div>
+            )}
           </Card>
         </div>
       </div>

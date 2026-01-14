@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/admin/Sidebar";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
@@ -11,84 +11,44 @@ import {
   FaTimesCircle,
   FaEye,
 } from "react-icons/fa";
+import { adminAPI } from "../../services/api";
+import { toast } from "react-toastify";
 
 const ClientManagement = () => {
   const [activeTab, setActiveTab] = useState("companies");
   const [searchTerm, setSearchTerm] = useState("");
+  const [companies, setCompanies] = useState([]);
+  const [customers, setCustomers] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const companies = [
-    {
-      id: 1,
-      name: "Swift Transport",
-      type: "Bus",
-      status: "verified",
-      trips: 1200,
-      rating: 4.8,
-      joined: "2023-01-15",
-    },
-    {
-      id: 2,
-      name: "Sky Airlines",
-      type: "Flight",
-      status: "verified",
-      trips: 850,
-      rating: 4.9,
-      joined: "2023-03-22",
-    },
-    {
-      id: 3,
-      name: "Rail Express",
-      type: "Train",
-      status: "verified",
-      trips: 2100,
-      rating: 4.7,
-      joined: "2022-11-08",
-    },
-    {
-      id: 4,
-      name: "Metro Bus",
-      type: "Bus",
-      status: "pending",
-      trips: 0,
-      rating: 0,
-      joined: "2024-01-10",
-    },
-  ];
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
-  const customers = [
-    {
-      id: 1,
-      name: "John Doe",
-      email: "john@example.com",
-      phone: "+1 555-0001",
-      bookings: 12,
-      joined: "2023-06-15",
-    },
-    {
-      id: 2,
-      name: "Jane Smith",
-      email: "jane@example.com",
-      phone: "+1 555-0002",
-      bookings: 8,
-      joined: "2023-08-22",
-    },
-    {
-      id: 3,
-      name: "Bob Johnson",
-      email: "bob@example.com",
-      phone: "+1 555-0003",
-      bookings: 15,
-      joined: "2023-05-10",
-    },
-    {
-      id: 4,
-      name: "Alice Brown",
-      email: "alice@example.com",
-      phone: "+1 555-0004",
-      bookings: 5,
-      joined: "2023-12-01",
-    },
-  ];
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+
+      // Fetch companies
+      const companiesResponse = await adminAPI.getAllUsers({ role: "company" });
+      if (companiesResponse.data.success) {
+        setCompanies(companiesResponse.data.data);
+      }
+
+      // Fetch travelers (customers)
+      const customersResponse = await adminAPI.getAllUsers({
+        role: "traveler",
+      });
+      if (customersResponse.data.success) {
+        setCustomers(customersResponse.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      toast.error("Failed to load users");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-neutral-50">
@@ -150,16 +110,13 @@ const ClientManagement = () => {
                         Company
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
-                        Type
+                        Email
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
                         Status
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
-                        Trips
-                      </th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
-                        Rating
+                        Phone
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
                         Joined
@@ -170,42 +127,67 @@ const ClientManagement = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-200">
-                    {companies.map((company) => (
-                      <tr
-                        key={company.id}
-                        className="hover:bg-neutral-50 transition-colors">
-                        <td className="px-4 py-3 font-medium">
-                          {company.name}
-                        </td>
-                        <td className="px-4 py-3 text-sm">{company.type}</td>
-                        <td className="px-4 py-3">
-                          <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${
-                              company.status === "verified"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}>
-                            {company.status === "verified" ? (
-                              <span className="flex items-center gap-1">
-                                <FaCheckCircle /> Verified
-                              </span>
-                            ) : (
-                              "Pending"
-                            )}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3 text-sm">{company.trips}</td>
-                        <td className="px-4 py-3 text-sm">
-                          ★ {company.rating || "N/A"}
-                        </td>
-                        <td className="px-4 py-3 text-sm">{company.joined}</td>
-                        <td className="px-4 py-3">
-                          <Button variant="text" className="text-sm">
-                            <FaEye /> View
-                          </Button>
+                    {loading ? (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          className="px-4 py-8 text-center text-neutral-500">
+                          Loading companies...
                         </td>
                       </tr>
-                    ))}
+                    ) : companies.length > 0 ? (
+                      companies.map((company) => (
+                        <tr
+                          key={company.id}
+                          className="hover:bg-neutral-50 transition-colors">
+                          <td className="px-4 py-3 font-medium">
+                            {company.name}
+                          </td>
+                          <td className="px-4 py-3 text-sm">{company.email}</td>
+                          <td className="px-4 py-3">
+                            <span
+                              className={`px-3 py-1 rounded-full text-xs font-medium ${
+                                company.verificationStatus === "verified"
+                                  ? "bg-green-100 text-green-800"
+                                  : company.verificationStatus === "rejected"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-yellow-100 text-yellow-800"
+                              }`}>
+                              {company.verificationStatus === "verified" ? (
+                                <span className="flex items-center gap-1">
+                                  <FaCheckCircle /> Verified
+                                </span>
+                              ) : company.verificationStatus === "rejected" ? (
+                                <span className="flex items-center gap-1">
+                                  <FaTimesCircle /> Rejected
+                                </span>
+                              ) : (
+                                "Pending"
+                              )}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {company.phone || "N/A"}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {new Date(company.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Button variant="text" className="text-sm">
+                              <FaEye /> View
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="6"
+                          className="px-4 py-8 text-center text-neutral-500">
+                          No companies registered yet
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -229,9 +211,6 @@ const ClientManagement = () => {
                         Phone
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
-                        Bookings
-                      </th>
-                      <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
                         Joined
                       </th>
                       <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
@@ -240,26 +219,47 @@ const ClientManagement = () => {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-neutral-200">
-                    {customers.map((customer) => (
-                      <tr
-                        key={customer.id}
-                        className="hover:bg-neutral-50 transition-colors">
-                        <td className="px-4 py-3 font-medium">
-                          {customer.name}
-                        </td>
-                        <td className="px-4 py-3 text-sm">{customer.email}</td>
-                        <td className="px-4 py-3 text-sm">{customer.phone}</td>
-                        <td className="px-4 py-3 text-sm">
-                          {customer.bookings}
-                        </td>
-                        <td className="px-4 py-3 text-sm">{customer.joined}</td>
-                        <td className="px-4 py-3">
-                          <Button variant="text" className="text-sm">
-                            <FaEye /> View
-                          </Button>
+                    {loading ? (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="px-4 py-8 text-center text-neutral-500">
+                          Loading customers...
                         </td>
                       </tr>
-                    ))}
+                    ) : customers.length > 0 ? (
+                      customers.map((customer) => (
+                        <tr
+                          key={customer.id}
+                          className="hover:bg-neutral-50 transition-colors">
+                          <td className="px-4 py-3 font-medium">
+                            {customer.name}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {customer.email}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {customer.phone || "N/A"}
+                          </td>
+                          <td className="px-4 py-3 text-sm">
+                            {new Date(customer.createdAt).toLocaleDateString()}
+                          </td>
+                          <td className="px-4 py-3">
+                            <Button variant="text" className="text-sm">
+                              <FaEye /> View
+                            </Button>
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan="5"
+                          className="px-4 py-8 text-center text-neutral-500">
+                          No customers registered yet
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>

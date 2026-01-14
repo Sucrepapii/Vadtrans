@@ -57,4 +57,31 @@ export const bookingAPI = {
   cancelBooking: (id, reason) => api.put(`/bookings/${id}/cancel`, { reason }),
 };
 
+// Admin API
+export const adminAPI = {
+  // Dashboard
+  getStats: () => api.get("/admin/stats"),
+  getTopCompanies: (limit) =>
+    api.get("/admin/top-companies", { params: { limit } }),
+
+  // Trip Management
+  getAllTrips: (params) => api.get("/admin/trips", { params }),
+  updateTrip: (id, data) => api.put(`/admin/trips/${id}`, data),
+  deleteTrip: (id) => api.delete(`/admin/trips/${id}`),
+
+  // Booking Management
+  getAllBookings: (params) => api.get("/admin/bookings", { params }),
+  updateBooking: (id, status) => api.put(`/admin/bookings/${id}`, { status }),
+
+  // User Management
+  getAllUsers: (params) => api.get("/admin/users", { params }),
+  updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
+
+  // Fare Management
+  getFares: () => api.get("/admin/fares"),
+  createFare: (data) => api.post("/admin/fares", data),
+  updateFare: (id, data) => api.put(`/admin/fares/${id}`, data),
+  deleteFare: (id) => api.delete(`/admin/fares/${id}`),
+};
+
 export default api;

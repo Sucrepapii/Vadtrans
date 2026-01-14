@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/admin/Sidebar";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
@@ -13,47 +13,41 @@ import {
   FaSearch,
   FaFilter,
 } from "react-icons/fa";
+import { adminAPI } from "../../services/api";
+import { toast } from "react-toastify";
 
 const TicketManagement = () => {
-  const [tickets, setTickets] = useState([
-    {
-      id: 1,
-      company: "Swift Transport",
-      route: "Lagos - Abuja",
-      type: "bus",
-      price: 45,
-      status: "active",
-      bookings: 125,
-    },
-    {
-      id: 2,
-      company: "Sky Airlines",
-      route: "Lagos - Port Harcourt",
-      type: "flight",
-      price: 280,
-      status: "active",
-      bookings: 89,
-    },
-    {
-      id: 3,
-      company: "Rail Express",
-      route: "Abuja - Kano",
-      type: "train",
-      price: 55,
-      status: "inactive",
-      bookings: 45,
-    },
-  ]);
-
+  const [tickets, setTickets] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
 
+  useEffect(() => {
+    fetchTrips();
+  }, []);
+
+  const fetchTrips = async () => {
+    try {
+      setLoading(true);
+      const response = await adminAPI.getAllTrips();
+      if (response.data.success) {
+        setTickets(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching trips:", error);
+      toast.error("Failed to load trips");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const filteredTickets = tickets.filter((ticket) => {
     const matchesSearch =
-      ticket.company.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      ticket.route.toLowerCase().includes(searchTerm.toLowerCase());
+      (ticket.from &&
+        ticket.from.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (ticket.to && ticket.to.toLowerCase().includes(searchTerm.toLowerCase()));
     const matchesStatus =
       selectedStatus === "all" || ticket.status === selectedStatus;
     return matchesSearch && matchesStatus;
@@ -61,22 +55,23 @@ const TicketManagement = () => {
 
   const columns = [
     {
-      key: "company",
-      label: "Company",
+      key: "id",
+      label: "Trip ID",
       sortable: true,
-      render: (value) => <span className="font-medium">{value}</span>,
+      render: (value) => <span className="font-medium">#{value}</span>,
     },
     {
       key: "route",
       label: "Route",
       sortable: true,
+      render: (_, row) => `${row.from} - ${row.to}`,
     },
     {
-      key: "type",
+      key: "transportType",
       label: "Type",
       render: (value) => (
         <span className="capitalize px-2 py-1 bg-neutral-100 text-neutral-700 rounded text-xs">
-          {value}
+          {value ? value.replace("-", " • ") : "N/A"}
         </span>
       ),
     },
@@ -84,11 +79,11 @@ const TicketManagement = () => {
       key: "price",
       label: "Price",
       sortable: true,
-      render: (value) => `₦${value}`,
+      render: (value) => `₦${parseFloat(value).toLocaleString()}`,
     },
     {
-      key: "bookings",
-      label: "Bookings",
+      key: "availableSeats",
+      label: "Available Seats",
       sortable: true,
     },
     {
@@ -172,15 +167,27 @@ const TicketManagement = () => {
 
           {/* Tickets Table */}
           <Card>
-            <Table columns={columns} data={paginatedTickets} />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-              itemsPerPage={itemsPerPage}
-              totalItems={filteredTickets.length}
-              onItemsPerPageChange={setItemsPerPage}
-            />
+            {loading ? (
+              <div className="py-12 text-center text-neutral-500">
+                Loading trips...
+              </div>
+            ) : paginatedTickets.length > 0 ? (
+              <>
+                <Table columns={columns} data={paginatedTickets} />
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={itemsPerPage}
+                  totalItems={filteredTickets.length}
+                  onItemsPerPageChange={setItemsPerPage}
+                />
+              </>
+            ) : (
+              <div className="py-12 text-center text-neutral-500">
+                No trips found
+              </div>
+            )}
           </Card>
         </div>
       </div>

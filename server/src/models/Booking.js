@@ -1,7 +1,5 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/database");
-const User = require("./User");
-const Trip = require("./Trip");
 
 const Booking = sequelize.define(
   "Booking",
@@ -87,7 +85,9 @@ const Booking = sequelize.define(
 );
 
 // Define associations
-Booking.belongsTo(User, { foreignKey: "userId", as: "user" });
-Booking.belongsTo(Trip, { foreignKey: "tripId", as: "trip" });
+Booking.associate = (models) => {
+  Booking.belongsTo(models.User, { foreignKey: "userId", as: "user" });
+  Booking.belongsTo(models.Trip, { foreignKey: "tripId", as: "trip" });
+};
 
 module.exports = Booking;

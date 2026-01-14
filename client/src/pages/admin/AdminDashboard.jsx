@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/admin/Sidebar";
 import Card from "../../components/Card";
 import {
@@ -10,71 +10,82 @@ import {
   FaArrowUp,
   FaArrowDown,
 } from "react-icons/fa";
+import { adminAPI } from "../../services/api";
+import { toast } from "react-toastify";
 
 const AdminDashboard = () => {
-  const stats = [
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalCompanies: 0,
+    totalTrips: 0,
+    totalBookings: 0,
+    totalRevenue: 0,
+    recentBookings: [],
+  });
+  const [topCompanies, setTopCompanies] = useState([]);
+
+  useEffect(() => {
+    fetchDashboardData();
+    fetchTopCompanies();
+  }, []);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await adminAPI.getStats();
+      if (response.data.success) {
+        setStats(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+      toast.error("Failed to load dashboard data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTopCompanies = async () => {
+    try {
+      const response = await adminAPI.getTopCompanies(4);
+      if (response.data.success) {
+        setTopCompanies(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching top companies:", error);
+      // Don't show error toast, just fail silently
+    }
+  };
+
+  const statCards = [
     {
       icon: FaUsers,
       label: "Total Users",
-      value: "12,543",
-      change: "+12%",
-      isPositive: true,
+      value: loading ? "..." : stats.totalUsers.toLocaleString(),
       color: "bg-blue-500",
     },
     {
       icon: FaBuilding,
       label: "Transport Companies",
-      value: "248",
-      change: "+8%",
-      isPositive: true,
+      value: loading ? "..." : stats.totalCompanies.toLocaleString(),
       color: "bg-green-500",
     },
     {
       icon: FaTicketAlt,
       label: "Total Bookings",
-      value: "45,892",
-      change: "+23%",
-      isPositive: true,
+      value: loading ? "..." : stats.totalBookings.toLocaleString(),
       color: "bg-purple-500",
     },
     {
       icon: FaDollarSign,
       label: "Revenue",
-      value: "₦892,450",
-      change: "-3%",
-      isPositive: false,
+      value: loading
+        ? "..."
+        : `₦${stats.totalRevenue.toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`,
       color: "bg-primary",
-    },
-  ];
-
-  const recentBookings = [
-    {
-      id: "BK-001",
-      customer: "John Doe",
-      company: "Swift Transport",
-      amount: "₦45",
-      status: "Completed",
-    },
-    {
-      id: "BK-002",
-      customer: "Jane Smith",
-      company: "Sky Airlines",
-      amount: "₦320",
-      status: "Pending",
-    },
-    {
-      id: "BK-003",
-      customer: "Bob Johnson",
-      company: "Rail Express",
-      amount: "₦85",
-      status: "Completed",
-    },
-    {
-      id: "BK-004",
-      customer: "Alice Brown",
-      company: "Swift Transport",
-      amount: "₦52",
-      status: "Cancelled",
     },
   ];
 
@@ -110,7 +121,7 @@ const AdminDashboard = () => {
         <div className="p-8">
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
+            {statCards.map((stat, index) => (
               <Card key={index} className="relative overflow-hidden">
                 <div className="flex items-start justify-between">
                   <div>
@@ -120,18 +131,6 @@ const AdminDashboard = () => {
                     <h3 className="text-2xl font-bold text-charcoal mb-2">
                       {stat.value}
                     </h3>
-                    <div
-                      className={`flex items-center gap-1 text-sm ${
-                        stat.isPositive ? "text-green-600" : "text-red-600"
-                      }`}>
-                      {stat.isPositive ? (
-                        <FaArrowUp size={12} />
-                      ) : (
-                        <FaArrowDown size={12} />
-                      )}
-                      <span>{stat.change}</span>
-                      <span className="text-neutral-500">vs last month</span>
-                    </div>
                   </div>
                   <div className={`${stat.color} p-3 rounded-lg`}>
                     <stat.icon className="text-white text-2xl" />
@@ -161,21 +160,22 @@ const AdminDashboard = () => {
                 Top Companies
               </h3>
               <div className="space-y-3">
-                {[
-                  "Swift Transport",
-                  "Sky Airlines",
-                  "Rail Express",
-                  "Metro Bus",
-                ].map((company, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
-                    <span className="font-medium">{company}</span>
-                    <span className="text-sm text-neutral-600">
-                      {Math.floor(Math.random() * 500 + 100)} bookings
-                    </span>
+                {topCompanies.length > 0 ? (
+                  topCompanies.map((company) => (
+                    <div
+                      key={company.id}
+                      className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
+                      <span className="font-medium">{company.name}</span>
+                      <span className="text-sm text-neutral-600">
+                        {company.bookingCount} bookings
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-center py-8 text-neutral-500">
+                    No companies with bookings yet
                   </div>
-                ))}
+                )}
               </div>
             </Card>
           </div>
@@ -205,28 +205,51 @@ const AdminDashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-200">
-                  {recentBookings.map((booking) => (
-                    <tr
-                      key={booking.id}
-                      className="hover:bg-neutral-50 transition-colors">
-                      <td className="px-4 py-3 text-sm font-medium">
-                        {booking.id}
-                      </td>
-                      <td className="px-4 py-3 text-sm">{booking.customer}</td>
-                      <td className="px-4 py-3 text-sm">{booking.company}</td>
-                      <td className="px-4 py-3 text-sm font-semibold">
-                        {booking.amount}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            booking.status
-                          )}`}>
-                          {booking.status}
-                        </span>
+                  {loading ? (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        className="px-4 py-8 text-center text-neutral-500">
+                        Loading bookings...
                       </td>
                     </tr>
-                  ))}
+                  ) : stats.recentBookings &&
+                    stats.recentBookings.length > 0 ? (
+                    stats.recentBookings.map((booking) => (
+                      <tr
+                        key={booking.id}
+                        className="hover:bg-neutral-50 transition-colors">
+                        <td className="px-4 py-3 text-sm font-medium">
+                          #{booking.id}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          {booking.user?.name || "N/A"}
+                        </td>
+                        <td className="px-4 py-3 text-sm">
+                          {booking.trip?.company?.name || "N/A"}
+                        </td>
+                        <td className="px-4 py-3 text-sm font-semibold">
+                          ₦{booking.totalAmount?.toLocaleString() || "0"}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span
+                            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              booking.bookingStatus
+                            )}`}>
+                            {booking.bookingStatus}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td
+                        colSpan="5"
+                        className="px-4 py-8 text-center text-neutral-500">
+                        No recent bookings
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>

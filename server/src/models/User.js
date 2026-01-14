@@ -140,4 +140,12 @@ User.prototype.generateToken = function () {
   );
 };
 
+// Define associations
+User.associate = (models) => {
+  User.hasMany(models.Trip, {
+    foreignKey: "companyId",
+    as: "trips",
+  });
+};
+
 module.exports = User;
