@@ -5,6 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/travelers/LandingPage";
 import SignIn from "./pages/travelers/SignIn";
 import SignUp from "./pages/travelers/SignUp";
+import Services from "./pages/travelers/Services";
 import SearchResults from "./pages/travelers/SearchResults";
 import BookingDetails from "./pages/travelers/BookingDetails";
 import PassengerInfo from "./pages/travelers/PassengerInfo";
@@ -42,6 +43,7 @@ function App() {
         {/* Travelers Routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/about" element={<AboutUs />} />
+        <Route path="/services" element={<Services />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/search" element={<SearchResults />} />
