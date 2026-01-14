@@ -65,7 +65,7 @@ const BookingConfirmation = () => {
   const pricePerPerson =
     Number(finalTrip.price) || finalTotal / (finalPassengers.length || 1);
   const subtotal = pricePerPerson * finalPassengers.length;
-  const serviceFee = 5; // Fixed service fee
+  const serviceFee = 10; // Fixed service fee
 
   // Calculate arrival time based on departure time and duration
   const calculateArrivalTime = () => {

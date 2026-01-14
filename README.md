@@ -45,6 +45,14 @@ npm run dev
 # Frontend runs on http://localhost:3000
 ```
 
+### Default Admin Credentials
+
+After running the seed script, you can login as admin with:
+
+- **Email:** `admin@vadtrans.com`
+- **Password:** `Admin@123`
+- **Dashboard:** http://localhost:3000/admin
+
 ### Environment Configuration
 
 Create `server/.env` file:

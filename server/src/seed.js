@@ -26,6 +26,18 @@ const seedDatabase = async () => {
     await sequelize.sync({ force: true });
     console.log("✅ Database synchronized\n");
 
+    // Create default admin user
+    const adminUser = await User.create({
+      name: "Admin User",
+      email: "admin@vadtrans.com",
+      password: "Admin@123",
+      phone: "+234123456789",
+      role: "admin",
+    });
+    console.log("✅ Default admin user created");
+    console.log("   Email: admin@vadtrans.com");
+    console.log("   Password: Admin@123\n");
+
     console.log("✅ Database is ready!");
     console.log(
       "ℹ️  Trips table is empty - companies can add trips via TicketsManagement page"

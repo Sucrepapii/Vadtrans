@@ -35,6 +35,12 @@ const Sidebar = () => {
     navigate("/signin");
   };
 
+  const handlePortalAccess = (path) => {
+    logout();
+    toast.info("Logged out from admin panel");
+    navigate(path);
+  };
+
   return (
     <div
       className={`bg-charcoal text-white h-screen sticky top-0 transition-all duration-300 ${
@@ -77,16 +83,16 @@ const Sidebar = () => {
         <div className="px-6 py-4 border-t border-neutral-700">
           <p className="text-xs text-neutral-500 mb-2">Quick Access</p>
           <div className="space-y-2">
-            <Link
-              to="/"
-              className="block px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-sm text-center transition-colors">
+            <button
+              onClick={() => handlePortalAccess("/")}
+              className="block w-full px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-sm text-center transition-colors">
               Traveler Portal
-            </Link>
-            <Link
-              to="/company/tickets"
-              className="block px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-sm text-center transition-colors">
+            </button>
+            <button
+              onClick={() => handlePortalAccess("/company/tickets")}
+              className="block w-full px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-sm text-center transition-colors">
               Company Portal
-            </Link>
+            </button>
           </div>
         </div>
       )}
