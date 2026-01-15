@@ -114,11 +114,21 @@ exports.login = async (req, res) => {
         phone: user.phone,
         role: user.role,
         avatar: user.avatar,
+        isVerified: user.isVerified,
         title: user.title,
         gender: user.gender,
         dateOfBirth: user.dateOfBirth,
         address: user.address,
         city: user.city,
+        // Company-specific fields
+        businessRegNo: user.businessRegNo,
+        taxId: user.taxId,
+        description: user.description,
+        founded: user.founded,
+        vehicles: user.vehicles,
+        routes: user.routes,
+        verificationStatus: user.verificationStatus,
+        documents: user.documents || [],
       },
     });
   } catch (error) {
@@ -155,8 +165,18 @@ exports.getMe = async (req, res) => {
         dateOfBirth: user.dateOfBirth,
         address: user.address,
         city: user.city,
+        // Company-specific fields
+        businessRegNo: user.businessRegNo,
+        taxId: user.taxId,
+        description: user.description,
+        founded: user.founded,
+        vehicles: user.vehicles,
+        routes: user.routes,
+        verificationStatus: user.verificationStatus,
+        documents: user.documents || [],
       },
     });
+    console.log("✅ getMe response sent. Documents field:", user.documents);
   } catch (error) {
     console.error("Get user error:", error);
     res.status(500).json({
@@ -312,6 +332,122 @@ exports.changePassword = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error changing password",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Upload document
+// @route   POST /api/auth/upload-document
+// @access  Private (Company only)
+exports.uploadDocument = async (req, res) => {
+  try {
+    const { documentType } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "No file uploaded",
+      });
+    }
+
+    if (!documentType) {
+      return res.status(400).json({
+        success: false,
+        message: "Document type is required",
+      });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Create document object
+    const document = {
+      type: documentType,
+      name: req.file.originalname,
+      url: `/uploads/documents/${req.file.filename}`,
+      uploadedAt: new Date(),
+    };
+
+    // Get existing documents or initialize empty array
+    const documents = user.documents || [];
+
+    // Remove existing document of same type (replace)
+    const filteredDocs = documents.filter((doc) => doc.type !== documentType);
+
+    // Add new document
+    filteredDocs.push(document);
+
+    // Update user
+    await user.update({ documents: filteredDocs });
+
+    res.status(200).json({
+      success: true,
+      message: "Document uploaded successfully",
+      document: document,
+    });
+  } catch (error) {
+    console.error("Upload document error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error uploading document",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Delete document
+// @route   DELETE /api/auth/documents/:type
+// @access  Private (Company only)
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { type } = req.params;
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Get existing documents
+    const documents = user.documents || [];
+
+    // Find document to delete
+    const docToDelete = documents.find((doc) => doc.type === type);
+
+    if (docToDelete) {
+      // Delete file from filesystem
+      const fs = require("fs");
+      const path = require("path");
+      const filePath = path.join(__dirname, "../../", docToDelete.url);
+
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath);
+      }
+    }
+
+    // Remove from array
+    const filteredDocs = documents.filter((doc) => doc.type !== type);
+
+    // Update user
+    await user.update({ documents: filteredDocs });
+
+    res.status(200).json({
+      success: true,
+      message: "Document deleted successfully",
+    });
+  } catch (error) {
+    console.error("Delete document error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting document",
       error: error.message,
     });
   }

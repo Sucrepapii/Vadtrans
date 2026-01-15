@@ -33,6 +33,62 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  // Company-specific fields
+  verificationStatus: {
+    type: String,
+    enum: ["pending", "approved", "rejected"],
+    default: function () {
+      return this.role === "company" ? "pending" : "approved";
+    },
+  },
+  address: {
+    type: String,
+    default: "",
+  },
+  businessRegNo: {
+    type: String,
+    default: "",
+  },
+  taxId: {
+    type: String,
+    default: "",
+  },
+  description: {
+    type: String,
+    default: "",
+  },
+  founded: {
+    type: String,
+    default: "",
+  },
+  vehicles: {
+    type: Number,
+    default: 0,
+  },
+  routes: {
+    type: Number,
+    default: 0,
+  },
+  documents: [
+    {
+      type: {
+        type: String,
+        required: true,
+      },
+      url: {
+        type: String,
+        required: true,
+      },
+      name: {
+        type: String,
+        required: true,
+      },
+      uploadedAt: {
+        type: Date,
+        default: Date.now,
+      },
+    },
+  ],
   createdAt: {
     type: Date,
     default: Date.now,

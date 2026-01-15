@@ -32,16 +32,16 @@ const Navbar = ({ variant = "desktop" }) => {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm">
               <a
-                href="tel:+234-812-945-0899"
+                href="tel:+234-912-328-4931"
                 className="flex items-center gap-2 hover:text-primary transition-colors">
                 <FaPhone className="text-xs" />
-                <span>+234-812-945-0899</span>
+                <span>+234-912-328-4931</span>
               </a>
               <a
-                href="mailto:contact@vadtrans.com.ng"
+                href="mailto:contact@vadtrans.com"
                 className="flex items-center gap-2 hover:text-primary transition-colors">
                 <FaEnvelope className="text-xs" />
-                <span>contact@vadtrans.com.ng</span>
+                <span>contact@vadtrans.com</span>
               </a>
             </div>
             <button className="px-3 sm:px-4 py-1 border border-white rounded-full text-xs sm:text-sm hover:bg-white hover:text-black transition-colors">

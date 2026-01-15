@@ -493,3 +493,116 @@ exports.getTopCompanies = async (req, res) => {
     });
   }
 };
+
+// @desc    Get all companies
+// @route   GET /api/admin/companies
+// @access  Private/Admin
+exports.getAllCompanies = async (req, res) => {
+  try {
+    const { verificationStatus } = req.query;
+
+    const whereClause = { role: "company" };
+    if (verificationStatus) whereClause.verificationStatus = verificationStatus;
+
+    const companies = await User.findAll({
+      where: whereClause,
+      attributes: { exclude: ["password"] },
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.status(200).json({
+      success: true,
+      count: companies.length,
+      data: companies,
+    });
+  } catch (error) {
+    console.error("Error fetching companies:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching companies",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Approve a company
+// @route   PUT /api/admin/companies/:id/approve
+// @access  Private/Admin
+exports.approveCompany = async (req, res) => {
+  try {
+    const company = await User.findByPk(req.params.id);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found",
+      });
+    }
+
+    if (company.role !== "company") {
+      return res.status(400).json({
+        success: false,
+        message: "User is not a company",
+      });
+    }
+
+    await company.update({ verificationStatus: "verified" });
+
+    const companyData = company.toJSON();
+    delete companyData.password;
+
+    res.status(200).json({
+      success: true,
+      message: "Company approved successfully",
+      data: companyData,
+    });
+  } catch (error) {
+    console.error("Error approving company:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error approving company",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Reject a company
+// @route   PUT /api/admin/companies/:id/reject
+// @access  Private/Admin
+exports.rejectCompany = async (req, res) => {
+  try {
+    const company = await User.findByPk(req.params.id);
+
+    if (!company) {
+      return res.status(404).json({
+        success: false,
+        message: "Company not found",
+      });
+    }
+
+    if (company.role !== "company") {
+      return res.status(400).json({
+        success: false,
+        message: "User is not a company",
+      });
+    }
+
+    await company.update({ verificationStatus: "rejected" });
+
+    const companyData = company.toJSON();
+    delete companyData.password;
+
+    res.status(200).json({
+      success: true,
+      message: "Company rejected successfully",
+      data: companyData,
+    });
+  } catch (error) {
+    console.error("Error rejecting company:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error rejecting company",
+      error: error.message,
+    });
+  }
+};

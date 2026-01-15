@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import {
   FaTachometerAlt,
   FaUsers,
+  FaBuilding,
   FaDollarSign,
   FaTicketAlt,
   FaCalendarCheck,
@@ -23,6 +24,7 @@ const Sidebar = () => {
   const menuItems = [
     { icon: FaTachometerAlt, label: "Dashboard", path: "/admin" },
     { icon: FaUsers, label: "Clients", path: "/admin/clients" },
+    { icon: FaBuilding, label: "Companies", path: "/admin/companies" },
     { icon: FaTicketAlt, label: "Tickets", path: "/admin/tickets" },
     { icon: FaCalendarCheck, label: "Bookings", path: "/admin/bookings" },
     { icon: FaDollarSign, label: "Fares", path: "/admin/fares" },

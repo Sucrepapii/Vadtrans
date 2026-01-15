@@ -14,6 +14,9 @@ const {
   createFare,
   updateFare,
   deleteFare,
+  getAllCompanies,
+  approveCompany,
+  rejectCompany,
 } = require("../controllers/adminController");
 const { protect, authorize } = require("../middleware/auth");
 
@@ -37,6 +40,11 @@ router.put("/bookings/:id", updateBookingStatus);
 // User Management
 router.get("/users", getAllUsers);
 router.put("/users/:id", updateUser);
+
+// Company Management
+router.get("/companies", getAllCompanies);
+router.put("/companies/:id/approve", approveCompany);
+router.put("/companies/:id/reject", rejectCompany);
 
 // Fare Management
 router.get("/fares", getAllFares);

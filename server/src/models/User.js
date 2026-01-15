@@ -89,6 +89,10 @@ const User = sequelize.define(
       type: DataTypes.ENUM("pending", "verified", "rejected"),
       defaultValue: "pending",
     },
+    documents: {
+      type: DataTypes.JSON,
+      defaultValue: [],
+    },
     role: {
       type: DataTypes.ENUM("traveler", "company", "admin"),
       defaultValue: "traveler",

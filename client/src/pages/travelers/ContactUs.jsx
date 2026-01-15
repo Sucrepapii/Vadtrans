@@ -181,7 +181,7 @@ const ContactUs = () => {
                   <h3 className="font-semibold text-charcoal mb-1">
                     Phone number
                   </h3>
-                  <p className="text-sm text-neutral-600">+234-812-945-0899</p>
+                  <p className="text-sm text-neutral-600">+234-912-328-4931</p>
                 </div>
               </Card>
 
@@ -194,7 +194,7 @@ const ContactUs = () => {
                     Email address
                   </h3>
                   <p className="text-sm text-neutral-600">
-                    contact@vadtrans.com.ng
+                    contact@vadtrans.com
                   </p>
                 </div>
               </Card>

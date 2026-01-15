@@ -30,6 +30,7 @@ import CompanyProfile from "./pages/company/CompanyProfile";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ClientManagement from "./pages/admin/ClientManagement";
+import CompanyManagement from "./pages/admin/CompanyManagement";
 import FareManagement from "./pages/admin/FareManagement";
 import TicketManagement from "./pages/admin/TicketManagement";
 import BookingManagement from "./pages/admin/BookingManagement";
@@ -84,6 +85,14 @@ function App() {
           element={
             <ProtectedRoute requireAdmin={true}>
               <ClientManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/companies"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <CompanyManagement />
             </ProtectedRoute>
           }
         />

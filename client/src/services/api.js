@@ -33,6 +33,21 @@ export const authAPI = {
   updateProfile: (profileData) => api.put("/auth/profile", profileData),
   changePassword: (passwordData) =>
     api.put("/auth/change-password", passwordData),
+
+  // Document upload
+  uploadDocument: (file, documentType) => {
+    const formData = new FormData();
+    formData.append("document", file);
+    formData.append("documentType", documentType);
+
+    return api.post("/auth/upload-document", formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+  deleteDocument: (documentType) =>
+    api.delete(`/auth/documents/${documentType}`),
 };
 
 // Trip API
@@ -82,6 +97,11 @@ export const adminAPI = {
   createFare: (data) => api.post("/admin/fares", data),
   updateFare: (id, data) => api.put(`/admin/fares/${id}`, data),
   deleteFare: (id) => api.delete(`/admin/fares/${id}`),
+
+  // Company Management
+  getCompanies: (params) => api.get("/admin/companies", { params }),
+  approveCompany: (id) => api.put(`/admin/companies/${id}/approve`),
+  rejectCompany: (id) => api.put(`/admin/companies/${id}/reject`),
 };
 
 export default api;

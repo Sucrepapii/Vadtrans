@@ -35,6 +35,9 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Serve static files from uploads directory
+app.use("/uploads", express.static("uploads"));
+
 // Enable CORS - Allow multiple origins
 const allowedOrigins = [
   "http://localhost:3000",
