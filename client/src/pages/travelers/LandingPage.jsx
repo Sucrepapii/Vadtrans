@@ -4,7 +4,11 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
-import { nigerianStates, westAfricanCountries } from "../../data/locations";
+import {
+  nigerianStates,
+  westAfricanCountries,
+  nigerianStatesWithCities,
+} from "../../data/locations";
 import {
   FaMapMarkerAlt,
   FaCalendar,
@@ -23,15 +27,27 @@ const LandingPage = () => {
     to: "",
     date: "",
     transportType: "all",
+    fromState: "", // For intra-state trips
+    toState: "", // For intra-state trips
   });
 
   // Determine location options based on transport type
   const locationOptions = useMemo(() => {
     if (searchData.transportType === "international") {
       return westAfricanCountries;
+    } else if (searchData.transportType === "intra-state") {
+      return Object.keys(nigerianStatesWithCities);
     }
     return nigerianStates;
   }, [searchData.transportType]);
+
+  // Get cities for selected state (intra-state only)
+  const fromCities = useMemo(() => {
+    if (searchData.transportType === "intra-state" && searchData.fromState) {
+      return nigerianStatesWithCities[searchData.fromState] || [];
+    }
+    return [];
+  }, [searchData.transportType, searchData.fromState]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -75,76 +91,173 @@ const LandingPage = () => {
                         transportType: e.target.value,
                         from: "", // Reset locations when transport type changes
                         to: "",
+                        fromState: "",
+                        toState: "",
                       })
                     }
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary text-sm sm:text-base">
                     <option value="all">All Types</option>
-                    <option value="bus-domestic">Bus - Domestic</option>
-                    <option value="bus-international">
-                      Bus - International
+                    <option value="inter-state">Inter-State (Nigeria)</option>
+                    <option value="international">
+                      International (West Africa)
                     </option>
-                    <option value="car-domestic">Car - Domestic</option>
-                    <option value="car-international">
-                      Car - International
+                    <option value="intra-state">
+                      Intra-State (City-to-City)
                     </option>
                   </select>
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-charcoal mb-2">
-                    From
-                  </label>
-                  <div className="relative">
-                    <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
-                    <select
-                      value={searchData.from}
-                      onChange={(e) =>
-                        setSearchData({ ...searchData, from: e.target.value })
-                      }
-                      className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
-                      required>
-                      <option value="">
-                        Select departure{" "}
-                        {searchData.transportType === "flight"
-                          ? "city/country"
-                          : "state"}
-                      </option>
-                      {locationOptions.map((location) => (
-                        <option key={location} value={location}>
-                          {location}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                </div>
+                {/* FROM LOCATION */}
+                {searchData.transportType === "intra-state" ? (
+                  <>
+                    {/* Single State Selection for city-to-city trips */}
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-2">
+                        State (for city-to-city trip)
+                      </label>
+                      <div className="relative">
+                        <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
+                        <select
+                          value={searchData.fromState}
+                          onChange={(e) =>
+                            setSearchData({
+                              ...searchData,
+                              fromState: e.target.value,
+                              toState: e.target.value, // Same state for both
+                              from: "",
+                              to: "",
+                            })
+                          }
+                          className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                          required>
+                          <option value="">Select state</option>
+                          {locationOptions.map((state) => (
+                            <option key={state} value={state}>
+                              {state}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-charcoal mb-2">
-                    To
-                  </label>
-                  <div className="relative">
-                    <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
-                    <select
-                      value={searchData.to}
-                      onChange={(e) =>
-                        setSearchData({ ...searchData, to: e.target.value })
-                      }
-                      className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
-                      required>
-                      <option value="">
-                        Select destination{" "}
-                        {searchData.transportType === "flight"
-                          ? "city/country"
-                          : "state"}
-                      </option>
-                      {locationOptions.map((location) => (
-                        <option key={location} value={location}>
-                          {location}
+                    {/* From City - Only show after state selected */}
+                    {searchData.fromState && (
+                      <div>
+                        <label className="block text-sm font-medium text-charcoal mb-2">
+                          From City
+                        </label>
+                        <div className="relative">
+                          <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
+                          <select
+                            value={searchData.from}
+                            onChange={(e) =>
+                              setSearchData({
+                                ...searchData,
+                                from: e.target.value,
+                              })
+                            }
+                            className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                            required>
+                            <option value="">Select departure city</option>
+                            {fromCities.map((city) => (
+                              <option key={city} value={city}>
+                                {city}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* To City - within same state */}
+                    {searchData.fromState && (
+                      <div>
+                        <label className="block text-sm font-medium text-charcoal mb-2">
+                          To City
+                        </label>
+                        <div className="relative">
+                          <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
+                          <select
+                            value={searchData.to}
+                            onChange={(e) =>
+                              setSearchData({
+                                ...searchData,
+                                to: e.target.value,
+                              })
+                            }
+                            className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                            required>
+                            <option value="">Select destination city</option>
+                            {fromCities.map((city) => (
+                              <option key={city} value={city}>
+                                {city}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-charcoal mb-2">
+                      From
+                    </label>
+                    <div className="relative">
+                      <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
+                      <select
+                        value={searchData.from}
+                        onChange={(e) =>
+                          setSearchData({ ...searchData, from: e.target.value })
+                        }
+                        className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                        required>
+                        <option value="">
+                          Select departure{" "}
+                          {searchData.transportType === "international"
+                            ? "country"
+                            : "state"}
                         </option>
-                      ))}
-                    </select>
+                        {locationOptions.map((location) => (
+                          <option key={location} value={location}>
+                            {location}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
-                </div>
+                )}
+
+                {/* TO LOCATION - Only for non-intra-state */}
+                {searchData.transportType !== "intra-state" && (
+                  <div>
+                    <label className="block text-sm font-medium text-charcoal mb-2">
+                      To
+                    </label>
+                    <div className="relative">
+                      <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
+                      <select
+                        value={searchData.to}
+                        onChange={(e) =>
+                          setSearchData({ ...searchData, to: e.target.value })
+                        }
+                        className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                        required>
+                        <option value="">
+                          Select destination{" "}
+                          {searchData.transportType === "international"
+                            ? "country"
+                            : "state"}
+                        </option>
+                        {locationOptions.map((location) => (
+                          <option key={location} value={location}>
+                            {location}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                )}
 
                 <div>
                   <label className="block text-sm font-medium text-charcoal mb-2">

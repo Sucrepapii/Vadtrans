@@ -74,8 +74,8 @@ const CompanyProfile = () => {
     duration: "",
     price: "",
     seats: "",
-    fromState: "",
-    toState: "",
+    fromState: "", // For intra-state trips
+    toState: "", // For intra-state trips
   });
 
   const tabs = [
@@ -167,8 +167,14 @@ const CompanyProfile = () => {
     try {
       setSaving(true);
       const tripData = {
-        from: formData.from,
-        to: formData.to,
+        from:
+          formData.transportType === "intra-state"
+            ? formData.fromState
+            : formData.from,
+        to:
+          formData.transportType === "intra-state"
+            ? formData.toState
+            : formData.to,
         transportType: formData.transportType,
         departureTime: formData.departureTime,
         duration: formData.duration || null,
@@ -192,6 +198,8 @@ const CompanyProfile = () => {
         duration: "",
         price: "",
         seats: "",
+        fromState: "",
+        toState: "",
       });
       setShowModal(false);
       setEditingTrip(null);
@@ -523,7 +531,24 @@ const CompanyProfile = () => {
               <Card>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                   <h2 className="text-lg font-semibold">Manage Trips</h2>
-                  <Button variant="primary" onClick={() => setShowModal(true)}>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setShowModal(true);
+                      setFormData({
+                        // Reset form data when opening for new trip
+                        from: "",
+                        to: "",
+                        transportType: "inter-state",
+                        departureTime: "",
+                        duration: "",
+                        price: "",
+                        seats: "",
+                        fromState: "",
+                        toState: "",
+                      });
+                      setEditingTrip(null);
+                    }}>
                     <div className="flex items-center gap-2">
                       <FaBus />
                       <span>Add New Trip</span>
@@ -613,13 +638,14 @@ const CompanyProfile = () => {
                               })
                             }
                             className="w-full px-4 py-2 border border-neutral-300 rounded-lg">
-                            <option value="bus-domestic">Bus - Domestic</option>
-                            <option value="bus-international">
-                              Bus - International
+                            <option value="inter-state">
+                              Inter-State (Nigeria)
                             </option>
-                            <option value="car-domestic">Car - Domestic</option>
-                            <option value="car-international">
-                              Car - International
+                            <option value="international">
+                              International (West Africa)
+                            </option>
+                            <option value="intra-state">
+                              Intra-State (City-to-City)
                             </option>
                           </select>
                         </div>

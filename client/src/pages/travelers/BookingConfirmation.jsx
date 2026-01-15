@@ -39,7 +39,7 @@ const BookingConfirmation = () => {
     to: "Abuja",
     departureTime: "08:00 AM",
     company: "Vadtrans",
-    type: "bus",
+    type: "inter-state",
   };
 
   // Handle company name - it could be an object or string
