@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { authAPI } from "../../services/api";
@@ -9,10 +9,16 @@ import Input from "../../components/Input";
 import { FaSpinner } from "react-icons/fa";
 
 const SignUp = () => {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
-  const [userType, setUserType] = useState("traveler"); // 'traveler' or 'company'
+
+  // Get redirect path and preset role from URL
+  const redirectPath = searchParams.get("redirect");
+  const presetRole = searchParams.get("role");
+
+  const [userType, setUserType] = useState(presetRole || "traveler"); // 'traveler' or 'company'
   const [formData, setFormData] = useState({
     name: "",
     companyName: "",
@@ -68,9 +74,12 @@ const SignUp = () => {
       // Show success message
       toast.success(`Welcome to VadTrans, ${response.data.user.name}! 🎉`);
 
-      // Redirect based on role FROM BACKEND (not frontend state)
+      // Redirect based on role or URL param
       const userRole = response.data.user.role;
-      if (userRole === "company") {
+
+      if (redirectPath) {
+        navigate(redirectPath);
+      } else if (userRole === "company") {
         navigate("/company/tickets");
       } else {
         navigate("/search");

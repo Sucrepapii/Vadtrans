@@ -1,5 +1,8 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext";
+import { authAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
@@ -15,6 +18,7 @@ import {
 
 const DocumentUpload = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     businessRegistration: null,
@@ -50,12 +54,25 @@ const DocumentUpload = () => {
     setFormData({ ...formData, [field]: file });
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
+    // Check if user is authenticated before proceeding
+    if (!isAuthenticated) {
+      toast.info(
+        "Please sign up or log in to continue uploading your documents"
+      );
+      navigate("/signup?role=company&redirect=/company/register");
+      return;
+    }
+
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
-      // Submit all documents
-      navigate("/company/dashboard");
+      // Submit logic would go here
+      // For now, redirect to company profile/tickets
+      toast.success(
+        "Documents submitted successfully! Redirecting to dashboard..."
+      );
+      navigate("/company/tickets");
     }
   };
 
@@ -221,6 +238,21 @@ const DocumentUpload = () => {
           <p className="text-neutral-600 mb-8">
             Complete all steps to verify your company
           </p>
+
+          {!isAuthenticated && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+              <p className="text-yellow-800 text-sm">
+                <strong>Note:</strong> You can browse the requirements below,
+                but you'll need to{" "}
+                <Link
+                  to="/signup?role=company&redirect=/company/register"
+                  className="text-primary font-bold hover:underline">
+                  Sign Up as a Company
+                </Link>{" "}
+                to upload and submit your documents.
+              </p>
+            </div>
+          )}
 
           {/* Progress Steps */}
           <div className="mb-8">

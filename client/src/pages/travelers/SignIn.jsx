@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { authAPI } from "../../services/api";
@@ -9,9 +9,12 @@ import Input from "../../components/Input";
 import { FaEnvelope, FaLock, FaSpinner } from "react-icons/fa";
 
 const SignIn = () => {
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
+
+  const redirectPath = searchParams.get("redirect");
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -57,9 +60,11 @@ const SignIn = () => {
         }!`
       );
 
-      // Redirect based on role
+      // Redirect based on role or URL param
       if (response.data.user.role === "admin") {
         navigate("/admin");
+      } else if (redirectPath) {
+        navigate(redirectPath);
       } else if (response.data.user.role === "company") {
         navigate("/company/tickets");
       } else {
