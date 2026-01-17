@@ -104,4 +104,9 @@ export const adminAPI = {
   rejectCompany: (id) => api.put(`/admin/companies/${id}/reject`),
 };
 
+// Contact API
+export const contactAPI = {
+  sendMessage: (data) => api.post("/contact", data),
+};
+
 export default api;

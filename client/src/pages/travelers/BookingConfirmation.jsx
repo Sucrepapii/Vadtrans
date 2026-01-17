@@ -18,6 +18,8 @@ import {
   FaPrint,
   FaArrowRight,
 } from "react-icons/fa";
+import html2canvas from "html2canvas";
+import jsPDF from "jspdf";
 
 const BookingConfirmation = () => {
   const navigate = useNavigate();
@@ -54,8 +56,29 @@ const BookingConfirmation = () => {
   const finalTotal = totalAmount || 100;
   const finalBookingId = bookingId;
 
-  const handleDownloadTicket = () => {
-    toast.info("Ticket download will be implemented");
+  const handleDownloadTicket = async () => {
+    const element = document.getElementById("ticket-content");
+    if (!element) return;
+
+    try {
+      const canvas = await html2canvas(element, {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+      });
+
+      const imgData = canvas.toDataURL("image/png");
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`VadTrans-Ticket-${finalBookingId}.pdf`);
+      toast.success("Ticket downloaded successfully!");
+    } catch (error) {
+      console.error("Download error:", error);
+      toast.error("Failed to download ticket");
+    }
   };
 
   const handlePrint = () => {
@@ -158,208 +181,212 @@ const BookingConfirmation = () => {
           </div>
 
           {/* Main Content */}
-          <Card className="p-4 sm:p-6 mb-6">
-            {/* Trip Card */}
-            <div className="bg-white border-2 border-neutral-200 rounded-lg p-4 sm:p-6 mb-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
-                {/* Company Logo/Name */}
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
-                    <FaBus className="text-3xl text-white" />
+          <div id="ticket-content">
+            <Card className="p-4 sm:p-6 mb-6">
+              {/* Trip Card */}
+              <div className="bg-white border-2 border-neutral-200 rounded-lg p-4 sm:p-6 mb-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                  {/* Company Logo/Name */}
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 bg-primary rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FaBus className="text-3xl text-white" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-lg">{companyName}</h3>
+                      <p className="text-sm text-neutral-600">
+                        {finalBookingId}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-lg">{companyName}</h3>
-                    <p className="text-sm text-neutral-600">{finalBookingId}</p>
-                  </div>
-                </div>
 
-                {/* Route Overview */}
-                <div className="flex items-center gap-2 sm:gap-4 bg-neutral-50 px-4 py-3 rounded-lg">
-                  <div className="text-center">
-                    <div className="flex items-center gap-2 mb-1">
-                      <FaBus className="text-primary text-xs" />
-                      <span className="font-bold text-lg">
-                        {finalTrip.departureTime}
+                  {/* Route Overview */}
+                  <div className="flex items-center gap-2 sm:gap-4 bg-neutral-50 px-4 py-3 rounded-lg">
+                    <div className="text-center">
+                      <div className="flex items-center gap-2 mb-1">
+                        <FaBus className="text-primary text-xs" />
+                        <span className="font-bold text-lg">
+                          {finalTrip.departureTime}
+                        </span>
+                      </div>
+                      <span className="text-xs font-medium text-neutral-600">
+                        {finalTrip.from}
                       </span>
                     </div>
-                    <span className="text-xs font-medium text-neutral-600">
-                      {finalTrip.from}
-                    </span>
-                  </div>
-                  <FaArrowRight className="text-primary mx-2" />
-                  <div className="text-center">
-                    <div className="flex items-center gap-2 mb-1">
-                      <FaMapMarkerAlt className="text-primary text-xs" />
-                      <span className="font-bold text-lg">{arrivalTime}</span>
+                    <FaArrowRight className="text-primary mx-2" />
+                    <div className="text-center">
+                      <div className="flex items-center gap-2 mb-1">
+                        <FaMapMarkerAlt className="text-primary text-xs" />
+                        <span className="font-bold text-lg">{arrivalTime}</span>
+                      </div>
+                      <span className="text-xs font-medium text-neutral-600">
+                        {finalTrip.to}
+                      </span>
                     </div>
-                    <span className="text-xs font-medium text-neutral-600">
-                      {finalTrip.to}
-                    </span>
+                    <div className="text-xs text-neutral-500 ml-2">
+                      <FaClock className="inline mr-1" />
+                      {durationText}
+                    </div>
                   </div>
-                  <div className="text-xs text-neutral-500 ml-2">
-                    <FaClock className="inline mr-1" />
-                    {durationText}
-                  </div>
+                </div>
+
+                {/* Date */}
+                <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
+                  <FaCalendar className="text-primary" />
+                  <span>
+                    {searchParams?.date || new Date().toLocaleDateString()}
+                  </span>
                 </div>
               </div>
 
-              {/* Date */}
-              <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
-                <FaCalendar className="text-primary" />
-                <span>
-                  {searchParams?.date || new Date().toLocaleDateString()}
-                </span>
-              </div>
-            </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Left Side - Journey Details */}
+                <div className="lg:col-span-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    {/* Departure */}
+                    <div className="bg-neutral-50 p-4 rounded-lg">
+                      <p className="text-xs text-neutral-600 mb-2">Departure</p>
+                      <div className="flex items-center gap-2">
+                        <FaBus className="text-primary" />
+                        <div>
+                          <p className="font-bold">{finalTrip.from}</p>
+                          <p className="text-sm text-neutral-600">
+                            {finalTrip.departureTime}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              {/* Left Side - Journey Details */}
-              <div className="lg:col-span-2">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-                  {/* Departure */}
-                  <div className="bg-neutral-50 p-4 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-2">Departure</p>
-                    <div className="flex items-center gap-2">
+                    {/* Arrival */}
+                    <div className="bg-neutral-50 p-4 rounded-lg">
+                      <p className="text-xs text-neutral-600 mb-2">Arrival</p>
+                      <div className="flex items-center gap-2">
+                        <FaMapMarkerAlt className="text-primary" />
+                        <div>
+                          <p className="font-bold">{finalTrip.to}</p>
+                          <p className="text-sm text-neutral-600">
+                            {arrivalTime}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Route Timeline */}
+                  <div className="bg-neutral-50 p-4 sm:p-6 rounded-lg mb-6">
+                    <h3 className="font-semibold mb-4 flex items-center gap-2">
                       <FaBus className="text-primary" />
-                      <div>
-                        <p className="font-bold">{finalTrip.from}</p>
+                      Route Information
+                    </h3>
+                    <div className="relative pl-8">
+                      {/* Departure */}
+                      <div className="mb-6 relative">
+                        <div className="absolute -left-8 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <FaBus className="text-white text-xs" />
+                        </div>
+                        <p className="font-semibold">
+                          Departs Terminal: {finalTrip.from}
+                        </p>
                         <p className="text-sm text-neutral-600">
                           {finalTrip.departureTime}
                         </p>
                       </div>
-                    </div>
-                  </div>
 
-                  {/* Arrival */}
-                  <div className="bg-neutral-50 p-4 rounded-lg">
-                    <p className="text-xs text-neutral-600 mb-2">Arrival</p>
-                    <div className="flex items-center gap-2">
-                      <FaMapMarkerAlt className="text-primary" />
-                      <div>
-                        <p className="font-bold">{finalTrip.to}</p>
-                        <p className="text-sm text-neutral-600">
-                          {arrivalTime}
+                      {/* Dotted line */}
+                      <div className="absolute left-[-29px] top-8 bottom-8 w-0.5 border-l-2 border-dashed border-neutral-300"></div>
+
+                      {/* Arrival */}
+                      <div className="relative">
+                        <div className="absolute -left-8 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
+                          <FaMapMarkerAlt className="text-white text-xs" />
+                        </div>
+                        <p className="font-semibold">
+                          Arrives Terminal: {finalTrip.to}
                         </p>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                {/* Route Timeline */}
-                <div className="bg-neutral-50 p-4 sm:p-6 rounded-lg mb-6">
-                  <h3 className="font-semibold mb-4 flex items-center gap-2">
-                    <FaBus className="text-primary" />
-                    Route Information
-                  </h3>
-                  <div className="relative pl-8">
-                    {/* Departure */}
-                    <div className="mb-6 relative">
-                      <div className="absolute -left-8 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                        <FaBus className="text-white text-xs" />
-                      </div>
-                      <p className="font-semibold">
-                        Departs Terminal: {finalTrip.from}
-                      </p>
-                      <p className="text-sm text-neutral-600">
-                        {finalTrip.departureTime}
-                      </p>
-                    </div>
-
-                    {/* Dotted line */}
-                    <div className="absolute left-[-29px] top-8 bottom-8 w-0.5 border-l-2 border-dashed border-neutral-300"></div>
-
-                    {/* Arrival */}
-                    <div className="relative">
-                      <div className="absolute -left-8 w-6 h-6 bg-primary rounded-full flex items-center justify-center">
-                        <FaMapMarkerAlt className="text-white text-xs" />
-                      </div>
-                      <p className="font-semibold">
-                        Arrives Terminal: {finalTrip.to}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Passenger Details */}
-                <div className="bg-neutral-50 p-4 sm:p-6 rounded-lg">
-                  <h3 className="font-semibold mb-4">Passenger Details</h3>
-                  <div className="space-y-3">
-                    {finalPassengers.map((passenger, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center justify-between py-2 border-b border-neutral-200 last:border-0">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
-                            <span className="text-primary font-semibold text-sm">
-                              {index + 1}
-                            </span>
-                          </div>
-                          <div>
-                            <p className="font-medium">
-                              {passenger.firstName ||
-                                passenger.fullName ||
-                                `Passenger ${index + 1}`}
-                            </p>
-                            {selectedSeats && selectedSeats[index] && (
-                              <p className="text-xs text-neutral-600">
-                                Seat {selectedSeats[index]}
+                  {/* Passenger Details */}
+                  <div className="bg-neutral-50 p-4 sm:p-6 rounded-lg">
+                    <h3 className="font-semibold mb-4">Passenger Details</h3>
+                    <div className="space-y-3">
+                      {finalPassengers.map((passenger, index) => (
+                        <div
+                          key={index}
+                          className="flex items-center justify-between py-2 border-b border-neutral-200 last:border-0">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-primary/10 rounded-full flex items-center justify-center">
+                              <span className="text-primary font-semibold text-sm">
+                                {index + 1}
+                              </span>
+                            </div>
+                            <div>
+                              <p className="font-medium">
+                                {passenger.firstName ||
+                                  passenger.fullName ||
+                                  `Passenger ${index + 1}`}
                               </p>
-                            )}
+                              {selectedSeats && selectedSeats[index] && (
+                                <p className="text-xs text-neutral-600">
+                                  Seat {selectedSeats[index]}
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Right Side - Fare Summary */}
+                <div>
+                  <div className="bg-neutral-50 p-4 sm:p-6 rounded-lg sticky top-4">
+                    <h3 className="font-semibold mb-4">Fare Summary</h3>
+
+                    <div className="space-y-3 mb-4 pb-4 border-b border-neutral-200">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-neutral-600">
+                          Adult X {finalPassengers.length}
+                        </span>
+                        <span className="font-semibold">
+                          ₦{subtotal.toLocaleString()}
+                        </span>
                       </div>
-                    ))}
+                      <div className="flex justify-between text-sm">
+                        <span className="text-neutral-600">Service Fee</span>
+                        <span className="font-semibold">
+                          ₦{serviceFee.toLocaleString()}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mb-4">
+                      <div className="flex justify-between items-center">
+                        <span className="font-bold">Total</span>
+                        <span className="text-2xl font-bold text-primary">
+                          ₦{finalTotal.toLocaleString()}
+                        </span>
+                      </div>
+                      <p className="text-xs text-neutral-600 mt-1">
+                        {finalPassengers.length} traveller
+                        {finalPassengers.length > 1 ? "s" : ""}
+                      </p>
+                    </div>
+
+                    <div className="pt-4 border-t border-neutral-200">
+                      <p className="text-xs text-neutral-600 mb-1">
+                        Payment Method
+                      </p>
+                      <p className="font-medium capitalize">
+                        {paymentMethod || "Card"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-
-              {/* Right Side - Fare Summary */}
-              <div>
-                <div className="bg-neutral-50 p-4 sm:p-6 rounded-lg sticky top-4">
-                  <h3 className="font-semibold mb-4">Fare Summary</h3>
-
-                  <div className="space-y-3 mb-4 pb-4 border-b border-neutral-200">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-neutral-600">
-                        Adult X {finalPassengers.length}
-                      </span>
-                      <span className="font-semibold">
-                        ₦{subtotal.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-neutral-600">Service Fee</span>
-                      <span className="font-semibold">
-                        ₦{serviceFee.toLocaleString()}
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center">
-                      <span className="font-bold">Total</span>
-                      <span className="text-2xl font-bold text-primary">
-                        ₦{finalTotal.toLocaleString()}
-                      </span>
-                    </div>
-                    <p className="text-xs text-neutral-600 mt-1">
-                      {finalPassengers.length} traveller
-                      {finalPassengers.length > 1 ? "s" : ""}
-                    </p>
-                  </div>
-
-                  <div className="pt-4 border-t border-neutral-200">
-                    <p className="text-xs text-neutral-600 mb-1">
-                      Payment Method
-                    </p>
-                    <p className="font-medium capitalize">
-                      {paymentMethod || "Card"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </Card>
+            </Card>
+          </div>
 
           {/* Next Steps */}
           <Card className="mb-6 bg-blue-50 border border-blue-200 p-4 sm:p-6">

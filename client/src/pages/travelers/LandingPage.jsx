@@ -368,36 +368,14 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white rounded-lg p-8 text-center hover:shadow-lg transition-shadow border border-neutral-200">
+          <div className="flex justify-center">
+            <div className="bg-white rounded-lg p-8 text-center hover:shadow-lg transition-shadow border border-neutral-200 max-w-sm w-full">
               <FaBus className="text-5xl text-primary mx-auto mb-4" />
               <h3 className="text-xl font-semibold text-charcoal mb-2">Bus</h3>
               <p className="text-neutral-600 mb-4">
                 Comfortable and affordable bus services
               </p>
               <p className="text-2xl font-bold text-primary">From ₦25,000</p>
-            </div>
-
-            <div className="bg-white rounded-lg p-8 text-center hover:shadow-lg transition-shadow border border-neutral-200">
-              <FaTrain className="text-5xl text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-charcoal mb-2">
-                Train
-              </h3>
-              <p className="text-neutral-600 mb-4">
-                Fast and reliable train journeys
-              </p>
-              <p className="text-2xl font-bold text-primary">From ₦5,000</p>
-            </div>
-
-            <div className="bg-white rounded-lg p-8 text-center hover:shadow-lg transition-shadow border border-neutral-200">
-              <FaPlane className="text-5xl text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-charcoal mb-2">
-                Flight
-              </h3>
-              <p className="text-neutral-600 mb-4">
-                Quick flights to major cities
-              </p>
-              <p className="text-2xl font-bold text-primary">From ₦250,000</p>
             </div>
           </div>
         </div>

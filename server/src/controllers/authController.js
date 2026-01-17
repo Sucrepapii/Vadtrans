@@ -221,13 +221,13 @@ exports.updateProfile = async (req, res) => {
     }
 
     // Update common fields
-    user.firstName = firstName || user.firstName;
-    user.lastName = lastName || user.lastName;
-    user.name = name || user.name;
-    user.phone = phone || user.phone;
-    user.address = address || user.address;
-    user.city = city || user.city;
-    user.avatar = avatar || user.avatar;
+    user.firstName = firstName !== undefined ? firstName : user.firstName;
+    user.lastName = lastName !== undefined ? lastName : user.lastName;
+    user.name = name !== undefined ? name : user.name;
+    user.phone = phone !== undefined ? phone : user.phone;
+    user.address = address !== undefined ? address : user.address;
+    user.city = city !== undefined ? city : user.city;
+    user.avatar = avatar !== undefined ? avatar : user.avatar;
 
     // Update traveler-specific fields
     if (user.role === "traveler" || user.role === "admin") {

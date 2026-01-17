@@ -122,7 +122,9 @@ const Navbar = ({ variant = "desktop" }) => {
                   </>
                 )}
 
-                <button className="p-2 hover:text-primary transition-colors">
+                <button
+                  onClick={() => navigate("/search")}
+                  className="p-2 hover:text-primary transition-colors">
                   <FaSearch size={20} />
                 </button>
               </div>

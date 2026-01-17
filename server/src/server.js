@@ -11,6 +11,7 @@ const authRoutes = require("./routes/auth");
 const tripRoutes = require("./routes/trips");
 const bookingRoutes = require("./routes/bookings");
 const adminRoutes = require("./routes/admin");
+const contactRoutes = require("./routes/contact.routes");
 
 // Initialize all models
 const User = require("./models/User");
@@ -96,6 +97,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/trips", tripRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/contact", contactRoutes);
 
 // Health check route
 app.get("/api/health", (req, res) => {

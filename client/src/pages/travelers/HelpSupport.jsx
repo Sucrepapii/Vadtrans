@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Link } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -112,25 +113,31 @@ const HelpSupport = () => {
 
           {/* Quick Links */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer">
-              <FaBook className="text-4xl text-primary mx-auto mb-3" />
-              <h3 className="font-semibold mb-1">Getting Started</h3>
-              <p className="text-sm text-neutral-600">
-                Learn how to use Vadtrans
-              </p>
-            </Card>
-            <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer">
-              <FaEnvelope className="text-4xl text-blue-600 mx-auto mb-3" />
-              <h3 className="font-semibold mb-1">Contact Support</h3>
-              <p className="text-sm text-neutral-600">
-                Get in touch with our team
-              </p>
-            </Card>
-            <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer">
-              <FaPhone className="text-4xl text-green-600 mx-auto mb-3" />
-              <h3 className="font-semibold mb-1">Call Us</h3>
-              <p className="text-sm text-neutral-600">+234 800 VADTRANS</p>
-            </Card>
+            <Link to="/about">
+              <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <FaBook className="text-4xl text-primary mx-auto mb-3" />
+                <h3 className="font-semibold mb-1">Getting Started</h3>
+                <p className="text-sm text-neutral-600">
+                  Learn how to use Vadtrans
+                </p>
+              </Card>
+            </Link>
+            <Link to="/contact">
+              <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <FaEnvelope className="text-4xl text-blue-600 mx-auto mb-3" />
+                <h3 className="font-semibold mb-1">Contact Support</h3>
+                <p className="text-sm text-neutral-600">
+                  Get in touch with our team
+                </p>
+              </Card>
+            </Link>
+            <a href="tel:+2349123284931">
+              <Card className="text-center hover:shadow-lg transition-shadow cursor-pointer h-full">
+                <FaPhone className="text-4xl text-green-600 mx-auto mb-3" />
+                <h3 className="font-semibold mb-1">Call Us</h3>
+                <p className="text-sm text-neutral-600">+234-912-328-4931</p>
+              </Card>
+            </a>
           </div>
 
           {/* FAQs */}

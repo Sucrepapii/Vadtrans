@@ -3,7 +3,8 @@ import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
-import { FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
+import { contactAPI } from "../../services/api";
+import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaSpinner } from "react-icons/fa";
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -22,20 +23,41 @@ const ContactUs = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.agreeToPrivacy) {
       toast.error("Please agree to the privacy policy");
       return;
     }
-    toast.success("Message sent! We'll get back to you soon.");
-    setFormData({
-      fullName: "",
-      email: "",
-      subject: "",
-      message: "",
-      agreeToPrivacy: false,
-    });
+
+    try {
+      setLoading(true);
+      await contactAPI.sendMessage({
+        name: formData.fullName,
+        email: formData.email,
+        subject: formData.subject,
+        message: formData.message,
+      });
+
+      toast.success("Message sent! We'll get back to you soon.");
+      setFormData({
+        fullName: "",
+        email: "",
+        subject: "",
+        message: "",
+        agreeToPrivacy: false,
+      });
+    } catch (error) {
+      console.error("Contact error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Failed to send message. Please try again."
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -137,8 +159,10 @@ const ContactUs = () => {
 
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors">
-                  Submit
+                  disabled={loading}
+                  className="px-8 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2">
+                  {loading && <FaSpinner className="animate-spin" />}
+                  {loading ? "Sending..." : "Submit"}
                 </button>
               </form>
             </div>
