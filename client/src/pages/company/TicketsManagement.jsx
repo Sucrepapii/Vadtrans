@@ -24,6 +24,7 @@ import {
   FaMapMarkerAlt,
   FaSpinner,
 } from "react-icons/fa";
+import { MaterialTimePicker } from "../../components/MaterialDatePicker";
 
 const TicketsManagement = () => {
   const [tickets, setTickets] = useState([]);
@@ -515,15 +516,13 @@ const TicketsManagement = () => {
             </>
           )}
 
-          <Input
+          <MaterialTimePicker
             label="Departure Time"
-            type="time"
             value={formData.departureTime}
-            onChange={(e) =>
-              setFormData({ ...formData, departureTime: e.target.value })
+            onChange={(timeStr) =>
+              setFormData({ ...formData, departureTime: timeStr })
             }
-            required
-            disabled={saving}
+            className="w-full"
           />
 
           <Input

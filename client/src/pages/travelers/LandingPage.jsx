@@ -4,6 +4,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
+import MaterialDatePicker from "../../components/MaterialDatePicker";
 import {
   nigerianStates,
   westAfricanCountries,
@@ -263,18 +264,20 @@ const LandingPage = () => {
                   <label className="block text-sm font-medium text-charcoal mb-2">
                     Date
                   </label>
-                  <div className="relative">
-                    <FaCalendar className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
-                    <input
-                      type="date"
-                      value={searchData.date}
-                      onChange={(e) =>
-                        setSearchData({ ...searchData, date: e.target.value })
-                      }
-                      className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary text-sm sm:text-base"
-                      required
-                    />
-                  </div>
+                  <MaterialDatePicker
+                    label="Date"
+                    value={searchData.date}
+                    onChange={(dateObj) =>
+                      setSearchData({
+                        ...searchData,
+                        date: dateObj
+                          ? dateObj.toISOString().split("T")[0]
+                          : "",
+                      })
+                    }
+                    minDate={new Date()} // Prevent past dates
+                    className="w-full"
+                  />
                 </div>
 
                 <button
