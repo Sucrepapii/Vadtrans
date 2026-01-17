@@ -3,7 +3,14 @@ import Sidebar from "../../components/admin/Sidebar";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
-import { FaDollarSign, FaPlus, FaEdit, FaTrash } from "react-icons/fa";
+import {
+  FaDollarSign,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaBus,
+  FaCar,
+} from "react-icons/fa";
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
 
@@ -82,13 +89,7 @@ const FareManagement = () => {
                     <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
                       <div className="flex items-center gap-2">
                         <FaDollarSign className="text-blue-600" />
-                        Train
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
-                      <div className="flex items-center gap-2">
-                        <FaDollarSign className="text-purple-600" />
-                        Flight
+                        Car
                       </div>
                     </th>
                     <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
@@ -117,9 +118,6 @@ const FareManagement = () => {
                         <td className="px-4 py-3 text-sm">
                           ₦{parseFloat(fare.train || 0).toLocaleString()}
                         </td>
-                        <td className="px-4 py-3 text-sm">
-                          ₦{parseFloat(fare.flight || 0).toLocaleString()}
-                        </td>
                         <td className="px-4 py-3">
                           <div className="flex gap-2">
                             <Button
@@ -139,7 +137,7 @@ const FareManagement = () => {
                   ) : (
                     <tr>
                       <td
-                        colSpan="5"
+                        colSpan="4"
                         className="px-4 py-8 text-center text-neutral-500">
                         No fares configured yet
                       </td>
@@ -158,15 +156,9 @@ const FareManagement = () => {
               </p>
             </Card>
             <Card>
-              <h3 className="font-semibold mb-2">Average Train Fare</h3>
+              <h3 className="font-semibold mb-2">Average Car Fare</h3>
               <p className="text-3xl font-bold text-blue-600">
                 ₦{calculateAverage("train")}
-              </p>
-            </Card>
-            <Card>
-              <h3 className="font-semibold mb-2">Average Flight Fare</h3>
-              <p className="text-3xl font-bold text-purple-600">
-                ₦{calculateAverage("flight")}
               </p>
             </Card>
           </div>

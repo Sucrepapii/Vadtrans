@@ -19,6 +19,9 @@ import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
 
 const CompanyManagement = () => {
+  const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+  const BASE_URL = API_URL.replace("/api", ""); // Get base URL for static files
+
   const [loading, setLoading] = useState(true);
   const [companies, setCompanies] = useState([]);
   const [filter, setFilter] = useState("all"); // all, pending, verified, rejected
@@ -360,7 +363,7 @@ const CompanyManagement = () => {
                         </div>
                       </div>
                       <a
-                        href={doc.url}
+                        href={`${BASE_URL}${doc.url}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:text-primary-dark font-medium text-sm">

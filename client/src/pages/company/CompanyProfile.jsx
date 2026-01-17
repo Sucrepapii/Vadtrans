@@ -264,7 +264,7 @@ const CompanyProfile = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
-      <Navbar variant="desktop" />
+      <Navbar variant="desktop" portalLabel="COMPANY PORTAL" />
 
       <div className="flex-1 py-8 px-4">
         <div className="container-custom max-w-6xl">

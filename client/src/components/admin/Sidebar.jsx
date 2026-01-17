@@ -51,7 +51,9 @@ const Sidebar = () => {
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b border-neutral-700">
         {!isCollapsed && (
-          <h1 className="text-xl font-raleway font-bold">Vadtrans Admin</h1>
+          <h1 className="text-xl font-raleway font-bold tracking-wider">
+            ADMIN PORTAL
+          </h1>
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}

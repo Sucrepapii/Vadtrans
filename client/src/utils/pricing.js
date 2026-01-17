@@ -3,7 +3,7 @@
  */
 
 // Service fee configuration
-const SERVICE_FEE_PERCENTAGE = 0.1; // % of subtotal
+const SERVICE_FEE_PERCENTAGE = 0.05; // 5% of subtotal
 const MIN_SERVICE_FEE = 500; // Minimum service fee in Naira
 const MAX_SERVICE_FEE = 100000000000; // Maximum service fee in Naira
 

@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -12,7 +12,7 @@ import {
 } from "react-icons/fa";
 import Button from "./Button";
 
-const Navbar = ({ variant = "desktop" }) => {
+const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -55,40 +55,67 @@ const Navbar = ({ variant = "desktop" }) => {
           <div className="container-custom">
             <div className="flex items-center justify-between h-20">
               {/* Logo */}
-              <Link to="/" className="flex items-center">
-                <span className="text-xl sm:text-2xl font-raleway font-bold text-primary">
-                  VadTrans
-                </span>
-                <span className="ml-1 text-2xl">🚐</span>
+              <Link to="/" className="flex flex-col">
+                <div className="flex items-center">
+                  <span className="text-xl sm:text-2xl font-raleway font-bold text-primary">
+                    VadTrans
+                  </span>
+                  <span className="ml-1 text-2xl">🚐</span>
+                </div>
+                {portalLabel && (
+                  <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
+                    {portalLabel}
+                  </span>
+                )}
               </Link>
 
               {/* Navigation Links */}
               <div className="hidden md:flex items-center gap-8">
-                <Link
+                <NavLink
                   to="/"
-                  className="text-charcoal hover:text-primary transition-colors font-medium">
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-primary font-bold transition-colors"
+                      : "text-charcoal hover:text-primary transition-colors font-medium "
+                  }>
                   Home
-                </Link>
-                <Link
+                </NavLink>
+                <NavLink
                   to="/about"
-                  className="text-charcoal hover:text-primary transition-colors font-medium">
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-primary font-bold transition-colors"
+                      : "text-charcoal hover:text-primary transition-colors font-medium"
+                  }>
                   About Us
-                </Link>
-                <Link
+                </NavLink>
+                <NavLink
                   to="/tracking"
-                  className="text-charcoal hover:text-primary transition-colors font-medium">
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-primary font-bold transition-colors"
+                      : "text-charcoal hover:text-primary transition-colors font-medium"
+                  }>
                   Tracking
-                </Link>
-                <Link
+                </NavLink>
+                <NavLink
                   to="/help"
-                  className="text-charcoal hover:text-primary transition-colors font-medium">
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-primary font-bold transition-colors"
+                      : "text-charcoal hover:text-primary transition-colors font-medium"
+                  }>
                   Contact Us
-                </Link>
-                <Link
+                </NavLink>
+                <NavLink
                   to="/company/register"
-                  className="text-charcoal hover:text-primary transition-colors font-medium">
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-primary font-bold transition-colors"
+                      : "text-charcoal hover:text-primary transition-colors font-medium"
+                  }>
                   List Your Company
-                </Link>
+                </NavLink>
               </div>
 
               {/* Right side buttons */}

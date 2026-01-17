@@ -359,6 +359,11 @@ const BookingConfirmation = () => {
                           ₦{serviceFee.toLocaleString()}
                         </span>
                       </div>
+                      <p className="text-xs text-neutral-500 italic mt-1 pb-2">
+                        This service fee helps us verify transport partners,
+                        maintain the platform, and provide customer support for
+                        a smooth and reliable travel experience.
+                      </p>
                     </div>
 
                     <div className="mb-4">

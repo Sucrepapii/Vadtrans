@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { sequelize, testConnection } = require("./config/database");
@@ -37,7 +38,19 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from uploads directory
-app.use("/uploads", express.static("uploads"));
+// Serve static files from uploads directory
+// __dirname is server/src, so we serve server/src/uploads
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"), {
+    setHeaders: (res, path, stat) => {
+      // Set correct content type for PDF and images
+      if (path.endsWith(".pdf")) {
+        res.set("Content-Type", "application/pdf");
+      }
+    },
+  })
+);
 
 // Enable CORS - Allow multiple origins
 const allowedOrigins = [

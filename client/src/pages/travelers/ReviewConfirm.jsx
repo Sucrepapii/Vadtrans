@@ -192,6 +192,11 @@ const ReviewConfirm = () => {
                       ₦{serviceFee.toLocaleString()}
                     </span>
                   </div>
+                  <p className="text-xs text-neutral-500 italic mt-1 pb-2">
+                    This service fee helps us verify transport partners,
+                    maintain the platform, and provide customer support for a
+                    smooth and reliable travel experience.
+                  </p>
                   <div className="border-t pt-3 flex justify-between">
                     <span className="font-bold">Total</span>
                     <span className="font-bold text-primary text-xl">
