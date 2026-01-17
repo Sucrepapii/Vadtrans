@@ -28,7 +28,7 @@ const seedDatabase = async () => {
 
     // Create default admin user
     const adminUser = await User.create({
-      name: "Admin User",
+      name: "Vadrans Admin",
       email: "admin@vadtrans.com",
       password: "Admin@123",
       phone: "+234123456789",

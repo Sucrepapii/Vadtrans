@@ -6,9 +6,9 @@ import {
   FaBars,
   FaTimes,
   FaUser,
-  FaPhone,
   FaEnvelope,
   FaSearch,
+  FaWhatsapp,
 } from "react-icons/fa";
 import Button from "./Button";
 
@@ -34,7 +34,7 @@ const Navbar = ({ variant = "desktop" }) => {
               <a
                 href="tel:+234-912-328-4931"
                 className="flex items-center gap-2 hover:text-primary transition-colors">
-                <FaPhone className="text-xs" />
+                <FaWhatsapp className="text-xs" />
                 <span>+234-912-328-4931</span>
               </a>
               <a

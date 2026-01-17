@@ -88,35 +88,25 @@ const SignIn = () => {
             </h1>
 
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  Email
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="Email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-                />
-              </div>
+              <Input
+                label="Email"
+                type="email"
+                name="email"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
 
-              <div>
-                <label className="block text-sm font-medium text-charcoal mb-2">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  placeholder="Password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-                />
-              </div>
+              <Input
+                label="Password"
+                type="password"
+                name="password"
+                placeholder="Password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
 
               <div className="flex items-center justify-between">
                 <label className="flex items-center">

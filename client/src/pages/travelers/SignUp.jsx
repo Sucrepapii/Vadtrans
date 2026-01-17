@@ -5,6 +5,7 @@ import { useAuth } from "../../context/AuthContext";
 import { authAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import Input from "../../components/Input";
 import { FaSpinner } from "react-icons/fa";
 
 const SignUp = () => {
@@ -127,106 +128,74 @@ const SignUp = () => {
             {userType === "traveler" ? (
               <>
                 {/* traveler Fields */}
-                <div>
-                  <label className="block text-sm font-medium text-charcoal mb-2">
-                    Full Name
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    placeholder="John Doe"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                    disabled={loading}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-                  />
-                </div>
+                <Input
+                  label="Full Name"
+                  name="name"
+                  placeholder="John Doe"
+                  value={formData.name}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
 
-                <div>
-                  <label className="block text-sm font-medium text-charcoal mb-2">
-                    Phone Number
-                  </label>
-                  <input
-                    type="tel"
-                    name="phone"
-                    placeholder="+234-800-000-0000"
-                    value={formData.phone}
-                    onChange={handleChange}
-                    disabled={loading}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-                  />
-                </div>
+                <Input
+                  label="Phone Number"
+                  type="tel"
+                  name="phone"
+                  placeholder="+234-800-000-0000"
+                  value={formData.phone}
+                  onChange={handleChange}
+                  disabled={loading}
+                />
               </>
             ) : (
               <>
                 {/* Company Fields */}
-                <div>
-                  <label className="block text-sm font-medium text-charcoal mb-2">
-                    Company Name
-                  </label>
-                  <input
-                    type="text"
-                    name="companyName"
-                    placeholder="Transport Company Ltd"
-                    value={formData.companyName}
-                    onChange={handleChange}
-                    required
-                    disabled={loading}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-                  />
-                </div>
+                <Input
+                  label="Company Name"
+                  name="companyName"
+                  placeholder="Transport Company Ltd"
+                  value={formData.companyName}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
               </>
             )}
 
             {/* Common Fields */}
-            <div>
-              <label className="block text-sm font-medium text-charcoal mb-2">
-                Email Address
-              </label>
-              <input
-                type="email"
-                name="email"
-                placeholder="example@email.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                disabled={loading}
-                className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-              />
-            </div>
+            <Input
+              label="Email Address"
+              type="email"
+              name="email"
+              placeholder="example@email.com"
+              value={formData.email}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-charcoal mb-2">
-                Password
-              </label>
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleChange}
-                required
-                disabled={loading}
-                className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-              />
-            </div>
+            <Input
+              label="Password"
+              type="password"
+              name="password"
+              placeholder="Password"
+              value={formData.password}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
 
-            <div>
-              <label className="block text-sm font-medium text-charcoal mb-2">
-                Confirm Password
-              </label>
-              <input
-                type="password"
-                name="confirmPassword"
-                placeholder="Confirm Password"
-                value={formData.confirmPassword}
-                onChange={handleChange}
-                required
-                disabled={loading}
-                className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-              />
-            </div>
+            <Input
+              label="Confirm Password"
+              type="password"
+              name="confirmPassword"
+              placeholder="Confirm Password"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              required
+              disabled={loading}
+            />
 
             <div className="flex items-start">
               <input
