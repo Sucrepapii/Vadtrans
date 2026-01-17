@@ -45,8 +45,26 @@ const Trip = sequelize.define(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM("active", "inactive", "cancelled"),
+      type: DataTypes.ENUM("active", "inactive", "cancelled", "completed"),
       defaultValue: "active",
+    },
+    // Tracking fields
+    currentLat: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    currentLng: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    currentLocation: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Human readable location description",
+    },
+    lastUpdated: {
+      type: DataTypes.DATE,
+      allowNull: true,
     },
     companyId: {
       type: DataTypes.INTEGER,

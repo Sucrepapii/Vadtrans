@@ -61,6 +61,7 @@ export const tripAPI = {
   getMyTrips: () => api.get("/trips/company/my-trips"),
   createTrip: (tripData) => api.post("/trips", tripData),
   updateTrip: (id, tripData) => api.put(`/trips/${id}`, tripData),
+  updateLocation: (id, data) => api.put(`/trips/${id}/location`, data),
   deleteTrip: (id) => api.delete(`/trips/${id}`),
 };
 

@@ -27,6 +27,7 @@ import CompanyLanding from "./pages/company/CompanyLanding";
 import DocumentUpload from "./pages/company/DocumentUpload";
 import TicketsManagement from "./pages/company/TicketsManagement";
 import CompanyProfile from "./pages/company/CompanyProfile";
+import DriverConsole from "./pages/company/DriverConsole";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ClientManagement from "./pages/admin/ClientManagement";
@@ -36,7 +37,7 @@ import TicketManagement from "./pages/admin/TicketManagement";
 import BookingManagement from "./pages/admin/BookingManagement";
 import FAQManagement from "./pages/admin/FAQManagement";
 
-function App() {
+const App = () => {
   return (
     <div className="min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} />
@@ -70,6 +71,14 @@ function App() {
         <Route path="/company/register" element={<DocumentUpload />} />
         <Route path="/company/tickets" element={<TicketsManagement />} />
         <Route path="/company/profile" element={<CompanyProfile />} />
+        <Route
+          path="/company/driver-console/:id"
+          element={
+            <ProtectedRoute allowedRoles={["company"]}>
+              <DriverConsole />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Admin Routes - Protected */}
         <Route
@@ -131,6 +140,6 @@ function App() {
       </Routes>
     </div>
   );
-}
+};
 
 export default App;

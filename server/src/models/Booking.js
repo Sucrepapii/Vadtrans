@@ -73,10 +73,12 @@ const Booking = sequelize.define(
     hooks: {
       beforeCreate: (booking) => {
         if (!booking.bookingId) {
-          booking.bookingId = `BK-${Date.now()}-${Math.random()
+          // Generate shorter unique booking ID (e.g. BK-X7Y8Z9)
+          const randomStr = Math.random()
             .toString(36)
-            .substr(2, 9)
-            .toUpperCase()}`;
+            .substring(2, 8)
+            .toUpperCase();
+          booking.bookingId = `BK-${randomStr}`;
         }
       },
     },

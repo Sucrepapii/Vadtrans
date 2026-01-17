@@ -262,3 +262,50 @@ exports.getMyTrips = async (req, res) => {
     });
   }
 };
+// @desc    Update trip location (for live tracking)
+// @route   PUT /api/trips/:id/location
+// @access  Private (Company only - own trips)
+exports.updateTripLocation = async (req, res) => {
+  try {
+    const trip = await Trip.findByPk(req.params.id);
+
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: "Trip not found",
+      });
+    }
+
+    // Check ownership
+    if (trip.companyId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this trip",
+      });
+    }
+
+    const { lat, lng, currentLocation, status } = req.body;
+
+    if (lat !== undefined) trip.currentLat = lat;
+    if (lng !== undefined) trip.currentLng = lng;
+    if (currentLocation !== undefined) trip.currentLocation = currentLocation;
+    if (status !== undefined) trip.status = status;
+
+    trip.lastUpdated = new Date();
+
+    await trip.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Location updated",
+      trip,
+    });
+  } catch (error) {
+    console.error("Update location error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating location",
+      error: error.message,
+    });
+  }
+};

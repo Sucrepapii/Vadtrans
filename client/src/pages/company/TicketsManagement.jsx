@@ -246,6 +246,15 @@ const TicketsManagement = () => {
             className="text-red-600">
             <FaTrash />
           </Button>
+          <Button
+            variant="text"
+            onClick={() =>
+              window.open(`/company/driver-console/${row.id}`, "_blank")
+            }
+            className="text-green-600"
+            title="Broadcast Live Location">
+            <FaMapMarkerAlt />
+          </Button>
         </div>
       ),
     },
