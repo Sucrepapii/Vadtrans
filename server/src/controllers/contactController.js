@@ -19,6 +19,21 @@ exports.sendContactEmail = async (req, res) => {
     console.log("From:", email);
     console.log("Subject:", subject);
 
+    // Check for SMTP config
+    if (
+      !process.env.SMTP_HOST ||
+      !process.env.SMTP_USER ||
+      !process.env.SMTP_PASS
+    ) {
+      console.error("❌ SMTP Configuration missing in .env");
+      // In development, you might want to mock success or return specific error
+      return res.status(500).json({
+        success: false,
+        message: "Email service not configured. Please contact admin.",
+        debug: "SMTP_HOST/USER/PASS missing",
+      });
+    }
+
     // Create reusable transporter object using the default SMTP transport
     const transporter = nodemailer.createTransport({
       host: process.env.SMTP_HOST,

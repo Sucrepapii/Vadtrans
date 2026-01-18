@@ -22,6 +22,8 @@ import HelpSupport from "./pages/travelers/HelpSupport";
 import ContactUs from "./pages/travelers/ContactUs";
 import FAQPage from "./pages/travelers/FAQPage";
 import AboutUs from "./pages/travelers/AboutUs";
+import TermsOfService from "./pages/travelers/TermsOfService";
+import PrivacyPolicy from "./pages/travelers/PrivacyPolicy";
 
 import CompanyLanding from "./pages/company/CompanyLanding";
 import DocumentUpload from "./pages/company/DocumentUpload";
@@ -65,6 +67,8 @@ const App = () => {
         <Route path="/help" element={<HelpSupport />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/faqs" element={<FAQPage />} />
+        <Route path="/terms" element={<TermsOfService />} />
+        <Route path="/privacy" element={<PrivacyPolicy />} />
 
         {/* Company Routes */}
         <Route path="/company" element={<CompanyLanding />} />

@@ -1,5 +1,11 @@
 import React from "react";
-import { FaFacebook, FaTwitter, FaInstagram, FaLinkedin } from "react-icons/fa";
+import {
+  FaFacebook,
+  FaInstagram,
+  FaLinkedin,
+  FaWhatsapp,
+} from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
 
 const Footer = () => {
   return (
@@ -38,6 +44,20 @@ const Footer = () => {
                   Contact
                 </a>
               </li>
+              <li>
+                <a
+                  href="/terms"
+                  className="text-neutral-300 hover:text-primary transition-colors">
+                  Terms of Service
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/privacy"
+                  className="text-neutral-300 hover:text-primary transition-colors">
+                  Privacy Policy
+                </a>
+              </li>
             </ul>
           </div>
 
@@ -45,24 +65,32 @@ const Footer = () => {
             <h4 className="font-semibold mb-4">Follow Us</h4>
             <div className="flex space-x-4">
               <a
-                href="#"
+                href="https://web.facebook.com/profile.php?id=61586139616335"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-neutral-300 hover:text-primary transition-colors">
                 <FaFacebook size={24} />
               </a>
               <a
-                href="#"
+                href="https://x.com/VTrans80748?t=xSsQhLMsxZoXPZ895hCU1g&s=09"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-neutral-300 hover:text-primary transition-colors">
-                <FaTwitter size={24} />
+                <FaXTwitter size={24} />
               </a>
               <a
-                href="#"
+                href="https://www.instagram.com/vadtransportation/"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="text-neutral-300 hover:text-primary transition-colors">
                 <FaInstagram size={24} />
               </a>
               <a
-                href="#"
-                className="text-neutral-300 hover:text-primary transition-colors">
-                <FaLinkedin size={24} />
+                href="https://wa.me/2349123284931"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-neutral-300 hover:text-green-500 transition-colors">
+                <FaWhatsapp size={24} />
               </a>
             </div>
           </div>

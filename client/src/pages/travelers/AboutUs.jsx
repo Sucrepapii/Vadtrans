@@ -14,6 +14,7 @@ import {
   FaMapMarkedAlt,
   FaHandshake,
   FaAward,
+  FaLightbulb,
 } from "react-icons/fa";
 
 const AboutUs = () => {
@@ -26,28 +27,22 @@ const AboutUs = () => {
 
   const values = [
     {
-      icon: FaShieldAlt,
-      title: "Safety First",
-      description:
-        "Your safety is our top priority. All our partner companies are verified and insured.",
-    },
-    {
-      icon: FaClock,
-      title: "Reliable Service",
-      description:
-        "On-time departures and arrivals. We value your time as much as you do.",
-    },
-    {
       icon: FaUsers,
-      title: "Customer Focused",
+      title: "Customer Obsession",
       description:
-        "24/7 customer support to ensure your journey is smooth from start to finish.",
+        "We exist to create seamless, reliable, and satisfying experiences for every customer.",
     },
     {
-      icon: FaMapMarkedAlt,
-      title: "Wide Coverage",
+      icon: FaAward,
+      title: "Excellence",
       description:
-        "Extensive network covering major cities and routes across Nigeria and Africa.",
+        "Creating exceptional products and delivering high-quality service is central to who we are.",
+    },
+    {
+      icon: FaLightbulb,
+      title: "Innovation & Diversity",
+      description:
+        "We foster inclusive thinking and continuous innovation to create solutions that improve lives across communities.",
     },
   ];
 
@@ -140,17 +135,12 @@ const AboutUs = () => {
                 Our Mission
               </h2>
               <p className="text-neutral-700 mb-4 leading-relaxed">
-                At VadTrans, we believe that traveling should be simple, safe,
-                and accessible to everyone. Our mission is to revolutionize the
-                way people book and experience inter-city travel in Nigeria and
-                across Africa.
-              </p>
-              <p className="text-neutral-700 mb-4 leading-relaxed">
-                We connect thousands of travelers with verified transport
-                companies, offering a seamless booking experience from start to
-                finish. Whether you're traveling for business, visiting family,
-                or exploring new destinations, we're here to make your journey
-                comfortable and stress-free.
+                To make travel simple and enjoyable by connecting travelers with
+                trusted transport providers, while empowering individuals to
+                launch and grow their own transport services through an
+                easy-to-use online marketplace—designed to be enhanced over time
+                by data-driven and AI-powered tools that optimize pricing,
+                routes, and user experience as we scale.
               </p>
               <div className="flex flex-wrap gap-3 mt-6">
                 <div className="flex items-center gap-2">

@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { authAPI } from "../../services/api";
 import CompanyProfile from "../company/CompanyProfile";
+import { nigerianStates } from "../../data/locations";
 
 const UserProfile = () => {
   const navigate = useNavigate();
@@ -35,7 +36,9 @@ const UserProfile = () => {
     email: "",
     address: "",
     city: "",
+    city: "",
     avatar: null,
+    isVerified: false,
   });
 
   // Fetch user profile on component mount
@@ -59,7 +62,9 @@ const UserProfile = () => {
         email: userData.email || "",
         address: userData.address || "",
         city: userData.city || "",
+        city: userData.city || "",
         avatar: userData.avatar || null,
+        isVerified: userData.isVerified || false,
       });
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -363,12 +368,12 @@ const UserProfile = () => {
                         onChange={handleChange}
                         className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
                         disabled={saving}>
-                        <option value="">Select</option>
-                        <option value="Lagos">Lagos</option>
-                        <option value="Abuja">Abuja</option>
-                        <option value="Port Harcourt">Port Harcourt</option>
-                        <option value="Kano">Kano</option>
-                        <option value="Ibadan">Ibadan</option>
+                        <option value="">Select City/State</option>
+                        {nigerianStates.map((state) => (
+                          <option key={state} value={state}>
+                            {state}
+                          </option>
+                        ))}
                       </select>
                     </div>
                   </div>
@@ -448,6 +453,11 @@ const UserProfile = () => {
                 <h2 className="text-xl font-semibold text-charcoal">
                   {profileData.title && `${profileData.title} `}
                   {profileData.firstName} {profileData.lastName}
+                  {profileData.isVerified && (
+                    <span className="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      Verified
+                    </span>
+                  )}
                 </h2>
               </div>
 
