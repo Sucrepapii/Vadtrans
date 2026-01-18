@@ -53,10 +53,10 @@ exports.signup = async (req, res) => {
       // Don't fail signup if email fails, but maybe flag it?
     }
 
-    // Send welcome email (don't wait for it)
-    sendWelcomeEmail(user).catch((err) => {
-      console.error("Failed to send welcome email:", err);
-    });
+    // Send welcome email (moved to verification)
+    // sendWelcomeEmail(user).catch((err) => {
+    //   console.error("Failed to send welcome email:", err);
+    // });
 
     // Generate token
     const token = user.generateToken();
@@ -181,6 +181,14 @@ exports.login = async (req, res) => {
       return res.status(401).json({
         success: false,
         message: "Invalid credentials",
+      });
+    }
+
+    // Check if email is verified
+    if (!user.isVerified) {
+      return res.status(401).json({
+        success: false,
+        message: "Please verify your email address before logging in.",
       });
     }
 

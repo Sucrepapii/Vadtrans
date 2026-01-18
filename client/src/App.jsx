@@ -5,7 +5,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/travelers/LandingPage";
 import SignIn from "./pages/travelers/SignIn";
 import SignUp from "./pages/travelers/SignUp";
-import AuthPage from "./pages/auth/AuthPage";
+
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import Services from "./pages/travelers/Services";
 import SearchResults from "./pages/travelers/SearchResults";
@@ -48,7 +48,7 @@ const App = () => {
       <Routes>
         {/* Travelers Routes */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/auth" element={<AuthPage />} />
+
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/about" element={<AboutUs />} />
         <Route path="/services" element={<Services />} />

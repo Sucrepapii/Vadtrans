@@ -2,19 +2,31 @@ const nodemailer = require("nodemailer");
 
 // Create reusable transporter
 const createTransporter = () => {
+  const user = process.env.EMAIL_USER || process.env.SMTP_USER;
+  const pass = process.env.EMAIL_PASSWORD || process.env.SMTP_PASS;
+
   // Check if email credentials are configured
-  if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+  if (user && pass) {
     // Real email configuration
-    return nodemailer.createTransporter({
+    return nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE || "gmail",
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD,
+        user: user,
+        pass: pass,
       },
     });
   } else {
     // Development mode - log to console
-    console.log("⚠️  Email not configured - emails will be logged to console");
+    console.log(
+      "\n⚠️  EMAIL NOT CONFIGURED: Checking .env for EMAIL_USER/SMTP_USER"
+    );
+    console.log(
+      "   Current values -> EMAIL_USER: " +
+        (process.env.EMAIL_USER ? "Set" : "Empty") +
+        ", SMTP_USER: " +
+        (process.env.SMTP_USER ? "Set" : "Empty")
+    );
+    console.log("   Emails will be logged to console only.\n");
     return null;
   }
 };
@@ -35,7 +47,7 @@ const sendWelcomeEmail = async (user) => {
     }
 
     const mailOptions = {
-      from: `"VadTrans" <${process.env.EMAIL_USER}>`,
+      from: `"VadTrans" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
       to: user.email,
       subject: "Welcome to VadTrans! 🚀",
       html: `
@@ -138,7 +150,7 @@ const sendBookingConfirmationEmail = async (booking, user) => {
     }
 
     const mailOptions = {
-      from: `"VadTrans" <${process.env.EMAIL_USER}>`,
+      from: `"VadTrans" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
       to: user.email,
       subject: `Booking Confirmation - ${booking.bookingId} 🎫`,
       html: `
@@ -231,7 +243,7 @@ module.exports = {
       }
 
       const mailOptions = {
-        from: `"VadTrans" <${process.env.EMAIL_USER}>`,
+        from: `"VadTrans" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
         to: user.email,
         subject: "Verify Your Email - VadTrans",
         html: `

@@ -16,11 +16,31 @@ const clearTravelers = async () => {
       process.exit(0);
     }
 
-    await User.destroy({
-      where: {
-        role: "traveler",
-      },
+    // Find all traveler IDs first
+    const travelers = await User.findAll({
+      where: { role: "traveler" },
+      attributes: ["id"],
     });
+
+    const travelerIds = travelers.map((t) => t.id);
+
+    if (travelerIds.length > 0) {
+      const Booking = require("./models/Booking");
+      console.log(
+        `🗑️  Deleting bookings for ${travelerIds.length} travelers...`
+      );
+      await Booking.destroy({
+        where: {
+          userId: travelerIds,
+        },
+      });
+
+      await User.destroy({
+        where: {
+          id: travelerIds,
+        },
+      });
+    }
 
     console.log(`✅ Successfully deleted ${count} traveler account(s).`);
     process.exit(0);

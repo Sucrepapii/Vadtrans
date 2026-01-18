@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
+import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
@@ -50,7 +52,16 @@ const BookingDetails = () => {
     setPassengerDetails(updated);
   };
 
+  const { user } = useAuth(); // Get user from context
+
   const handleContinue = () => {
+    // Check if user is verified
+    if (user && !user.isVerified) {
+      toast.error("Please verify your email address to make a booking.");
+      // Optional: Redirect to a "Verify your identity" page or just show toast
+      return;
+    }
+
     const subtotal = trip.price * passengers;
     const serviceFee = calculateServiceFee(subtotal);
     const totalAmount = subtotal + serviceFee;

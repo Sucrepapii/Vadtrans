@@ -40,8 +40,7 @@ export const authAPI = {
       headers: {
         "Content-Type": "multipart/form-data",
       },
-    });
-  },
+    }),
   deleteDocument: (documentType) =>
     api.delete(`/auth/documents/${documentType}`),
 };

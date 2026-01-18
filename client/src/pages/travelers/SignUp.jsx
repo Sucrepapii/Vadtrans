@@ -13,6 +13,7 @@ const SignUp = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [isSuccess, setIsSuccess] = useState(false); // New state for success message
 
   // Get redirect path and preset role from URL
   const redirectPath = searchParams.get("redirect");
@@ -62,28 +63,8 @@ const SignUp = () => {
         role: userType, // Send the role (traveler or company)
       });
 
-      // Save token
-      localStorage.setItem("token", response.data.token);
-
-      // Update auth context
-      login(response.data.user);
-
-      // Debug: Log what we received
-      console.log("Signup response role:", response.data.user.role);
-
-      // Show success message
-      toast.success(`Welcome to VadTrans, ${response.data.user.name}! 🎉`);
-
-      // Redirect based on role or URL param
-      const userRole = response.data.user.role;
-
-      if (redirectPath) {
-        navigate(redirectPath);
-      } else if (userRole === "company") {
-        navigate("/company/tickets");
-      } else {
-        navigate("/search");
-      }
+      // Show success message state instead of auto-redirect
+      setIsSuccess(true);
     } catch (error) {
       console.error("Signup error:", error);
       toast.error(
@@ -104,152 +85,182 @@ const SignUp = () => {
           <h1 className="text-4xl font-raleway font-bold text-charcoal mb-2">
             Sign Up
           </h1>
-          <p className="text-neutral-600 mb-6">
-            Create your account to start booking
-          </p>
 
-          {/* User Type Toggle */}
-          <div className="flex gap-2 mb-6 p-1 bg-neutral-100 rounded-lg">
-            <button
-              type="button"
-              onClick={() => setUserType("traveler")}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-                userType === "traveler"
-                  ? "bg-primary text-white"
-                  : "text-neutral-600 hover:text-charcoal"
-              }`}>
-              travelers
-            </button>
-            <button
-              type="button"
-              onClick={() => setUserType("company")}
-              className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-                userType === "company"
-                  ? "bg-primary text-white"
-                  : "text-neutral-600 hover:text-charcoal"
-              }`}>
-              Company
-            </button>
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Conditional Fields based on User Type */}
-            {userType === "traveler" ? (
-              <>
-                {/* traveler Fields */}
-                <Input
-                  label="Full Name"
-                  name="name"
-                  placeholder="John Doe"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
-
-                <Input
-                  label="Phone Number"
-                  type="tel"
-                  name="phone"
-                  placeholder="+234-800-000-0000"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  disabled={loading}
-                />
-              </>
-            ) : (
-              <>
-                {/* Company Fields */}
-                <Input
-                  label="Company Name"
-                  name="companyName"
-                  placeholder="Transport Company Ltd"
-                  value={formData.companyName}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                />
-              </>
-            )}
-
-            {/* Common Fields */}
-            <Input
-              label="Email Address"
-              type="email"
-              name="email"
-              placeholder="example@email.com"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-
-            <Input
-              label="Password"
-              type="password"
-              name="password"
-              placeholder="Password"
-              value={formData.password}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-
-            <Input
-              label="Confirm Password"
-              type="password"
-              name="confirmPassword"
-              placeholder="Confirm Password"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              required
-              disabled={loading}
-            />
-
-            <div className="flex items-start">
-              <input
-                type="checkbox"
-                name="agreeToTerms"
-                checked={formData.agreeToTerms}
-                onChange={handleChange}
-                disabled={loading}
-                className="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary mt-1"
-              />
-              <label className="ml-2 text-sm text-charcoal">
-                I agree to{" "}
-                <Link to="/terms" className="text-primary hover:underline">
-                  Terms
-                </Link>{" "}
-                and{" "}
-                <Link to="/privacy" className="text-primary hover:underline">
-                  Privacy Policy
-                </Link>
-              </label>
+          {isSuccess ? (
+            <div className="bg-green-50 p-8 rounded-lg text-center">
+              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-3xl">📧</span>
+              </div>
+              <h2 className="text-2xl font-bold text-green-800 mb-2">
+                Check Your Email!
+              </h2>
+              <p className="text-neutral-600 mb-6">
+                We've sent a verification link to{" "}
+                <strong>{formData.email}</strong>.
+                <br />
+                Please verify your email to activate your account and book
+                trips.
+              </p>
+              <Link
+                to="/signin"
+                className="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark">
+                Back to Sign In
+              </Link>
             </div>
+          ) : (
+            <>
+              <p className="text-neutral-600 mb-6">
+                Create your account to start booking
+              </p>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
-              {loading ? (
-                <>
-                  <FaSpinner className="animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Sign Up"
-              )}
-            </button>
-          </form>
+              {/* User Type Toggle */}
+              <div className="flex gap-2 mb-6 p-1 bg-neutral-100 rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => setUserType("traveler")}
+                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                    userType === "traveler"
+                      ? "bg-primary text-white"
+                      : "text-neutral-600 hover:text-charcoal"
+                  }`}>
+                  travelers
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setUserType("company")}
+                  className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
+                    userType === "company"
+                      ? "bg-primary text-white"
+                      : "text-neutral-600 hover:text-charcoal"
+                  }`}>
+                  Company
+                </button>
+              </div>
 
-          <p className="mt-6 text-center text-sm text-charcoal">
-            Already have an account?{" "}
-            <Link
-              to="/signin"
-              className="text-primary hover:underline font-medium">
-              Sign-In
-            </Link>
-          </p>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Conditional Fields based on User Type */}
+                {userType === "traveler" ? (
+                  <>
+                    {/* traveler Fields */}
+                    <Input
+                      label="Full Name"
+                      name="name"
+                      placeholder="John Doe"
+                      value={formData.name}
+                      onChange={handleChange}
+                      required
+                      disabled={loading}
+                    />
+
+                    <Input
+                      label="Phone Number"
+                      type="tel"
+                      name="phone"
+                      placeholder="+234-800-000-0000"
+                      value={formData.phone}
+                      onChange={handleChange}
+                      disabled={loading}
+                    />
+                  </>
+                ) : (
+                  <>
+                    {/* Company Fields */}
+                    <Input
+                      label="Company Name"
+                      name="companyName"
+                      placeholder="Transport Company Ltd"
+                      value={formData.companyName}
+                      onChange={handleChange}
+                      required
+                      disabled={loading}
+                    />
+                  </>
+                )}
+
+                {/* Common Fields */}
+                <Input
+                  label="Email Address"
+                  type="email"
+                  name="email"
+                  placeholder="example@email.com"
+                  value={formData.email}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+
+                <Input
+                  label="Password"
+                  type="password"
+                  name="password"
+                  placeholder="Password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+
+                <Input
+                  label="Confirm Password"
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Confirm Password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                />
+
+                <div className="flex items-start">
+                  <input
+                    type="checkbox"
+                    name="agreeToTerms"
+                    checked={formData.agreeToTerms}
+                    onChange={handleChange}
+                    disabled={loading}
+                    className="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary mt-1"
+                  />
+                  <label className="ml-2 text-sm text-charcoal">
+                    I agree to{" "}
+                    <Link to="/terms" className="text-primary hover:underline">
+                      Terms
+                    </Link>{" "}
+                    and{" "}
+                    <Link
+                      to="/privacy"
+                      className="text-primary hover:underline">
+                      Privacy Policy
+                    </Link>
+                  </label>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Creating account...
+                    </>
+                  ) : (
+                    "Sign Up"
+                  )}
+                </button>
+              </form>
+            </>
+          )}
+
+          {!isSuccess && (
+            <p className="mt-6 text-center text-sm text-charcoal">
+              Already have an account?{" "}
+              <Link
+                to="/signin"
+                className="text-primary hover:underline font-medium">
+                Sign-In
+              </Link>
+            </p>
+          )}
         </div>
       </div>
 
