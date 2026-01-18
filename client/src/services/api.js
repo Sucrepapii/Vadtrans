@@ -33,6 +33,8 @@ export const authAPI = {
   updateProfile: (data) => api.put("/auth/profile", data),
   changePassword: (data) => api.put("/auth/change-password", data),
   verifyEmail: (token) => api.post("/auth/verify-email", { token }),
+  resendVerification: (email) =>
+    api.post("/auth/resend-verification", { email }),
 
   // Document upload
   uploadDocument: (formData) =>

@@ -151,6 +151,69 @@ exports.verifyEmail = async (req, res) => {
   }
 };
 
+// @desc    Resend verification email
+// @route   POST /api/auth/resend-verification
+// @access  Public
+exports.resendVerification = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide an email address",
+      });
+    }
+
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({
+        success: false,
+        message: "Email is already verified",
+      });
+    }
+
+    // Generate new Verification Token
+    const verificationToken = crypto.randomBytes(20).toString("hex");
+    user.verificationToken = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+    // Token expires in 24 hours
+    user.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    try {
+      await sendVerificationEmail(user, verificationToken);
+      res.status(200).json({
+        success: true,
+        message: "Verification email resent successfully",
+      });
+    } catch (err) {
+      console.error("Failed to send verification email:", err);
+      res.status(500).json({
+        success: false,
+        message: "Failed to send email",
+      });
+    }
+  } catch (error) {
+    console.error("Resend verification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error resending verification email",
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Login user
 // @route   POST /api/auth/login
 // @access  Public

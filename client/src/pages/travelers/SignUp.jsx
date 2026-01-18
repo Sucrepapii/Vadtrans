@@ -106,6 +106,32 @@ const SignUp = () => {
                 className="inline-block bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark">
                 Back to Sign In
               </Link>
+
+              <div className="mt-4 pt-4 border-t border-green-100">
+                <p className="text-sm text-neutral-600 mb-2">
+                  Didn't receive the email?
+                </p>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    try {
+                      setLoading(true);
+                      await authAPI.resendVerification(formData.email);
+                      toast.success("Verification email resent!");
+                    } catch (error) {
+                      toast.error(
+                        error.response?.data?.message ||
+                          "Failed to resend email"
+                      );
+                    } finally {
+                      setLoading(false);
+                    }
+                  }}
+                  disabled={loading}
+                  className="text-primary hover:underline text-sm font-medium disabled:opacity-50">
+                  {loading ? "Sending..." : "Resend Verification Email"}
+                </button>
+              </div>
             </div>
           ) : (
             <>
