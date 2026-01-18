@@ -19,9 +19,49 @@ exports.signup = async (req, res) => {
     // Check if user already exists
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
-      return res.status(400).json({
-        success: false,
-        message: "User already exists with this email",
+      // If user exists and is verified, return error
+      if (userExists.isVerified) {
+        return res.status(400).json({
+          success: false,
+          message: "User already exists with this email",
+        });
+      }
+
+      // If user exists but NOT verified, update their info and resend email
+      // Update basic info
+      userExists.name = name;
+      userExists.password = password; // Will be hashed by model hook
+      userExists.phone = phone;
+      userExists.role = userRole;
+
+      // Generate New Verification Token
+      const verificationToken = crypto.randomBytes(20).toString("hex");
+      userExists.verificationToken = crypto
+        .createHash("sha256")
+        .update(verificationToken)
+        .digest("hex");
+      userExists.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000;
+
+      await userExists.save();
+
+      // Send verification email
+      try {
+        await sendVerificationEmail(userExists, verificationToken);
+      } catch (err) {
+        console.error("Failed to send verification email:", err);
+      }
+
+      return res.status(200).json({
+        success: true,
+        message:
+          "Account updated. Please check your email for verification link!",
+        user: {
+          id: userExists.id,
+          name: userExists.name,
+          email: userExists.email,
+          phone: userExists.phone,
+          role: userExists.role,
+        },
       });
     }
 
