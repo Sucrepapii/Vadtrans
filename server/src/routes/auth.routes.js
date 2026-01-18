@@ -23,26 +23,6 @@ router.post("/signup", async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         success: false,
-        message: "User with this email already exists",
-      });
-    }
-
-    // Create new user
-    const user = await User.create({
-      fullName,
-      email,
-      phone,
-      password,
-      role: role || "traveler",
-    });
-
-    // Generate token
-    const token = generateToken(user._id);
-
-    res.status(201).json({
-      success: true,
-      message: "User registered successfully",
-      data: {
         user: {
           id: user._id,
           fullName: user.fullName,

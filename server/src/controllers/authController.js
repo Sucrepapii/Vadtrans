@@ -1,5 +1,9 @@
 const User = require("../models/User");
-const { sendWelcomeEmail } = require("../utils/emailService");
+const {
+  sendWelcomeEmail,
+  sendVerificationEmail,
+} = require("../utils/emailService");
+const crypto = require("crypto");
 
 // @desc    Register a new user
 // @route   POST /api/auth/signup
@@ -28,7 +32,26 @@ exports.signup = async (req, res) => {
       password,
       phone,
       role: userRole,
+      role: userRole,
     });
+
+    // Generate Verification Token
+    const verificationToken = crypto.randomBytes(20).toString("hex");
+    user.verificationToken = crypto
+      .createHash("sha256")
+      .update(verificationToken)
+      .digest("hex");
+    // Token expires in 24 hours
+    user.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000;
+    await user.save();
+
+    // Send verification email
+    try {
+      await sendVerificationEmail(user, verificationToken);
+    } catch (err) {
+      console.error("Failed to send verification email:", err);
+      // Don't fail signup if email fails, but maybe flag it?
+    }
 
     // Send welcome email (don't wait for it)
     sendWelcomeEmail(user).catch((err) => {
@@ -57,6 +80,72 @@ exports.signup = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error creating user",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Verify email
+// @route   POST /api/auth/verify-email
+// @access  Public
+exports.verifyEmail = async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid token",
+      });
+    }
+
+    // Hash token to compare with database
+    const verificationToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      where: {
+        verificationToken,
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid token",
+      });
+    }
+
+    // Check if token expired
+    if (user.verificationTokenExpire < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: "Token expired",
+      });
+    }
+
+    // Verify user
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpire = null;
+    await user.save();
+
+    // Send welcome email now if not sent before (optional)
+    sendWelcomeEmail(user).catch((err) => {
+      console.error("Failed to send welcome email:", err);
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "Email verified successfully",
+    });
+  } catch (error) {
+    console.error("Verify email error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error verifying email",
       error: error.message,
     });
   }

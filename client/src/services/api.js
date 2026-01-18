@@ -30,17 +30,13 @@ export const authAPI = {
   signup: (userData) => api.post("/auth/signup", userData),
   login: (credentials) => api.post("/auth/login", credentials),
   getMe: () => api.get("/auth/me"),
-  updateProfile: (profileData) => api.put("/auth/profile", profileData),
-  changePassword: (passwordData) =>
-    api.put("/auth/change-password", passwordData),
+  updateProfile: (data) => api.put("/auth/profile", data),
+  changePassword: (data) => api.put("/auth/change-password", data),
+  verifyEmail: (token) => api.post("/auth/verify-email", { token }),
 
   // Document upload
-  uploadDocument: (file, documentType) => {
-    const formData = new FormData();
-    formData.append("document", file);
-    formData.append("documentType", documentType);
-
-    return api.post("/auth/upload-document", formData, {
+  uploadDocument: (formData) =>
+    api.post("/auth/upload-document", formData, {
       headers: {
         "Content-Type": "multipart/form-data",
       },
