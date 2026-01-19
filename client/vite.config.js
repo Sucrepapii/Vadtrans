@@ -13,4 +13,22 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    chunkSizeWarningLimit: 1000, // Increase limit to 1000 kB
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Split vendor chunks for better caching
+          "react-vendor": ["react", "react-dom", "react-router-dom"],
+          "mui-vendor": [
+            "@mui/material",
+            "@mui/x-date-pickers",
+            "@emotion/react",
+            "@emotion/styled",
+          ],
+          "map-vendor": ["leaflet", "react-leaflet"],
+        },
+      },
+    },
+  },
 });
