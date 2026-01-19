@@ -34,6 +34,26 @@ exports.signup = async (req, res) => {
       userExists.phone = phone;
       userExists.role = userRole;
 
+      // Auto-verify company and admin
+      if (["company", "admin"].includes(userRole)) {
+        userExists.isVerified = true;
+        userExists.verificationToken = null;
+        userExists.verificationTokenExpire = null;
+        await userExists.save();
+
+        return res.status(200).json({
+          success: true,
+          message: `${userRole === "company" ? "Company" : "Admin"} account updated successfully`,
+          user: {
+            id: userExists.id,
+            name: userExists.name,
+            email: userExists.email,
+            phone: userExists.phone,
+            role: userExists.role,
+          },
+        });
+      }
+
       // Generate New Verification Token
       const verificationToken = crypto.randomBytes(20).toString("hex");
       userExists.verificationToken = crypto
@@ -83,14 +103,23 @@ exports.signup = async (req, res) => {
       .digest("hex");
     // Token expires in 24 hours
     user.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000;
+
+    // Auto-verify company and admin
+    if (["company", "admin"].includes(userRole)) {
+      user.isVerified = true;
+      user.verificationToken = null;
+      user.verificationTokenExpire = null;
+    }
+
     await user.save();
 
-    // Send verification email
-    try {
-      await sendVerificationEmail(user, verificationToken);
-    } catch (err) {
-      console.error("Failed to send verification email:", err);
-      // Don't fail signup if email fails, but maybe flag it?
+    // Send verification email only for travelers
+    if (!["company", "admin"].includes(userRole)) {
+      try {
+        await sendVerificationEmail(user, verificationToken);
+      } catch (err) {
+        console.error("Failed to send verification email:", err);
+      }
     }
 
     // Send welcome email (moved to verification)
@@ -287,8 +316,8 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Check if email is verified
-    if (!user.isVerified) {
+    // Check if email is verified (Skip for company and admin)
+    if (!user.isVerified && !["company", "admin"].includes(user.role)) {
       return res.status(401).json({
         success: false,
         message: "Please verify your email address before logging in.",
