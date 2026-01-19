@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": "client/dist",
   "builds": [
     {
       "src": "server/src/server.js",
