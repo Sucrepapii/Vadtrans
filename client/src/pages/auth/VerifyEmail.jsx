@@ -59,9 +59,9 @@ const VerifyEmail = () => {
               </h2>
               <p className="text-neutral-600 mb-6">{message}</p>
               <Link
-                to="/auth"
+                to="/signin"
                 className="bg-primary text-white px-6 py-2 rounded-lg hover:bg-primary-dark transition-colors">
-                Go to Login
+                Go to Sign In
               </Link>
             </div>
           )}
