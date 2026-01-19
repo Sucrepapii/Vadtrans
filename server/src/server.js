@@ -142,10 +142,13 @@ app.use((err, req, res, next) => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
-  console.log(`💾 Database: SQLite (file-based)`);
-});
+// Only listen if run directly (not imported as a Vercel function)
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`🚀 Server running on port ${PORT}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
+    console.log(`💾 Database: SQLite (file-based)`);
+  });
+}
 
 module.exports = app;
