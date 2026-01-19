@@ -9,6 +9,9 @@ const createTransporter = () => {
   if (user && pass) {
     // Prefer explicit SMTP configuration
     if (process.env.SMTP_HOST && process.env.SMTP_PORT) {
+      console.log(
+        `🔌 Configuring SMTP: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT} (Secure: ${process.env.SMTP_PORT == 465})`,
+      );
       return nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: process.env.SMTP_PORT,
@@ -20,6 +23,7 @@ const createTransporter = () => {
       });
     }
 
+    console.log("🔌 Configuring default Gmail service (Port 587)");
     // Fallback to service "gmail"
     return nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE || "gmail",
