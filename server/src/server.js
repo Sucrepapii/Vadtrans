@@ -95,8 +95,8 @@ app.use(
 const initializeDatabase = async () => {
   try {
     await testConnection();
-    // Sync all models with database
-    await sequelize.sync({ alter: true });
+    // Sync all models with database (don't alter existing tables)
+    await sequelize.sync({ alter: false });
     console.log("✅ Database models synchronized");
   } catch (error) {
     console.error("❌ Database initialization error:", error);

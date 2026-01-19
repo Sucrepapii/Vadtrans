@@ -246,10 +246,21 @@ See [WALKTHROUGH.md](./docs/WALKTHROUGH.md) for detailed testing results.
 
 ### Production Deployment
 
-- Environment configuration
-- Build optimization
-- Security hardening
-- Performance monitoring
+**Separate Deployment (Recommended)**
+
+Deploy frontend and backend separately for better scalability:
+
+- **Frontend**: Vercel (CDN, global edge network)
+- **Backend**: Railway (Node.js optimized, MongoDB integration)
+
+📚 **Quick Start**: See [QUICK_DEPLOY.md](./QUICK_DEPLOY.md)  
+📖 **Full Guide**: See [DEPLOY_SEPARATE.md](./DEPLOY_SEPARATE.md)
+
+**Monorepo Deployment (Alternative)**
+
+Deploy both frontend and backend together:
+
+📚 See [DEPLOYMENT.md](./DEPLOYMENT.md) for Vercel monorepo deployment
 
 ---
 

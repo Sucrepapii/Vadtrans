@@ -36,7 +36,6 @@ const UserProfile = () => {
     email: "",
     address: "",
     city: "",
-    city: "",
     avatar: null,
     isVerified: false,
   });
@@ -61,7 +60,6 @@ const UserProfile = () => {
         phone: userData.phone || "",
         email: userData.email || "",
         address: userData.address || "",
-        city: userData.city || "",
         city: userData.city || "",
         avatar: userData.avatar || null,
         isVerified: userData.isVerified || false,
