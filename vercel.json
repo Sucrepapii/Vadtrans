@@ -1,20 +1,13 @@
 {
   "buildCommand": "cd client && npm install && npm run build",
   "outputDirectory": "client/dist",
-  "installCommand": "npm install --prefix client && npm install --prefix server",
+  "framework": "vite",
+  "installCommand": "cd client && npm install",
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "/server/src/server.js"
-    }
-  ],
-  "routes": [
-    {
-      "handle": "filesystem"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "destination": "https://vadtrans-api.vercel.app/api/:path*"
     }
   ]
 }
+
