@@ -7,7 +7,20 @@ const createTransporter = () => {
 
   // Check if email credentials are configured
   if (user && pass) {
-    // Real email configuration
+    // Prefer explicit SMTP configuration
+    if (process.env.SMTP_HOST && process.env.SMTP_PORT) {
+      return nodemailer.createTransport({
+        host: process.env.SMTP_HOST,
+        port: process.env.SMTP_PORT,
+        secure: process.env.SMTP_PORT == 465, // true for 465, false for other ports
+        auth: {
+          user: user,
+          pass: pass,
+        },
+      });
+    }
+
+    // Fallback to service "gmail"
     return nodemailer.createTransport({
       service: process.env.EMAIL_SERVICE || "gmail",
       auth: {
@@ -18,13 +31,13 @@ const createTransporter = () => {
   } else {
     // Development mode - log to console
     console.log(
-      "\n⚠️  EMAIL NOT CONFIGURED: Checking .env for EMAIL_USER/SMTP_USER"
+      "\n⚠️  EMAIL NOT CONFIGURED: Checking .env for EMAIL_USER/SMTP_USER",
     );
     console.log(
       "   Current values -> EMAIL_USER: " +
         (process.env.EMAIL_USER ? "Set" : "Empty") +
         ", SMTP_USER: " +
-        (process.env.SMTP_USER ? "Set" : "Empty")
+        (process.env.SMTP_USER ? "Set" : "Empty"),
     );
     console.log("   Emails will be logged to console only.\n");
     return null;
@@ -219,7 +232,7 @@ const sendBookingConfirmationEmail = async (booking, user) => {
   } catch (error) {
     console.error(
       "❌ Error sending booking confirmation email:",
-      error.message
+      error.message,
     );
     return { success: false, error: error.message };
   }
