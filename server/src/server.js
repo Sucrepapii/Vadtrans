@@ -49,7 +49,7 @@ app.use(
         res.set("Content-Type", "application/pdf");
       }
     },
-  })
+  }),
 );
 
 // Enable CORS - Allow multiple origins
@@ -58,6 +58,7 @@ const allowedOrigins = [
   "http://localhost:3001",
   "http://localhost:5173",
   "http://localhost:5174",
+  "https://sucrepapii-vadtrans.vercel.app",
   process.env.CLIENT_URL,
   process.env.VERCEL_URL,
 ].filter(Boolean); // Remove undefined values
@@ -88,7 +89,7 @@ app.use(
       }
     },
     credentials: true,
-  })
+  }),
 );
 
 // Test database connection and sync models
