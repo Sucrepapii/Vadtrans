@@ -4,6 +4,14 @@
       "source": "/api/:path*",
       "destination": "https://vadtrans-api.vercel.app/api/:path*"
     }
+  ],
+  "routes": [
+    {
+      "handle": "filesystem"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
   ]
 }
-
