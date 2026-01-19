@@ -99,6 +99,21 @@ const initializeDatabase = async () => {
     // Sync all models with database (don't alter existing tables)
     await sequelize.sync({ alter: false });
     console.log("✅ Database models synchronized");
+
+    // Check if any users exist, if not create default admin
+    const userCount = await User.count();
+    if (userCount === 0) {
+      console.log("ℹ️ No users found. Creating default admin...");
+      await User.create({
+        name: "Vadrans Admin",
+        email: "admin@vadtrans.com",
+        password: "Admin@123",
+        phone: "+234123456789",
+        role: "admin",
+        isVerified: true,
+      });
+      console.log("✅ Default admin created: admin@vadtrans.com / Admin@123");
+    }
   } catch (error) {
     console.error("❌ Database initialization error:", error);
   }

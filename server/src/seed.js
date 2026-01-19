@@ -33,6 +33,7 @@ const seedDatabase = async () => {
       password: "Admin@123",
       phone: "+234123456789",
       role: "admin",
+      isVerified: true,
     });
     console.log("✅ Default admin user created");
     console.log("   Email: admin@vadtrans.com");
@@ -40,7 +41,7 @@ const seedDatabase = async () => {
 
     console.log("✅ Database is ready!");
     console.log(
-      "ℹ️  Trips table is empty - companies can add trips via TicketsManagement page"
+      "ℹ️  Trips table is empty - companies can add trips via TicketsManagement page",
     );
 
     process.exit(0);
