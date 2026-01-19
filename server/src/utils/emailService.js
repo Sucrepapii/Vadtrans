@@ -20,6 +20,14 @@ const createTransporter = () => {
           user: user,
           pass: pass,
         },
+        // Relax TLS constraints to avoid timeouts in cloud environments
+        tls: {
+          rejectUnauthorized: false,
+        },
+        // Set explicitly short timeouts to fail fast rather than hang
+        connectionTimeout: 10000,
+        greetingTimeout: 5000,
+        socketTimeout: 10000,
       });
     }
 
