@@ -394,7 +394,10 @@ const sendPasswordSuccessEmail = async (user) => {
     console.log("✅ Password changed success email sent to:", user.email);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error("❌ Error sending password changed success email:", error.message);
+    console.error(
+      "❌ Error sending password changed success email:",
+      error.message,
+    );
     return { success: false, error: error.message };
   }
 };
@@ -402,58 +405,7 @@ const sendPasswordSuccessEmail = async (user) => {
 module.exports = {
   sendWelcomeEmail,
   sendBookingConfirmationEmail,
-      if (!transporter) {
-        console.log("\n📧 ===== VERIFICATION EMAIL =====");
-        console.log("To:", user.email);
-        console.log("Verification Link:", verificationUrl);
-        console.log("===============================\n");
-        return { success: true, mode: "console" };
-      }
-
-      const mailOptions = {
-        from: `"VadTrans" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
-        to: user.email,
-        subject: "Verify Your Email - VadTrans",
-        html: `
-          <!DOCTYPE html>
-          <html>
-          <head>
-            <style>
-              body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: #673AB7; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-              .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-              .button { display: inline-block; padding: 12px 30px; background: #673AB7; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-            </style>
-          </head>
-          <body>
-            <div class="container">
-              <div class="header">
-                <h1>Verify Your Email</h1>
-              </div>
-              <div class="content">
-                <h2>Hi ${user.name}!</h2>
-                <p>Please click the button below to verify your email address and activate your account.</p>
-                
-                <a href="${verificationUrl}" class="button">Verify Email</a>
-
-                <p>or copy and paste this link in your browser:</p>
-                <p><a href="${verificationUrl}">${verificationUrl}</a></p>
-
-                <p>This link will expire in 24 hours.</p>
-              </div>
-            </div>
-          </body>
-          </html>
-        `,
-      };
-
-      const info = await transporter.sendMail(mailOptions);
-      console.log("✅ Verification email sent to:", user.email);
-      return { success: true, messageId: info.messageId };
-    } catch (error) {
-      console.error("❌ Error sending verification email:", error.message);
-      return { success: false, error: error.message };
-    }
-  },
+  sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendPasswordSuccessEmail,
 };
