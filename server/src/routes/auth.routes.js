@@ -97,6 +97,16 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// @route   POST /api/auth/forgot-password
+// @desc    Request password reset
+// @access  Public
+router.post("/forgot-password", forgotPassword);
+
+// @route   POST /api/auth/reset-password/:token
+// @desc    Reset password with token
+// @access  Public
+router.post("/reset-password/:token", resetPassword);
+
 // @route   GET /api/auth/me
 // @desc    Get current user
 // @access  Private (requires authentication middleware)

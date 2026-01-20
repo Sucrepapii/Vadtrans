@@ -249,16 +249,159 @@ const sendBookingConfirmationEmail = async (booking, user) => {
     return { success: false, error: error.message };
   }
 };
+
+const sendVerificationEmail = async (user, token) => {
+  try {
+    const transporter = createTransporter();
+    const verificationUrl = `${
+      process.env.CLIENT_URL || "http://localhost:3000"
+    }/verify-email?token=${token}`;
+
+    if (!transporter) {
+      console.log("\n📧 ===== VERIFICATION EMAIL =====");
+      console.log("To:", user.email);
+      console.log("Verification Link:", verificationUrl);
+      console.log("===============================\n");
+      return { success: true, mode: "console" };
+    }
+
+    const mailOptions = {
+      from: `"VadTrans" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
+      to: user.email,
+      subject: "Verify Your Email - VadTrans",
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+            .header { background: #673AB7; color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
+            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
+            .button { display: inline-block; padding: 12px 30px; background: #673AB7; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>Verify Your Email</h1>
+            </div>
+            <div class="content">
+              <h2>Hi ${user.name}!</h2>
+              <p>Please click the button below to verify your email address and activate your account.</p>
+              
+              <a href="${verificationUrl}" class="button">Verify Email</a>
+
+              <p>or copy and paste this link in your browser:</p>
+              <p><a href="${verificationUrl}">${verificationUrl}</a></p>
+
+              <p>This link will expire in 24 hours.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Verification email sent to:", user.email);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Error sending verification email:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendPasswordResetEmail = async (user, resetUrl) => {
+  const transporter = createTransporter();
+
+  if (!transporter) {
+    console.log("\n📧 ===== PASSWORD RESET EMAIL =====");
+    console.log("To:", user.email);
+    console.log("Reset Link:", resetUrl);
+    console.log("===============================\n");
+    return { success: true, mode: "console" };
+  }
+
+  const mailOptions = {
+    from: `${process.env.SMTP_FROM_NAME || "VadTrans"} <${
+      process.env.EMAIL_USER || process.env.SMTP_USER
+    }>`,
+    to: user.email,
+    subject: "Reset Your Password - VadTrans",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6C5DD3;">Password Reset Request</h2>
+        <p>Hello ${user.name},</p>
+        <p>You requested to reset your password. Please click the button below to set a new password. This link will expire in 1 hour.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${resetUrl}" style="background-color: #6C5DD3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
+        </div>
+        <p>If you didn't request this, you can safely ignore this email.</p>
+        <p>Or copy this link: <a href="${resetUrl}">${resetUrl}</a></p>
+        <hr style="border: 1px solid #eee; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #888;">&copy; ${new Date().getFullYear()} VadTrans. All rights reserved.</p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Password reset email sent to:", user.email);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Error sending password reset email:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
+const sendPasswordSuccessEmail = async (user) => {
+  const transporter = createTransporter();
+
+  if (!transporter) {
+    console.log("\n📧 ===== PASSWORD CHANGED SUCCESS EMAIL =====");
+    console.log("To:", user.email);
+    console.log("==========================================\n");
+    return { success: true, mode: "console" };
+  }
+
+  const mailOptions = {
+    from: `${process.env.SMTP_FROM_NAME || "VadTrans"} <${
+      process.env.EMAIL_USER || process.env.SMTP_USER
+    }>`,
+    to: user.email,
+    subject: "Password Changed Successfully - VadTrans",
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h2 style="color: #6C5DD3;">Password Changed</h2>
+        <p>Hello ${user.name},</p>
+        <p>Your password has been successfully updated.</p>
+        <p>If you did not make this change, please contact support immediately.</p>
+        <div style="text-align: center; margin: 30px 0;">
+          <a href="${
+            process.env.CLIENT_URL || "http://localhost:5173"
+          }/signin" style="background-color: #6C5DD3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Login Now</a>
+        </div>
+        <hr style="border: 1px solid #eee; margin: 20px 0;" />
+        <p style="font-size: 12px; color: #888;">&copy; ${new Date().getFullYear()} VadTrans. All rights reserved.</p>
+      </div>
+    `,
+  };
+
+  try {
+    const info = await transporter.sendMail(mailOptions);
+    console.log("✅ Password changed success email sent to:", user.email);
+    return { success: true, messageId: info.messageId };
+  } catch (error) {
+    console.error("❌ Error sending password changed success email:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendBookingConfirmationEmail,
-  sendVerificationEmail: async (user, token) => {
-    try {
-      const transporter = createTransporter();
-      const verificationUrl = `${
-        process.env.CLIENT_URL || "http://localhost:3000"
-      }/verify-email?token=${token}`;
-
       if (!transporter) {
         console.log("\n📧 ===== VERIFICATION EMAIL =====");
         console.log("To:", user.email);
