@@ -159,30 +159,47 @@ const AdminDashboard = () => {
         <div className="p-8 max-w-7xl mx-auto space-y-6">
           {/* Stats Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {statCards.map((stat, index) => (
-              <div
-                key={index}
-                className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 transition-all hover:-translate-y-1 hover:shadow-lg group">
-                <div className="flex justify-between items-start mb-4">
-                  <div
-                    className={`p-3 rounded-xl ${stat.color.replace("bg-", "bg-").replace("500", "50")} ${stat.color.replace("bg-", "text-")}`}>
-                    <stat.icon size={20} />
+            {statCards.map((stat, index) => {
+              // Helper to generate pastel background and matching text
+              let bgClass = "";
+              let textClass = "";
+
+              if (stat.color.includes("primary")) {
+                bgClass = "bg-primary/10";
+                textClass = "text-primary";
+              } else {
+                // Determine base color name (e.g., 'blue', 'green') using regex or simple replace
+                // stat.color format is 'bg-blue-500'
+                const colorMatch = stat.color.match(/bg-([a-z]+)-/);
+                const colorName = colorMatch ? colorMatch[1] : "gray";
+                bgClass = `bg-${colorName}-100`;
+                textClass = `text-${colorName}-600`;
+              }
+
+              return (
+                <div
+                  key={index}
+                  className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 transition-all hover:-translate-y-1 hover:shadow-lg group">
+                  <div className="flex justify-between items-start mb-4">
+                    <div className={`p-3 rounded-xl ${bgClass} ${textClass}`}>
+                      <stat.icon size={20} />
+                    </div>
+                    {/* Mock trend */}
+                    <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                      <FaArrowUp size={8} /> 12%
+                    </span>
                   </div>
-                  {/* Mock trend */}
-                  <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
-                    <FaArrowUp size={8} /> 12%
-                  </span>
+                  <div>
+                    <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
+                      {stat.value}
+                    </h3>
+                    <p className="text-sm font-medium text-gray-400 mt-1">
+                      {stat.label}
+                    </p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
-                    {stat.value}
-                  </h3>
-                  <p className="text-sm font-medium text-gray-400 mt-1">
-                    {stat.label}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
