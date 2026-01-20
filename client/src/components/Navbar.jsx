@@ -244,8 +244,15 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
     <nav className="bg-charcoal text-white">
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="text-2xl font-raleway font-bold">
-            Vadtrans
+          <Link to="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
+              <FaBus className="text-sm text-primary" />
+            </div>
+            <div>
+              <h1 className="text-xl font-raleway font-bold text-white leading-none">
+                Vad<span className="text-primary">Trans</span>
+              </h1>
+            </div>
           </Link>
 
           <button
