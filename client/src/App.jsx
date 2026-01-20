@@ -5,6 +5,8 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LandingPage from "./pages/travelers/LandingPage";
 import SignIn from "./pages/travelers/SignIn";
 import SignUp from "./pages/travelers/SignUp";
+import ForgotPassword from "./pages/auth/ForgotPassword";
+import ResetPassword from "./pages/auth/ResetPassword";
 
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import Services from "./pages/travelers/Services";
@@ -54,6 +56,8 @@ const App = () => {
         <Route path="/services" element={<Services />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/booking/details" element={<BookingDetails />} />
         {/* New 4-step payment flow */}

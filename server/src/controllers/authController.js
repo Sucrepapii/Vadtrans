@@ -683,3 +683,135 @@ exports.deleteDocument = async (req, res) => {
     });
   }
 };
+
+// @desc    Forgot Password
+// @route   POST /api/auth/forgot-password
+// @access  Public
+exports.forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide an email address",
+      });
+    }
+
+    const user = await User.findOne({ where: { email } });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found with that email",
+      });
+    }
+
+    // Generate Reset Token
+    const resetToken = crypto.randomBytes(20).toString("hex");
+
+    // Hash and set to resetPasswordToken field
+    user.resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(resetToken)
+      .digest("hex");
+
+    // Set expire (1 hour)
+    user.resetPasswordExpire = Date.now() + 60 * 60 * 1000;
+
+    await user.save();
+
+    // Create reset url
+    const frontendUrl = process.env.CLIENT_URL || "http://localhost:5173";
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    try {
+      await sendPasswordResetEmail(user, resetUrl);
+
+      res.status(200).json({
+        success: true,
+        message: "Email sent",
+      });
+    } catch (err) {
+      console.error("Email send failed:", err);
+      user.resetPasswordToken = null;
+      user.resetPasswordExpire = null;
+      await user.save();
+
+      return res.status(500).json({
+        success: false,
+        message: "Email could not be sent",
+      });
+    }
+  } catch (error) {
+    console.error("Forgot password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Reset Password
+// @route   POST /api/auth/reset-password/:token
+// @access  Public
+exports.resetPassword = async (req, res) => {
+  try {
+    const { password } = req.body;
+    const { token } = req.params;
+
+    // Get hashed token
+    const resetPasswordToken = crypto
+      .createHash("sha256")
+      .update(token)
+      .digest("hex");
+
+    const user = await User.findOne({
+      where: {
+        resetPasswordToken,
+      },
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid token",
+      });
+    }
+
+    // Check expiration manually (important for SQLite/Sequelize)
+    if (user.resetPasswordExpire < Date.now()) {
+      return res.status(400).json({
+        success: false,
+        message: "Token expired",
+      });
+    }
+
+    // Set new password
+    user.password = password;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpire = null;
+
+    await user.save();
+
+    // Send confirmation email
+    try {
+      await sendPasswordSuccessEmail(user);
+    } catch (err) {
+      console.error("Confirmation email failed:", err);
+    }
+
+    res.status(200).json({
+      success: true,
+      message: "Password updated successfully",
+    });
+  } catch (error) {
+    console.error("Reset password error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Server Error",
+      error: error.message,
+    });
+  }
+};
