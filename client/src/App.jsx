@@ -64,7 +64,14 @@ const App = () => {
         {/* Old payment route (keep for backward compatibility) */}
         <Route path="/booking/payment" element={<Payment />} />
         <Route path="/booking/confirmation" element={<BookingConfirmation />} />
-        <Route path="/tracking" element={<Tracking />} />
+        <Route
+          path="/tracking"
+          element={
+            <ProtectedRoute>
+              <Tracking />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/my-bookings" element={<MyBookings />} />
