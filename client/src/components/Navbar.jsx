@@ -9,6 +9,7 @@ import {
   FaEnvelope,
   FaSearch,
   FaWhatsapp,
+  FaBus,
 } from "react-icons/fa";
 import Button from "./Button";
 
