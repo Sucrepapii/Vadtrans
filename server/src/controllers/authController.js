@@ -2,6 +2,8 @@ const User = require("../models/User");
 const {
   sendWelcomeEmail,
   sendVerificationEmail,
+  sendPasswordResetEmail,
+  sendPasswordSuccessEmail,
 } = require("../utils/emailService");
 const crypto = require("crypto");
 
