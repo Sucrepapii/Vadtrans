@@ -63,13 +63,10 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
                       <FaBus />
                     </span>
                   </div>
-                  <div>
+                  <div className="flex flex-col justify-center">
                     <h1 className="text-xl sm:text-2xl font-raleway font-bold text-charcoal leading-none">
                       Vad<span className="text-primary">Trans</span>
                     </h1>
-                    {/* <span className="text-[10px] font-medium tracking-[0.2em] text-neutral-400 uppercase leading-none block mt-1">
-                      Travel & Logistics
-                    </span> */}
                   </div>
                 </div>
                 {portalLabel && (
