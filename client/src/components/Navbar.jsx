@@ -56,11 +56,20 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
             <div className="flex items-center justify-between h-20">
               {/* Logo */}
               <Link to="/" className="flex flex-col">
-                <div className="flex items-center">
-                  <span className="text-xl sm:text-2xl font-raleway font-bold text-primary">
-                    VadTrans
-                  </span>
-                  <span className="ml-1 text-2xl">🚐</span>
+                <div className="flex items-center gap-2 group">
+                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
+                    <span className="text-xl text-primary group-hover:text-white transition-colors duration-300">
+                      <FaBus />
+                    </span>
+                  </div>
+                  <div>
+                    <h1 className="text-xl sm:text-2xl font-raleway font-bold text-charcoal leading-none">
+                      Vad<span className="text-primary">Trans</span>
+                    </h1>
+                    <span className="text-[10px] font-medium tracking-[0.2em] text-neutral-400 uppercase leading-none block mt-1">
+                      Travel & Logistics
+                    </span>
+                  </div>
                 </div>
                 {portalLabel && (
                   <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
