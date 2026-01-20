@@ -1,6 +1,4 @@
-import React from "react";
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
+import { toast } from "react-toastify";
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const { isAuthenticated, isAdmin, loading } = useAuth();
@@ -17,7 +15,17 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/signin" replace />;
+    // Alert the user before redirecting
+    toast.info("Please login to access this page", {
+      toastId: "auth-redirect",
+    });
+    return (
+      <Navigate
+        to="/signin"
+        replace
+        state={{ from: window.location.pathname }}
+      />
+    );
   }
 
   if (requireAdmin && !isAdmin) {
