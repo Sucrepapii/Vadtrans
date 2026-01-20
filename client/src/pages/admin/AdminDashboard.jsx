@@ -102,140 +102,214 @@ const AdminDashboard = () => {
     }
   };
 
+  // Helper for Chart
+  const BarChart = ({ data }) => {
+    // Mock data for the chart if real data isn't structured yet
+    const chartData = [35, 42, 28, 55, 48, 62, 70];
+    const max = Math.max(...chartData);
+
+    return (
+      <div className="flex items-end justify-between h-48 w-full gap-2 pt-4">
+        {chartData.map((value, i) => (
+          <div
+            key={i}
+            className="flex flex-col items-center gap-2 group w-full">
+            <div className="relative w-full flex items-end justify-center h-40 bg-neutral-100 rounded-t-lg overflow-hidden group-hover:bg-neutral-200 transition-colors">
+              <div
+                style={{ height: `${(value / max) * 100}%` }}
+                className="w-full mx-1 bg-primary/80 rounded-t-md group-hover:bg-primary transition-all duration-300 relative group-hover:shadow-[0_0_10px_rgba(var(--color-primary),0.3)]"
+              />
+            </div>
+            <span className="text-[10px] text-neutral-400 font-medium">
+              {["M", "T", "W", "T", "F", "S", "S"][i]}
+            </span>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="flex min-h-screen bg-neutral-50">
+    <div className="flex min-h-screen bg-[#F3F4F6]">
       <Sidebar />
 
       <div className="flex-1 overflow-auto">
         {/* Header */}
-        <div className="bg-white border-b border-neutral-200 px-8 py-6">
-          <h1 className="text-3xl font-raleway font-bold text-charcoal">
-            Dashboard
-          </h1>
-          <p className="text-neutral-600 mt-1">
-            Welcome back! Here's what's happening today.
-          </p>
+        <div className="sticky top-0 bg-white/80 backdrop-blur-md border-b border-gray-200 px-8 py-5 z-40 flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-raleway font-bold text-gray-900">
+              Overview
+            </h1>
+            <p className="text-sm text-gray-500 font-medium">
+              Welcome back, Admin
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <div className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full border border-green-200 flex items-center gap-1">
+              <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+              LIVE
+            </div>
+            <div className="h-8 w-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs font-bold border border-gray-300">
+              AD
+            </div>
+          </div>
         </div>
 
         {/* Main Content */}
-        <div className="p-8">
+        <div className="p-8 max-w-7xl mx-auto space-y-6">
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
             {statCards.map((stat, index) => (
-              <Card key={index} className="relative overflow-hidden">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <p className="text-neutral-600 text-sm mb-1">
-                      {stat.label}
-                    </p>
-                    <h3 className="text-2xl font-bold text-charcoal mb-2">
-                      {stat.value}
-                    </h3>
+              <div
+                key={index}
+                className="bg-white rounded-2xl p-5 shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border border-gray-100 transition-all hover:-translate-y-1 hover:shadow-lg group">
+                <div className="flex justify-between items-start mb-4">
+                  <div
+                    className={`p-3 rounded-xl ${stat.color.replace("bg-", "bg-").replace("500", "50")} ${stat.color.replace("bg-", "text-")}`}>
+                    <stat.icon size={20} />
                   </div>
-                  <div className={`${stat.color} p-3 rounded-lg`}>
-                    <stat.icon className="text-white text-2xl" />
-                  </div>
+                  {/* Mock trend */}
+                  <span className="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded-full flex items-center gap-1">
+                    <FaArrowUp size={8} /> 12%
+                  </span>
                 </div>
-              </Card>
+                <div>
+                  <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
+                    {stat.value}
+                  </h3>
+                  <p className="text-sm font-medium text-gray-400 mt-1">
+                    {stat.label}
+                  </p>
+                </div>
+              </div>
             ))}
           </div>
 
-          {/* Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <Card>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <FaChartLine className="text-primary" />
-                Booking Trends
-              </h3>
-              <div className="h-64 flex items-center justify-center bg-neutral-50 rounded-lg">
-                <p className="text-neutral-500">
-                  Chart visualization would go here
-                </p>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Chart Section */}
+            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="font-bold text-gray-800 text-lg">
+                  Revenue Analytics
+                </h3>
+                <select className="text-xs bg-gray-50 border-none rounded-lg px-3 py-2 text-gray-500 font-medium focus:ring-0 cursor-pointer">
+                  <option>This Week</option>
+                  <option>This Month</option>
+                </select>
               </div>
-            </Card>
+              <BarChart />
+            </div>
 
-            <Card>
-              <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                <FaBuilding className="text-primary" />
-                Top Companies
+            {/* Top Companies */}
+            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+              <h3 className="font-bold text-gray-800 text-lg mb-4">
+                Top Performers
               </h3>
-              <div className="space-y-3">
-                {topCompanies.length > 0 ? (
-                  topCompanies.map((company) => (
-                    <div
-                      key={company.id}
-                      className="flex items-center justify-between p-3 bg-neutral-50 rounded-lg">
-                      <span className="font-medium">{company.name}</span>
-                      <span className="text-sm text-neutral-600">
-                        {company.bookingCount} bookings
-                      </span>
+              <div className="space-y-4">
+                {topCompanies.map((company, i) => (
+                  <div
+                    key={company.id}
+                    className="flex items-center gap-3 p-3 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer border border-transparent hover:border-gray-100">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center text-sm font-bold text-gray-600 border border-white shadow-sm">
+                      {company.name.charAt(0)}
                     </div>
-                  ))
-                ) : (
-                  <div className="text-center py-8 text-neutral-500">
-                    No companies with bookings yet
+                    <div className="flex-1">
+                      <h4 className="text-sm font-bold text-gray-800">
+                        {company.name}
+                      </h4>
+                      <p className="text-xs text-gray-400">
+                        {company.bookingCount} orders
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-gray-900 bg-gray-100 px-2 py-1 rounded-lg">
+                      #{i + 1}
+                    </span>
+                  </div>
+                ))}
+                {topCompanies.length === 0 && (
+                  <div className="text-center text-sm text-gray-400 py-4">
+                    No data available
                   </div>
                 )}
               </div>
-            </Card>
+            </div>
           </div>
 
           {/* Recent Bookings Table */}
-          <Card>
-            <h3 className="text-lg font-semibold mb-4">Recent Bookings</h3>
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <div className="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+              <h3 className="font-bold text-gray-800 text-lg">
+                Recent Bookings
+              </h3>
+              <button className="text-sm text-primary font-medium hover:underline">
+                View All
+              </button>
+            </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-neutral-50 border-b border-neutral-200">
+                <thead className="bg-gray-50/50">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
                       Booking ID
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
                       Customer
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
                       Company
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
                       Amount
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-semibold text-neutral-700">
+                    <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
                       Status
                     </th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-neutral-200">
-                  {loading ? (
-                    <tr>
-                      <td
-                        colSpan="5"
-                        className="px-4 py-8 text-center text-neutral-500">
-                        Loading bookings...
-                      </td>
-                    </tr>
-                  ) : stats.recentBookings &&
-                    stats.recentBookings.length > 0 ? (
+                <tbody className="divide-y divide-gray-100">
+                  {stats.recentBookings && stats.recentBookings.length > 0 ? (
                     stats.recentBookings.map((booking) => (
                       <tr
                         key={booking.id}
-                        className="hover:bg-neutral-50 transition-colors">
-                        <td className="px-4 py-3 text-sm font-medium">
+                        className="hover:bg-gray-50/80 transition-colors">
+                        <td className="px-6 py-4 text-sm font-semibold text-gray-900">
                           #{booking.id}
                         </td>
-                        <td className="px-4 py-3 text-sm">
-                          {booking.user?.name || "N/A"}
+                        <td className="px-6 py-4 text-sm text-gray-600">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-blue-100 text-blue-600 text-[10px] flex items-center justify-center font-bold">
+                              {(booking.user?.name || "U").charAt(0)}
+                            </div>
+                            {booking.user?.name || "Unknown"}
+                          </div>
                         </td>
-                        <td className="px-4 py-3 text-sm">
+                        <td className="px-6 py-4 text-sm text-gray-600">
                           {booking.trip?.company?.name || "N/A"}
                         </td>
-                        <td className="px-4 py-3 text-sm font-semibold">
+                        <td className="px-6 py-4 text-sm font-bold text-gray-900">
                           ₦{booking.totalAmount?.toLocaleString() || "0"}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="px-6 py-4">
                           <span
-                            className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                              booking.bookingStatus
-                            )}`}>
+                            className={`px-3 py-1 rounded-full text-xs font-bold capitalize inline-flex items-center gap-1.5 ${
+                              booking.bookingStatus === "Completed"
+                                ? "bg-green-100 text-green-700"
+                                : booking.bookingStatus === "Pending"
+                                  ? "bg-amber-100 text-amber-700"
+                                  : booking.bookingStatus === "Cancelled"
+                                    ? "bg-red-100 text-red-700"
+                                    : "bg-gray-100 text-gray-600"
+                            }`}>
+                            <span
+                              className={`w-1.5 h-1.5 rounded-full ${
+                                booking.bookingStatus === "Completed"
+                                  ? "bg-green-500"
+                                  : booking.bookingStatus === "Pending"
+                                    ? "bg-amber-500"
+                                    : booking.bookingStatus === "Cancelled"
+                                      ? "bg-red-500"
+                                      : "bg-gray-400"
+                              }`}></span>
                             {booking.bookingStatus}
                           </span>
                         </td>
@@ -245,15 +319,15 @@ const AdminDashboard = () => {
                     <tr>
                       <td
                         colSpan="5"
-                        className="px-4 py-8 text-center text-neutral-500">
-                        No recent bookings
+                        className="px-6 py-10 text-center text-gray-400 text-sm">
+                        No bookings found
                       </td>
                     </tr>
                   )}
                 </tbody>
               </table>
             </div>
-          </Card>
+          </div>
         </div>
       </div>
     </div>
