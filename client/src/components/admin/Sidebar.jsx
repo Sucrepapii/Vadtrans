@@ -45,38 +45,53 @@ const Sidebar = () => {
 
   return (
     <div
-      className={`bg-charcoal text-white h-screen sticky top-0 transition-all duration-300 ${
+      className={`bg-charcoal text-white h-screen sticky top-0 transition-all duration-300 flex flex-col shadow-2xl z-50 ${
         isCollapsed ? "w-20" : "w-64"
       }`}>
       {/* Header */}
-      <div className="flex items-center justify-between p-6 border-b border-neutral-700">
+      <div className="flex items-center justify-between p-6 border-b border-white/10">
         {!isCollapsed && (
-          <h1 className="text-xl font-raleway font-bold tracking-wider">
-            ADMIN PORTAL
-          </h1>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
+              <FaTachometerAlt className="text-sm text-primary" />
+            </div>
+            <div>
+              <h1 className="text-lg font-raleway font-bold text-white leading-none">
+                Vad<span className="text-primary">Trans</span>
+              </h1>
+              <span className="text-[10px] text-neutral-400 font-medium tracking-widest uppercase block mt-1">
+                Admin Portal
+              </span>
+            </div>
+          </div>
         )}
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="text-white hover:text-primary transition-colors">
-          {isCollapsed ? <FaBars size={20} /> : <FaTimes size={20} />}
+          className={`text-neutral-400 hover:text-white transition-colors ${isCollapsed ? "mx-auto" : ""}`}>
+          {isCollapsed ? <FaBars size={20} /> : <FaTimes size={18} />}
         </button>
       </div>
 
       {/* Menu Items */}
-      <nav className="flex-1 py-6">
+      <nav className="flex-1 py-6 space-y-1">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.path;
           return (
             <Link
               key={item.path}
               to={item.path}
-              className={`flex items-center gap-4 px-6 py-3 transition-colors ${
+              className={`relative flex items-center gap-4 px-6 py-3 transition-all duration-300 group ${
                 isActive
-                  ? "bg-primary text-white"
-                  : "text-neutral-300 hover:bg-neutral-800 hover:text-white"
+                  ? "text-primary bg-gradient-to-r from-primary/10 to-transparent border-r-4 border-primary"
+                  : "text-neutral-400 hover:text-white hover:bg-white/5"
               }`}>
-              <item.icon size={20} />
-              {!isCollapsed && <span>{item.label}</span>}
+              <item.icon
+                size={20}
+                className={`transition-colors ${isActive ? "text-primary" : "group-hover:text-white"}`}
+              />
+              {!isCollapsed && (
+                <span className="font-medium text-sm">{item.label}</span>
+              )}
             </Link>
           );
         })}
@@ -84,30 +99,36 @@ const Sidebar = () => {
 
       {/* Quick Navigation */}
       {!isCollapsed && (
-        <div className="px-6 py-4 border-t border-neutral-700">
-          <p className="text-xs text-neutral-500 mb-2">Quick Access</p>
+        <div className="px-6 py-4 mx-4 mb-4 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/5">
+          <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-3">
+            Switch Portal
+          </p>
           <div className="space-y-2">
             <button
               onClick={() => handlePortalAccess("/")}
-              className="block w-full px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-sm text-center transition-colors">
-              Traveler Portal
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-neutral-300 transition-all border border-transparent hover:border-white/10">
+              <span>Traveler</span>
+              <span className="text-xs">↗</span>
             </button>
             <button
               onClick={() => handlePortalAccess("/company/tickets")}
-              className="block w-full px-3 py-2 rounded bg-neutral-800 hover:bg-neutral-700 text-sm text-center transition-colors">
-              Company Portal
+              className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-neutral-300 transition-all border border-transparent hover:border-white/10">
+              <span>Company</span>
+              <span className="text-xs">↗</span>
             </button>
           </div>
         </div>
       )}
 
       {/* Logout */}
-      <div className="border-t border-neutral-700 p-6">
+      <div className="p-4 border-t border-white/10">
         <button
           onClick={handleLogout}
-          className="flex items-center gap-4 w-full text-neutral-300 hover:text-white transition-colors">
-          <FaSignOutAlt size={20} />
-          {!isCollapsed && <span>Logout</span>}
+          className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all ${isCollapsed ? "justify-center" : ""}`}>
+          <FaSignOutAlt size={18} />
+          {!isCollapsed && (
+            <span className="font-medium text-sm">Sign Out</span>
+          )}
         </button>
       </div>
     </div>
