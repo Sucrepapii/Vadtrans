@@ -107,7 +107,7 @@ const sendWelcomeEmail = async (user) => {
 
               <p>Ready to start your journey?</p>
               <a href="${
-                process.env.CLIENT_URL || "http://localhost:3000"
+                process.env.CLIENT_URL || "https://www.vadtrans.com"
               }/search" class="button">
                 Search Trips Now
               </a>
@@ -136,7 +136,7 @@ With VadTrans, you can:
 - Manage all your bookings in one place
 
 Ready to start your journey? Visit ${
-        process.env.CLIENT_URL || "http://localhost:3000"
+        process.env.CLIENT_URL || "https://www.vadtrans.com"
       }/search
 
 If you have any questions, feel free to contact our support team at support@vadtrans.com
@@ -221,7 +221,7 @@ const sendBookingConfirmationEmail = async (booking, user) => {
               </div>
 
               <a href="${
-                process.env.CLIENT_URL || "http://localhost:3000"
+                process.env.CLIENT_URL || "https://www.vadtrans.com/"
               }/my-bookings" class="button">
                 View Booking Details
               </a>
@@ -254,7 +254,7 @@ const sendVerificationEmail = async (user, token) => {
   try {
     const transporter = createTransporter();
     const verificationUrl = `${
-      process.env.CLIENT_URL || "http://localhost:3000"
+      process.env.CLIENT_URL || "https://www.vadtrans.com/"
     }/verify-email?token=${token}`;
 
     if (!transporter) {
