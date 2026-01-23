@@ -67,7 +67,9 @@ const sendWelcomeEmail = async (user) => {
     }
 
     const mailOptions = {
-      from: `"VadTrans" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
+      from: `"VadTrans" <${
+        process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
+      }>`,
       to: user.email,
       subject: "Welcome to VadTrans! 🚀",
       html: `
@@ -170,7 +172,9 @@ const sendBookingConfirmationEmail = async (booking, user) => {
     }
 
     const mailOptions = {
-      from: `"VadTrans" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
+      from: `"VadTrans" <${
+        process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
+      }>`,
       to: user.email,
       subject: `Booking Confirmation - ${booking.bookingId} 🎫`,
       html: `
@@ -261,7 +265,9 @@ const sendVerificationEmail = async (user, token) => {
     }
 
     const mailOptions = {
-      from: `"VadTrans" <${process.env.EMAIL_USER || process.env.SMTP_USER}>`,
+      from: `"VadTrans" <${
+        process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
+      }>`,
       to: user.email,
       subject: "Verify Your Email - VadTrans",
       html: `
@@ -321,7 +327,7 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
 
   const mailOptions = {
     from: `${process.env.SMTP_FROM_NAME || "VadTrans"} <${
-      process.env.EMAIL_USER || process.env.SMTP_USER
+      process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
     }>`,
     to: user.email,
     subject: "Reset Your Password - VadTrans",
@@ -363,7 +369,7 @@ const sendPasswordSuccessEmail = async (user) => {
 
   const mailOptions = {
     from: `${process.env.SMTP_FROM_NAME || "VadTrans"} <${
-      process.env.EMAIL_USER || process.env.SMTP_USER
+      process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
     }>`,
     to: user.email,
     subject: "Password Changed Successfully - VadTrans",
