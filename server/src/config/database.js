@@ -7,8 +7,8 @@ const databaseUrl = process.env.DATABASE_URL;
 
 let sequelize;
 
-if (isProduction && databaseUrl) {
-  // Production: Use PostgreSQL from Railway
+if (databaseUrl) {
+  // Use explicit connection string (e.g., Railway, Neon, Render)
   sequelize = new Sequelize(databaseUrl, {
     dialect: "postgres",
     protocol: "postgres",
@@ -20,9 +20,9 @@ if (isProduction && databaseUrl) {
     },
     logging: false,
   });
-  console.log("🐘 Using PostgreSQL database (Production)");
+  console.log("🐘 Using PostgreSQL database (via DATABASE_URL)");
 } else {
-  // Development: Use SQLite
+  // Fallback: Use SQLite (Development only)
   sequelize = new Sequelize({
     dialect: "sqlite",
     storage: path.join(__dirname, "..", "..", "database.sqlite"),
