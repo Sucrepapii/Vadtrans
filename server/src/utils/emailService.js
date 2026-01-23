@@ -25,9 +25,9 @@ const createTransporter = () => {
           rejectUnauthorized: false,
         },
         // Set explicitly short timeouts to fail fast rather than hang
-        connectionTimeout: 10000,
-        greetingTimeout: 5000,
-        socketTimeout: 10000,
+        connectionTimeout: 30000,
+        greetingTimeout: 30000,
+        socketTimeout: 30000,
       });
     }
 

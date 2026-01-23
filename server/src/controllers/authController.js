@@ -263,7 +263,17 @@ exports.resendVerification = async (req, res) => {
     await user.save();
 
     try {
-      await sendVerificationEmail(user, verificationToken);
+      const result = await sendVerificationEmail(user, verificationToken);
+
+      if (!result.success) {
+        // If email failed to send, return error
+        return res.status(500).json({
+          success: false,
+          message: "Failed to send email",
+          error: result.error,
+        });
+      }
+
       res.status(200).json({
         success: true,
         message: "Verification email resent successfully",
