@@ -68,7 +68,17 @@ exports.signup = async (req, res) => {
 
       // Send verification email
       try {
-        await sendVerificationEmail(userExists, verificationToken);
+        const result = await sendVerificationEmail(
+          userExists,
+          verificationToken,
+        );
+        if (!result.success) {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to send verification email. Check server logs.",
+            error: result.error,
+          });
+        }
       } catch (err) {
         console.error("Failed to send verification email:", err);
       }
@@ -118,7 +128,14 @@ exports.signup = async (req, res) => {
     // Send verification email (skip for admin)
     if (userRole !== "admin") {
       try {
-        await sendVerificationEmail(user, verificationToken);
+        const result = await sendVerificationEmail(user, verificationToken);
+        if (!result.success) {
+          return res.status(500).json({
+            success: false,
+            message: "Failed to send verification email. Check server logs.",
+            error: result.error,
+          });
+        }
       } catch (err) {
         console.error("Failed to send verification email:", err);
       }
