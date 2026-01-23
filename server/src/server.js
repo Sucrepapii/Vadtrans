@@ -60,37 +60,41 @@ const allowedOrigins = [
   "http://localhost:5174",
   "https://sucrepapii-vadtrans.vercel.app",
   process.env.CLIENT_URL,
+  process.env.FRONTEND_URL,
   process.env.VERCEL_URL,
 ].filter(Boolean); // Remove undefined values
 
 console.log("🔒 Allowed CORS origins:", allowedOrigins);
 
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      console.log("📡 Incoming request from origin:", origin);
+const corsOptions = {
+  origin: function (origin, callback) {
+    console.log("📡 Incoming request from origin:", origin);
 
-      // Allow requests with no origin (like mobile apps or curl requests)
-      if (!origin) {
-        console.log("✅ Allowing request with no origin");
-        return callback(null, true);
-      }
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) {
+      console.log("✅ Allowing request with no origin");
+      return callback(null, true);
+    }
 
-      // Check if origin is in allowed list or if it's a Vercel deployment
-      if (
-        allowedOrigins.indexOf(origin) !== -1 ||
-        origin.endsWith(".vercel.app")
-      ) {
-        console.log("✅ CORS allowed for:", origin);
-        callback(null, true);
-      } else {
-        console.log("❌ CORS blocked for:", origin);
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  }),
-);
+    // Check if origin is in allowed list or if it's a Vercel deployment
+    if (
+      allowedOrigins.indexOf(origin) !== -1 ||
+      origin.endsWith(".vercel.app")
+    ) {
+      console.log("✅ CORS allowed for:", origin);
+      callback(null, true);
+    } else {
+      console.log("❌ CORS blocked for:", origin);
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+};
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Enable pre-flight for all routes
 
 // Test database connection and sync models
 const initializeDatabase = async () => {
