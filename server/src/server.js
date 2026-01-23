@@ -125,28 +125,6 @@ const initializeDatabase = async () => {
 
 initializeDatabase();
 
-// TEMPORARY: Emergency verification route
-app.get("/api/emergency-verify/:email", async (req, res) => {
-  try {
-    const email = req.params.email;
-    if (!email) return res.send("Email required");
-
-    const user = await User.findOne({ where: { email } });
-    if (!user) return res.send(`User ${email} not found in database.`);
-
-    user.isVerified = true;
-    user.verificationToken = null;
-    user.verificationTokenExpire = null;
-    await user.save();
-
-    res.send(
-      `✅ SUCCESS! User ${email} has been manually verified. You can now login.`,
-    );
-  } catch (e) {
-    res.status(500).send("Error: " + e.message);
-  }
-});
-
 // Mount routes
 app.use("/api/auth", authRoutes);
 app.use("/api/trips", tripRoutes);
