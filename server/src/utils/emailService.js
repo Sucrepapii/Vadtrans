@@ -1,76 +1,32 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-// Create reusable transporter
-const createTransporter = () => {
-  const user = process.env.EMAIL_USER || process.env.SMTP_USER;
-  const pass = process.env.EMAIL_PASSWORD || process.env.SMTP_PASS;
+// Initialize Resend
+// Use RESEND_API_KEY if available, otherwise fallback to SMTP_PASS
+const resendApiKey = process.env.RESEND_API_KEY || process.env.SMTP_PASS;
+const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
-  // Check if email credentials are configured
-  if (user && pass) {
-    // Prefer explicit SMTP configuration
-    if (process.env.SMTP_HOST && process.env.SMTP_PORT) {
-      console.log(
-        `🔌 Configuring SMTP: ${process.env.SMTP_HOST}:${process.env.SMTP_PORT} (Secure: ${process.env.SMTP_PORT == 465})`,
-      );
-      return nodemailer.createTransport({
-        host: process.env.SMTP_HOST,
-        port: process.env.SMTP_PORT,
-        secure: process.env.SMTP_PORT == 465, // true for 465, false for other ports
-        auth: {
-          user: user,
-          pass: pass,
-        },
-        // Relax TLS constraints to avoid timeouts in cloud environments
-        tls: {
-          rejectUnauthorized: false,
-        },
-        // Set explicitly short timeouts to fail fast rather than hang
-        connectionTimeout: 30000,
-        greetingTimeout: 30000,
-        socketTimeout: 30000,
-      });
-    }
-
-    console.log("🔌 Configuring default Gmail service (Port 587)");
-    // Fallback to service "gmail"
-    return nodemailer.createTransport({
-      service: process.env.EMAIL_SERVICE || "gmail",
-      auth: {
-        user: user,
-        pass: pass,
-      },
-    });
-  } else {
-    // Development mode - log to console
+// Helper to check if email service is configured
+const isConfigured = () => {
+  if (!resend) {
     console.log(
-      "\n⚠️  EMAIL NOT CONFIGURED: Checking .env for EMAIL_USER/SMTP_USER",
-    );
-    console.log(
-      "   Current values -> EMAIL_USER: " +
-        (process.env.EMAIL_USER ? "Set" : "Empty") +
-        ", SMTP_USER: " +
-        (process.env.SMTP_USER ? "Set" : "Empty"),
+      "\n⚠️  RESEND API KEY NOT FOUND: Please set RESEND_API_KEY in .env",
     );
     console.log("   Emails will be logged to console only.\n");
-    return null;
+    return false;
   }
+  return true;
 };
 
 // Send welcome email
 const sendWelcomeEmail = async (user) => {
   try {
-    const transporter = createTransporter();
-
-    if (!transporter) {
-      // Log email to console in development
+    if (!isConfigured()) {
       return { success: true, mode: "console" };
     }
 
-    const mailOptions = {
-      from: `"VadTrans" <${
-        process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
-      }>`,
-      to: user.email,
+    const { data, error } = await resend.emails.send({
+      from: process.env.SMTP_FROM || "VadTrans <onboarding@resend.dev>", // Fallback for testing
+      to: [user.email],
       subject: "Welcome to VadTrans! 🚀",
       html: `
         <!DOCTYPE html>
@@ -121,38 +77,17 @@ const sendWelcomeEmail = async (user) => {
         </body>
         </html>
       `,
-      text: `
-Hi ${user.name}!
+    });
 
-Thank you for joining VadTrans - Nigeria's premier transportation booking platform!
+    if (error) {
+      console.error("❌ Resend Error:", error);
+      return { success: false, error: error.message };
+    }
 
-With VadTrans, you can:
-- Book bus, train, and flight tickets easily
-- Compare prices from multiple transport companies
-- Track your journey in real-time
-- Manage all your bookings in one place
-
-Ready to start your journey? Visit ${
-        process.env.CLIENT_URL || "https://www.vadtrans.com"
-      }/search
-
-If you have any questions, feel free to contact our support team at support@vadtrans.com
-
-Best regards,
-The VadTrans Team
-
-© ${new Date().getFullYear()} VadTrans. All rights reserved.
-46, Amos Olagboyega Street, Ikeja, Lagos
-      `,
-    };
-
-    const info = await transporter.sendMail(mailOptions);
     console.log("✅ Welcome email sent successfully to:", user.email);
-
-    return { success: true, messageId: info.messageId };
+    return { success: true, messageId: data.id };
   } catch (error) {
     console.error("❌ Error sending welcome email:", error.message);
-    // Don't throw error - we don't want email failures to block signup
     return { success: false, error: error.message };
   }
 };
@@ -160,22 +95,13 @@ The VadTrans Team
 // Send booking confirmation email
 const sendBookingConfirmationEmail = async (booking, user) => {
   try {
-    const transporter = createTransporter();
-
-    if (!transporter) {
-      console.log("\n📧 ===== BOOKING CONFIRMATION EMAIL =====");
-      console.log("To:", user.email);
-      console.log("Booking ID:", booking.bookingId);
-      console.log("Total Amount: ₦" + booking.totalAmount);
-      console.log("=====================================\n");
+    if (!isConfigured()) {
       return { success: true, mode: "console" };
     }
 
-    const mailOptions = {
-      from: `"VadTrans" <${
-        process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
-      }>`,
-      to: user.email,
+    const { data, error } = await resend.emails.send({
+      from: process.env.SMTP_FROM || "VadTrans <bookings@resend.dev>",
+      to: [user.email],
       subject: `Booking Confirmation - ${booking.bookingId} 🎫`,
       html: `
         <!DOCTYPE html>
@@ -234,12 +160,15 @@ const sendBookingConfirmationEmail = async (booking, user) => {
         </body>
         </html>
       `,
-    };
+    });
 
-    const info = await transporter.sendMail(mailOptions);
+    if (error) {
+      console.error("❌ Resend Error:", error);
+      return { success: false, error: error.message };
+    }
+
     console.log("✅ Booking confirmation email sent to:", user.email);
-
-    return { success: true, messageId: info.messageId };
+    return { success: true, messageId: data.id };
   } catch (error) {
     console.error(
       "❌ Error sending booking confirmation email:",
@@ -251,24 +180,17 @@ const sendBookingConfirmationEmail = async (booking, user) => {
 
 const sendVerificationEmail = async (user, token) => {
   try {
-    const transporter = createTransporter();
+    if (!isConfigured()) {
+      return { success: true, mode: "console" };
+    }
+
     const verificationUrl = `${
       process.env.CLIENT_URL || "https://www.vadtrans.com/"
     }/verify-email?token=${token}`;
 
-    if (!transporter) {
-      console.log("\n📧 ===== VERIFICATION EMAIL =====");
-      console.log("To:", user.email);
-      console.log("Verification Link:", verificationUrl);
-      console.log("===============================\n");
-      return { success: true, mode: "console" };
-    }
-
-    const mailOptions = {
-      from: `"VadTrans" <${
-        process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
-      }>`,
-      to: user.email,
+    const { data, error } = await resend.emails.send({
+      from: process.env.SMTP_FROM || "VadTrans <verify@resend.dev>",
+      to: [user.email],
       subject: "Verify Your Email - VadTrans",
       html: `
         <!DOCTYPE html>
@@ -303,11 +225,15 @@ const sendVerificationEmail = async (user, token) => {
         </body>
         </html>
       `,
-    };
+    });
 
-    const info = await transporter.sendMail(mailOptions);
+    if (error) {
+      console.error("❌ Resend Error:", error);
+      return { success: false, error: error.message };
+    }
+
     console.log("✅ Verification email sent to:", user.email);
-    return { success: true, messageId: info.messageId };
+    return { success: true, messageId: data.id };
   } catch (error) {
     console.error("❌ Error sending verification email:", error.message);
     return { success: false, error: error.message };
@@ -315,23 +241,16 @@ const sendVerificationEmail = async (user, token) => {
 };
 
 const sendPasswordResetEmail = async (user, resetUrl) => {
-  const transporter = createTransporter();
+  try {
+    if (!isConfigured()) {
+      return { success: true, mode: "console" };
+    }
 
-  if (!transporter) {
-    console.log("\n📧 ===== PASSWORD RESET EMAIL =====");
-    console.log("To:", user.email);
-    console.log("Reset Link:", resetUrl);
-    console.log("===============================\n");
-    return { success: true, mode: "console" };
-  }
-
-  const mailOptions = {
-    from: `${process.env.SMTP_FROM_NAME || "VadTrans"} <${
-      process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
-    }>`,
-    to: user.email,
-    subject: "Reset Your Password - VadTrans",
-    html: `
+    const { data, error } = await resend.emails.send({
+      from: process.env.SMTP_FROM || "VadTrans <auth@resend.dev>",
+      to: [user.email],
+      subject: "Reset Your Password - VadTrans",
+      html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #6C5DD3;">Password Reset Request</h2>
         <p>Hello ${user.name},</p>
@@ -345,12 +264,15 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
         <p style="font-size: 12px; color: #888;">&copy; ${new Date().getFullYear()} VadTrans. All rights reserved.</p>
       </div>
     `,
-  };
+    });
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
+    if (error) {
+      console.error("❌ Resend Error:", error);
+      return { success: false, error: error.message };
+    }
+
     console.log("✅ Password reset email sent to:", user.email);
-    return { success: true, messageId: info.messageId };
+    return { success: true, messageId: data.id };
   } catch (error) {
     console.error("❌ Error sending password reset email:", error.message);
     return { success: false, error: error.message };
@@ -358,22 +280,16 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
 };
 
 const sendPasswordSuccessEmail = async (user) => {
-  const transporter = createTransporter();
+  try {
+    if (!isConfigured()) {
+      return { success: true, mode: "console" };
+    }
 
-  if (!transporter) {
-    console.log("\n📧 ===== PASSWORD CHANGED SUCCESS EMAIL =====");
-    console.log("To:", user.email);
-    console.log("==========================================\n");
-    return { success: true, mode: "console" };
-  }
-
-  const mailOptions = {
-    from: `${process.env.SMTP_FROM_NAME || "VadTrans"} <${
-      process.env.SMTP_FROM || process.env.EMAIL_USER || process.env.SMTP_USER
-    }>`,
-    to: user.email,
-    subject: "Password Changed Successfully - VadTrans",
-    html: `
+    const { data, error } = await resend.emails.send({
+      from: process.env.SMTP_FROM || "VadTrans <auth@resend.dev>",
+      to: [user.email],
+      subject: "Password Changed Successfully - VadTrans",
+      html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #6C5DD3;">Password Changed</h2>
         <p>Hello ${user.name},</p>
@@ -388,12 +304,15 @@ const sendPasswordSuccessEmail = async (user) => {
         <p style="font-size: 12px; color: #888;">&copy; ${new Date().getFullYear()} VadTrans. All rights reserved.</p>
       </div>
     `,
-  };
+    });
 
-  try {
-    const info = await transporter.sendMail(mailOptions);
+    if (error) {
+      console.error("❌ Resend Error:", error);
+      return { success: false, error: error.message };
+    }
+
     console.log("✅ Password changed success email sent to:", user.email);
-    return { success: true, messageId: info.messageId };
+    return { success: true, messageId: data.id };
   } catch (error) {
     console.error(
       "❌ Error sending password changed success email:",
