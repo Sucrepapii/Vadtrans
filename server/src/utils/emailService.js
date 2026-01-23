@@ -63,11 +63,6 @@ const sendWelcomeEmail = async (user) => {
 
     if (!transporter) {
       // Log email to console in development
-      console.log("\n📧 ===== WELCOME EMAIL =====");
-      console.log("To:", user.email);
-      console.log("Subject: Welcome to VadTrans! 🚀");
-      console.log(`\nHi ${user.name}!\n\nThank you for joining VadTrans!\n`);
-      console.log("==========================\n");
       return { success: true, mode: "console" };
     }
 

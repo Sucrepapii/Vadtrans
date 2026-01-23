@@ -136,7 +136,7 @@ exports.signup = async (req, res) => {
       success: true,
       message: `${
         userRole === "company" ? "Company" : "User"
-      } registered successfully. Check your email for welcome message!`,
+      } registered successfully. Check your email for verification link!`,
       token,
       user: {
         id: user.id,
