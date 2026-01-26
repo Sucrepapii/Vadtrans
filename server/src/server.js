@@ -60,6 +60,8 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:5174",
   "https://sucrepapii-vadtrans.vercel.app",
+  "https://www.vadtrans.com",
+  "https://vadtrans.com",
   process.env.CLIENT_URL,
   process.env.FRONTEND_URL,
   process.env.VERCEL_URL,
