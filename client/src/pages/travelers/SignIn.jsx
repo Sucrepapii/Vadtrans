@@ -13,6 +13,8 @@ const SignIn = () => {
   const navigate = useNavigate();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [showResend, setShowResend] = useState(false);
 
   const redirectPath = searchParams.get("redirect");
   const [formData, setFormData] = useState({
@@ -57,7 +59,7 @@ const SignIn = () => {
       toast.success(
         `Welcome back, ${
           response.data.user.name || response.data.user.email.split("@")[0]
-        }!`
+        }!`,
       );
 
       // Redirect based on role or URL param
@@ -72,11 +74,31 @@ const SignIn = () => {
       }
     } catch (error) {
       console.error("Login error:", error);
-      toast.error(
-        error.response?.data?.message || "Login failed. Please try again."
-      );
+      const message =
+        error.response?.data?.message || "Login failed. Please try again.";
+      toast.error(message);
+
+      if (message.toLowerCase().includes("verify your email")) {
+        setShowResend(true);
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      setResendLoading(true);
+      await authAPI.resendVerification(formData.email);
+      toast.success("Verification email sent! Please check your inbox.");
+      setShowResend(false); // Hide button after success
+    } catch (error) {
+      console.error("Resend error:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to resend verification email.",
+      );
+    } finally {
+      setResendLoading(false);
     }
   };
 
@@ -146,6 +168,23 @@ const SignIn = () => {
                   "Sign In"
                 )}
               </button>
+
+              {showResend && (
+                <button
+                  type="button"
+                  onClick={handleResendVerification}
+                  disabled={resendLoading}
+                  className="w-full bg-blue-100 text-blue-700 py-3 rounded-lg font-medium hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4">
+                  {resendLoading ? (
+                    <>
+                      <FaSpinner className="animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Resend Verification Email"
+                  )}
+                </button>
+              )}
             </form>
           </div>
 
