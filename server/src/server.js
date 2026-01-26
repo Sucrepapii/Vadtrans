@@ -100,8 +100,8 @@ app.options("*", cors(corsOptions)); // Enable pre-flight for all routes
 const initializeDatabase = async () => {
   try {
     await testConnection();
-    // Sync all models with database (don't alter existing tables)
-    await sequelize.sync({ alter: false });
+    // Sync all models with database (alter: true updates schema)
+    await sequelize.sync({ alter: true });
     console.log("✅ Database models synchronized");
 
     // Check if any users exist, if not create default admin
