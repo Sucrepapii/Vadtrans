@@ -19,9 +19,10 @@ const User = require("./models/User");
 const Trip = require("./models/Trip");
 const Booking = require("./models/Booking");
 const Fare = require("./models/Fare");
+const FAQ = require("./models/FAQ");
 
 // Set up model associations
-const models = { User, Trip, Booking, Fare };
+const models = { User, Trip, Booking, Fare, FAQ };
 
 // Call associate methods if they exist
 Object.values(models).forEach((model) => {
