@@ -181,16 +181,37 @@ app.use("/api/faqs", require("./routes/faqRoutes"));
 
 app.get("/api/fix-db-schema", async (req, res) => {
   try {
-    console.log("🔄 Manually syncing database schema...");
-    await sequelize.sync({ alter: true });
-    console.log("✅ Manual sync complete");
+    console.log("🔄 Manually patching database schema...");
+
+    // 1. Add bookingCount to Users if missing
+    try {
+      await sequelize.query(`
+        ALTER TABLE "Users" 
+        ADD COLUMN IF NOT EXISTS "bookingCount" INTEGER DEFAULT 0;
+      `);
+      console.log("✅ Added bookingCount to Users");
+    } catch (e) {
+      console.log("⚠️ User patch note:", e.message);
+    }
+
+    // 2. Add category to FAQs if missing
+    try {
+      await sequelize.query(`
+        ALTER TABLE "FAQs" 
+        ADD COLUMN IF NOT EXISTS "category" VARCHAR(255) DEFAULT 'General';
+      `);
+      console.log("✅ Added category to FAQs");
+    } catch (e) {
+      console.log("⚠️ FAQ patch note:", e.message);
+    }
+
     res.json({
       success: true,
-      message: "Database schema updated successfully!",
+      message: "Database columns patched successfully!",
       activeDialect: dbType,
     });
   } catch (err) {
-    console.error("❌ Manual sync failed:", err);
+    console.error("❌ Manual patch failed:", err);
     res.status(500).json({
       success: false,
       error: err.message,
