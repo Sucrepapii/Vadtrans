@@ -89,6 +89,10 @@ const User = sequelize.define(
       type: DataTypes.INTEGER,
       defaultValue: 0,
     },
+    bookingCount: {
+      type: DataTypes.INTEGER,
+      defaultValue: 0,
+    },
     verificationStatus: {
       type: DataTypes.ENUM("pending", "verified", "rejected"),
       defaultValue: "pending",
