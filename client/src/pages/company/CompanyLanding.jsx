@@ -93,7 +93,7 @@ const CompanyLanding = () => {
             </div>
 
             {/* Right side - Illustration/Image */}
-            <div className="hidden lg:block">
+            <div className="mt-8 lg:mt-0 lg:block">
               <div className="relative">
                 <img
                   src="/company-hero.jpg"
@@ -160,7 +160,7 @@ const CompanyLanding = () => {
             </div>
 
             {/* Right side - Image */}
-            <div className="hidden lg:block">
+            <div className="mt-8 lg:mt-0 lg:block">
               <img
                 src="/benefits-image.jpg"
                 alt="Benefits"
