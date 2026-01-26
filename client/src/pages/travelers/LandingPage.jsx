@@ -96,7 +96,7 @@ const LandingPage = () => {
                         toState: "",
                       })
                     }
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary text-sm sm:text-base">
+                    className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary sm:text-base text-base">
                     <option value="all">All Types</option>
                     <option value="inter-state">Inter-State (Nigeria)</option>
                     <option value="international">
@@ -129,7 +129,7 @@ const LandingPage = () => {
                               to: "",
                             })
                           }
-                          className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                          className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"
                           required>
                           <option value="">Select state</option>
                           {locationOptions.map((state) => (
@@ -157,7 +157,7 @@ const LandingPage = () => {
                                 from: e.target.value,
                               })
                             }
-                            className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                            className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"
                             required>
                             <option value="">Select departure city</option>
                             {fromCities.map((city) => (
@@ -186,7 +186,7 @@ const LandingPage = () => {
                                 to: e.target.value,
                               })
                             }
-                            className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                            className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"
                             required>
                             <option value="">Select destination city</option>
                             {fromCities.map((city) => (
@@ -211,7 +211,7 @@ const LandingPage = () => {
                         onChange={(e) =>
                           setSearchData({ ...searchData, from: e.target.value })
                         }
-                        className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                        className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"
                         required>
                         <option value="">
                           Select departure{" "}
@@ -242,7 +242,7 @@ const LandingPage = () => {
                         onChange={(e) =>
                           setSearchData({ ...searchData, to: e.target.value })
                         }
-                        className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none text-sm sm:text-base"
+                        className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"
                         required>
                         <option value="">
                           Select destination{" "}
@@ -282,14 +282,14 @@ const LandingPage = () => {
 
                 <button
                   type="submit"
-                  className="w-full py-3 sm:py-4 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors text-sm sm:text-base">
+                  className="w-full py-3 sm:py-4 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors sm:text-base text-base">
                   Search Trips
                 </button>
               </form>
             </div>
 
             {/* Right side - Hero Image/Illustration */}
-            <div className="hidden lg:block">
+            <div className="mt-8 lg:mt-0 lg:block">
               <div className="relative">
                 <img
                   src="/hero-bus.jpg"

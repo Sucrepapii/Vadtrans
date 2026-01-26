@@ -230,6 +230,35 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
                   </Link>
                 </>
               )}
+
+              {/* Mobile Contact Info */}
+              <div className="pt-4 mt-4 border-t border-gray-100">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  Contact Support
+                </p>
+                <div className="space-y-3">
+                  <a
+                    href="tel:+234-912-328-4931"
+                    className="flex items-center gap-3 text-charcoal hover:text-primary transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-green-50 flex items-center justify-center text-green-600">
+                      <FaWhatsapp size={14} />
+                    </div>
+                    <span className="font-medium text-sm">
+                      +234-912-328-4931
+                    </span>
+                  </a>
+                  <a
+                    href="mailto:contact@vadtrans.com"
+                    className="flex items-center gap-3 text-charcoal hover:text-primary transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                      <FaEnvelope size={14} />
+                    </div>
+                    <span className="font-medium text-sm">
+                      contact@vadtrans.com
+                    </span>
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         )}
