@@ -53,58 +53,21 @@ const AboutUs = () => {
     { number: "100+", label: "Routes Covered" },
   ];
 
-  const faqs = [
-    {
-      question: "How do I book a ticket on VadTrans?",
-      answer:
-        "Booking is simple! Just enter your departure and destination cities, select your travel date, choose your preferred transport option, and complete the payment. You'll receive your e-ticket via email immediately.",
-    },
-    {
-      question: "Can I cancel or modify my booking?",
-      answer:
-        "Yes, you can cancel or modify your booking up to 24 hours before departure. Go to 'My Bookings' section, select your booking, and choose the cancel or modify option. Cancellation fees may apply based on the transport company's policy.",
-    },
-    {
-      question: "What payment methods do you accept?",
-      answer:
-        "We accept various payment methods including debit cards, credit cards, bank transfers, and mobile money. All payments are processed securely through our encrypted payment gateway.",
-    },
-    {
-      question: "How do I receive my ticket?",
-      answer:
-        "After successful payment, your e-ticket will be sent to your registered email address. You can also download it from the 'My Bookings' section. Simply present the e-ticket (digital or printed) at the departure point.",
-    },
-    {
-      question: "What if I miss my bus/train?",
-      answer:
-        "If you miss your scheduled departure, please contact our customer support immediately. Depending on the transport company's policy and availability, we may be able to reschedule you to the next available trip, subject to additional charges.",
-    },
-    {
-      question: "Are the transport companies verified?",
-      answer:
-        "Absolutely! All transport companies on our platform undergo a rigorous verification process. We check their licenses, insurance, vehicle safety records, and customer reviews before approving them.",
-    },
-    {
-      question: "How early should I arrive at the departure point?",
-      answer:
-        "We recommend arriving at least 30 minutes before your scheduled departure time. This gives you enough time to check in, load luggage, and board comfortably.",
-    },
-    {
-      question: "Can I travel with luggage?",
-      answer:
-        "Yes, each passenger is typically allowed one carry-on bag and one checked luggage. Weight and size limits vary by transport company. Please check your specific booking details for luggage allowances.",
-    },
-    {
-      question: "What if my trip is delayed or cancelled?",
-      answer:
-        "In case of delays or cancellations by the transport company, you'll be notified immediately via email and SMS. You can choose to get a full refund or reschedule to another available trip at no extra cost.",
-    },
-    {
-      question: "How can I become a partner transport company?",
-      answer:
-        "We're always looking to partner with reliable transport companies! Click on 'List Your Company' on our homepage, fill out the registration form, and submit the required documents. Our team will review your application within 48 hours.",
-    },
-  ];
+  const [faqs, setFaqs] = useState([]);
+
+  React.useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        const { data } = await import("../../services/api").then((m) =>
+          m.faqAPI.getFAQs(),
+        );
+        setFaqs(data.data);
+      } catch (error) {
+        console.error("Failed to fetch FAQs:", error);
+      }
+    };
+    fetchFAQs();
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col">

@@ -6,33 +6,33 @@ import Modal from "../../components/Modal";
 import Input from "../../components/Input";
 import { FaPlus, FaEdit, FaTrash, FaQuestionCircle } from "react-icons/fa";
 
+import { toast } from "react-toastify";
+import { faqAPI } from "../../services/api";
+
 const FAQManagement = () => {
-  const [faqs, setFaqs] = useState([
-    {
-      id: 1,
-      category: "Booking",
-      question: "How do I book a ticket?",
-      answer:
-        "To book a ticket, search for your desired route, select a trip, enter passenger details, and proceed to payment.",
-    },
-    {
-      id: 2,
-      category: "Payment",
-      question: "What payment methods are accepted?",
-      answer:
-        "We accept credit/debit cards, PayPal, and direct bank transfers.",
-    },
-    {
-      id: 3,
-      category: "Cancellation",
-      question: "Can I cancel my booking?",
-      answer:
-        "Yes, you can cancel your booking up to 24 hours before departure for a full refund.",
-    },
-  ]);
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch FAQs on load
+  React.useEffect(() => {
+    fetchFAQs();
+  }, []);
+
+  const fetchFAQs = async () => {
+    try {
+      const { data } = await faqAPI.getAllFAQsAdmin();
+      setFaqs(data.data);
+    } catch (error) {
+      console.error("Failed to fetch FAQs:", error);
+      toast.error("Failed to load FAQs");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingFaq, setEditingFaq] = useState(null);
+  const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     category: "",
     question: "",
@@ -56,29 +56,49 @@ const FAQManagement = () => {
   const handleEdit = (faq) => {
     setEditingFaq(faq);
     setFormData({
-      category: faq.category,
+      category: faq.category || "General", // Fallback if category missing
       question: faq.question,
       answer: faq.answer,
     });
     setIsModalOpen(true);
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this FAQ?")) {
-      setFaqs(faqs.filter((f) => f.id !== id));
+      try {
+        await faqAPI.deleteFAQ(id);
+        toast.success("FAQ deleted successfully");
+        setFaqs(faqs.filter((f) => f.id !== id));
+      } catch (error) {
+        console.error("Failed to delete FAQ:", error);
+        toast.error("Failed to delete FAQ");
+      }
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editingFaq) {
-      setFaqs(
-        faqs.map((f) => (f.id === editingFaq.id ? { ...f, ...formData } : f))
-      );
-    } else {
-      setFaqs([...faqs, { ...formData, id: Date.now() }]);
+    setSaving(true);
+
+    try {
+      if (editingFaq) {
+        // Update existing
+        const { data } = await faqAPI.updateFAQ(editingFaq.id, formData);
+        setFaqs(faqs.map((f) => (f.id === editingFaq.id ? data.data : f)));
+        toast.success("FAQ updated successfully");
+      } else {
+        // Create new
+        const { data } = await faqAPI.createFAQ(formData);
+        setFaqs([...faqs, data.data]);
+        toast.success("FAQ created successfully");
+      }
+      setIsModalOpen(false);
+    } catch (error) {
+      console.error("Failed to save FAQ:", error);
+      toast.error(error.response?.data?.message || "Failed to save FAQ");
+    } finally {
+      setSaving(false);
     }
-    setIsModalOpen(false);
   };
 
   return (
