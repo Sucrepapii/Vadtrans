@@ -16,6 +16,7 @@ import {
   FaAward,
   FaLightbulb,
 } from "react-icons/fa";
+import { faqAPI } from "../../services/api";
 
 const AboutUs = () => {
   const navigate = useNavigate();
@@ -58,9 +59,7 @@ const AboutUs = () => {
   React.useEffect(() => {
     const fetchFAQs = async () => {
       try {
-        const { data } = await import("../../services/api").then((m) =>
-          m.faqAPI.getFAQs(),
-        );
+        const { data } = await faqAPI.getFAQs();
         setFaqs(data.data);
       } catch (error) {
         console.error("Failed to fetch FAQs:", error);
