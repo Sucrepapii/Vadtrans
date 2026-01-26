@@ -12,7 +12,10 @@ import {
   FaPhone,
   FaBook,
   FaSearch,
+  FaPaperPlane,
+  FaSpinner,
 } from "react-icons/fa";
+import { contactAPI } from "../../services/api";
 
 const HelpSupport = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -70,10 +73,33 @@ const HelpSupport = () => {
     }))
     .filter((category) => category.questions.length > 0);
 
-  const handleSubmit = (e) => {
+  const [sending, setSending] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast.success("Your message has been sent! We'll get back to you soon.");
-    setContactForm({ name: "", email: "", subject: "", message: "" });
+
+    // Prevent double submission
+    if (sending) return;
+
+    try {
+      setSending(true);
+      const response = await contactAPI.sendMessage(contactForm);
+
+      if (response.data.success) {
+        toast.success("Message sent! We'll get back to you shortly.");
+        setContactForm({ name: "", email: "", subject: "", message: "" });
+      } else {
+        toast.error(response.data.message || "Failed to send message.");
+      }
+    } catch (error) {
+      console.error("Contact Error:", error);
+      toast.error(
+        error.response?.data?.message ||
+          "Something went wrong. Please try again.",
+      );
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -219,8 +245,19 @@ const HelpSupport = () => {
                   required
                 />
               </div>
-              <Button type="submit" variant="primary" fullWidth>
-                Send Message
+              <Button
+                type="submit"
+                variant="primary"
+                fullWidth
+                disabled={sending}>
+                <div className="flex items-center justify-center gap-2">
+                  {sending ? (
+                    <FaSpinner className="animate-spin" />
+                  ) : (
+                    <FaPaperPlane />
+                  )}
+                  <span>{sending ? "Sending..." : "Send Message"}</span>
+                </div>
               </Button>
             </form>
           </Card>
