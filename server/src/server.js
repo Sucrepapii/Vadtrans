@@ -2,7 +2,7 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const dotenv = require("dotenv");
-const { sequelize, testConnection } = require("./config/database");
+const { sequelize, testConnection, dbType } = require("./config/database");
 
 // Load env vars
 dotenv.config();
@@ -138,7 +138,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({
     success: true,
     message: "API is running",
-    database: "SQLite",
+    database: dbType,
     timestamp: new Date().toISOString(),
   });
 });

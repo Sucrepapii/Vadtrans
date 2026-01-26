@@ -29,7 +29,10 @@ if (databaseUrl) {
     logging: false,
   });
   console.log("💾 Using SQLite database (Development)");
+  console.log("💾 Using SQLite database (Development)");
 }
+
+const dbType = databaseUrl ? "Postgres" : "SQLite";
 
 // Test connection
 const testConnection = async () => {
@@ -42,4 +45,4 @@ const testConnection = async () => {
   }
 };
 
-module.exports = { sequelize, testConnection };
+module.exports = { sequelize, testConnection, dbType };

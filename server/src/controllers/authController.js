@@ -187,6 +187,11 @@ exports.verifyEmail = async (req, res) => {
       });
     }
 
+    console.log(
+      "🔍 Verifying email with token:",
+      token.substring(0, 10) + "...",
+    );
+
     // Hash token to compare with database
     const verificationToken = crypto
       .createHash("sha256")
@@ -200,6 +205,7 @@ exports.verifyEmail = async (req, res) => {
     });
 
     if (!user) {
+      console.log("❌ Verification failed: No user found with this token.");
       return res.status(400).json({
         success: false,
         message: "Invalid token",
