@@ -119,6 +119,51 @@ const initializeDatabase = async () => {
       });
       console.log("✅ Default admin created: admin@vadtrans.com / Admin@123");
     }
+
+    // Check if FAQs exist, if not seed default FAQs
+    const faqCount = await FAQ.count();
+    if (faqCount === 0) {
+      console.log("ℹ️ No FAQs found. Seeding default FAQs...");
+      const defaultFAQs = [
+        {
+          question: "How do I book a ticket on VadTrans?",
+          answer:
+            "Booking is simple! Just enter your departure and destination cities, select your travel date, choose your preferred transport option, and complete the payment.",
+          category: "Booking",
+          order: 1,
+        },
+        {
+          question: "Can I cancel or modify my booking?",
+          answer:
+            "Yes, you can cancel or modify your booking up to 24 hours before departure for a full refund via the 'My Bookings' section.",
+          category: "Cancellation",
+          order: 2,
+        },
+        {
+          question: "What payment methods do you accept?",
+          answer:
+            "We accept various payment methods including debit cards, credit cards, bank transfers, and mobile money.",
+          category: "Payment",
+          order: 3,
+        },
+        {
+          question: "How do I receive my ticket?",
+          answer:
+            "After successful payment, your e-ticket will be sent to your registered email address. You can also download it from the 'My Bookings' section.",
+          category: "Booking",
+          order: 4,
+        },
+        {
+          question: "Are the transport companies verified?",
+          answer:
+            "Absolutely! All transport companies on our platform undergo a rigorous verification process checking licenses, insurance, and safety records.",
+          category: "General",
+          order: 5,
+        },
+      ];
+      await FAQ.bulkCreate(defaultFAQs);
+      console.log("✅ Default FAQs seeded");
+    }
   } catch (error) {
     console.error("❌ Database initialization error:", error);
   }
