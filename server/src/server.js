@@ -179,6 +179,25 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/faqs", require("./routes/faqRoutes"));
 
+app.get("/api/fix-db-schema", async (req, res) => {
+  try {
+    console.log("🔄 Manually syncing database schema...");
+    await sequelize.sync({ alter: true });
+    console.log("✅ Manual sync complete");
+    res.json({
+      success: true,
+      message: "Database schema updated successfully!",
+      activeDialect: dbType,
+    });
+  } catch (err) {
+    console.error("❌ Manual sync failed:", err);
+    res.status(500).json({
+      success: false,
+      error: err.message,
+    });
+  }
+});
+
 // Health check route
 app.get("/api/health", (req, res) => {
   res.status(200).json({
