@@ -23,47 +23,41 @@ const HelpSupport = () => {
     message: "",
   });
 
-  const faqs = [
-    {
-      category: "Booking",
-      questions: [
-        {
-          q: "How do I book a ticket?",
-          a: "Search for your desired route, select a trip, enter passenger details, and proceed to payment.",
-        },
-        {
-          q: "Can I book for multiple passengers?",
-          a: "Yes, you can book for up to 10 passengers in a single booking.",
-        },
-      ],
-    },
-    {
-      category: "Payment",
-      questions: [
-        {
-          q: "What payment methods are accepted?",
-          a: "We accept credit/debit cards, PayPal, and direct bank transfers.",
-        },
-        {
-          q: "Is my payment information secure?",
-          a: "Yes, all payments are encrypted and processed through secure payment gateways.",
-        },
-      ],
-    },
-    {
-      category: "Cancellation",
-      questions: [
-        {
-          q: "Can I cancel my booking?",
-          a: "Yes, you can cancel up to 24 hours before departure for a full refund.",
-        },
-        {
-          q: "How do I get a refund?",
-          a: "Refunds are processed automatically to your original payment method within 7-10 business days.",
-        },
-      ],
-    },
-  ];
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        const { data } = await import("../../services/api").then((m) =>
+          m.faqAPI.getFAQs(),
+        );
+        // Transform flat API response to grouped format expected by UI
+        // Future improvement: Add 'category' to backend model
+        const transformedFaqs = [
+          {
+            category: "General Questions",
+            questions: data.data.map((f) => ({
+              q: f.question,
+              a: f.answer,
+            })),
+          },
+        ];
+
+        if (transformedFaqs[0].questions.length > 0) {
+          setFaqs(transformedFaqs);
+        } else {
+          // Fallback if no APIs are in DB yet, so page isn't empty
+          setFaqs([]);
+        }
+      } catch (error) {
+        console.error("Failed to fetch FAQs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFAQs();
+  }, []);
 
   const filteredFaqs = faqs
     .map((category) => ({
@@ -71,7 +65,7 @@ const HelpSupport = () => {
       questions: category.questions.filter(
         (q) =>
           q.q.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          q.a.toLowerCase().includes(searchTerm.toLowerCase())
+          q.a.toLowerCase().includes(searchTerm.toLowerCase()),
       ),
     }))
     .filter((category) => category.questions.length > 0);
