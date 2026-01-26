@@ -15,6 +15,10 @@ const FAQ = sequelize.define("FAQ", {
     type: DataTypes.TEXT,
     allowNull: false,
   },
+  category: {
+    type: DataTypes.STRING,
+    defaultValue: "General",
+  },
   order: {
     type: DataTypes.INTEGER,
     defaultValue: 0,
