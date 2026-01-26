@@ -182,32 +182,56 @@ app.use("/api/faqs", require("./routes/faqRoutes"));
 app.get("/api/fix-db-schema", async (req, res) => {
   try {
     console.log("🔄 Manually patching database schema...");
+    const report = [];
 
-    // 1. Add bookingCount to Users if missing
-    try {
-      await sequelize.query(`
-        ALTER TABLE "Users" 
-        ADD COLUMN IF NOT EXISTS "bookingCount" INTEGER DEFAULT 0;
-      `);
-      console.log("✅ Added bookingCount to Users");
-    } catch (e) {
-      console.log("⚠️ User patch note:", e.message);
-    }
+    // Debug: List all tables
+    const [results] = await sequelize.query(`
+      SELECT table_name 
+      FROM information_schema.tables 
+      WHERE table_schema = 'public';
+    `);
+    const tables = results.map((r) => r.table_name);
+    report.push(`Found tables: ${tables.join(", ")}`);
 
-    // 2. Add category to FAQs if missing
-    try {
-      await sequelize.query(`
-        ALTER TABLE "FAQs" 
-        ADD COLUMN IF NOT EXISTS "category" VARCHAR(255) DEFAULT 'General';
-      `);
-      console.log("✅ Added category to FAQs");
-    } catch (e) {
-      console.log("⚠️ FAQ patch note:", e.message);
-    }
+    // Helper to safely add column
+    const addCol = async (tableName, colName, colDef) => {
+      // Check if table exists (case sensitive check)
+      if (
+        !tables.includes(tableName) &&
+        !tables.includes(tableName.toLowerCase())
+      ) {
+        report.push(`Skipping ${tableName}: Table not found`);
+        return;
+      }
+
+      // Try exact name first, then lowercase
+      const targetTable = tables.includes(tableName)
+        ? `"${tableName}"`
+        : `"${tableName.toLowerCase()}"`;
+
+      try {
+        await sequelize.query(`
+          ALTER TABLE ${targetTable} 
+          ADD COLUMN IF NOT EXISTS "${colName}" ${colDef};
+        `);
+        report.push(`✅ Added ${colName} to ${targetTable}`);
+      } catch (e) {
+        report.push(
+          `⚠️ Failed to add ${colName} to ${targetTable}: ${e.message}`,
+        );
+      }
+    };
+
+    // Patch Users
+    await addCol("Users", "bookingCount", "INTEGER DEFAULT 0");
+
+    // Patch FAQs
+    await addCol("FAQs", "category", "VARCHAR(255) DEFAULT 'General'");
 
     res.json({
       success: true,
-      message: "Database columns patched successfully!",
+      message: "Database patch attempted",
+      report,
       activeDialect: dbType,
     });
   } catch (err) {
