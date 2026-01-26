@@ -35,6 +35,7 @@ const UserProfile = () => {
     phone: "",
     email: "",
     address: "",
+    state: "",
     city: "",
     avatar: null,
     isVerified: false,
@@ -60,6 +61,7 @@ const UserProfile = () => {
         phone: userData.phone || "",
         email: userData.email || "",
         address: userData.address || "",
+        state: userData.state || "",
         city: userData.city || "",
         avatar: userData.avatar || null,
         isVerified: userData.isVerified || false,
@@ -360,20 +362,37 @@ const UserProfile = () => {
                       <label className="block text-sm font-medium text-charcoal mb-2">
                         City
                       </label>
-                      <select
+
+                      <input
+                        type="text"
                         name="city"
                         value={profileData.city}
                         onChange={handleChange}
-                        className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-                        disabled={saving}>
-                        <option value="">Select City/State</option>
-                        {nigerianStates.map((state) => (
-                          <option key={state} value={state}>
-                            {state}
-                          </option>
-                        ))}
-                      </select>
+                        className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary mt-2"
+                        placeholder="Enter City"
+                        disabled={saving}
+                      />
                     </div>
+                  </div>
+
+                  {/* State Field */}
+                  <div className="mb-6">
+                    <label className="block text-sm font-medium text-charcoal mb-2">
+                      State
+                    </label>
+                    <select
+                      name="state"
+                      value={profileData.state}
+                      onChange={handleChange}
+                      className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
+                      disabled={saving}>
+                      <option value="">Select State</option>
+                      {nigerianStates.map((state) => (
+                        <option key={state} value={state}>
+                          {state}
+                        </option>
+                      ))}
+                    </select>
                   </div>
 
                   {/* Save Button */}

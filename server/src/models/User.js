@@ -60,6 +60,10 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    state: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     // Company-specific fields
     businessRegNo: {
       type: DataTypes.STRING,
@@ -136,7 +140,7 @@ const User = sequelize.define(
         }
       },
     },
-  }
+  },
 );
 
 // Instance methods
@@ -148,7 +152,7 @@ User.prototype.generateToken = function () {
   return jwt.sign(
     { id: this.id, role: this.role },
     process.env.JWT_SECRET || "vadtrans_secret_key",
-    { expiresIn: process.env.JWT_EXPIRE || "7d" }
+    { expiresIn: process.env.JWT_EXPIRE || "7d" },
   );
 };
 

@@ -131,6 +131,7 @@ app.use("/api/trips", tripRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/faqs", require("./routes/faqRoutes"));
 
 // Health check route
 app.get("/api/health", (req, res) => {

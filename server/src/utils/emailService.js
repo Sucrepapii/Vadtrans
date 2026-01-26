@@ -322,10 +322,46 @@ const sendPasswordSuccessEmail = async (user) => {
   }
 };
 
+const sendContactFormEmail = async ({ name, email, subject, message }) => {
+  try {
+    if (!isConfigured()) {
+      return { success: true, mode: "console" };
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: process.env.SMTP_FROM || "VadTrans <contact@resend.dev>",
+      to: process.env.SUPPORT_EMAIL || "support@vadtrans.com", // Send to company support email
+      reply_to: email, // Reply directly to user
+      subject: `Contact Form: ${subject}`,
+      html: `
+        <h3>New Contact Form Submission</h3>
+        <p><strong>Name:</strong> ${name}</p>
+        <p><strong>Email:</strong> ${email}</p>
+        <p><strong>Subject:</strong> ${subject}</p>
+        <hr/>
+        <p><strong>Message:</strong></p>
+        <p>${message.replace(/\n/g, "<br>")}</p>
+      `,
+    });
+
+    if (error) {
+      console.error("❌ Resend Error:", error);
+      return { success: false, error: error.message };
+    }
+
+    console.log("✅ Contact form email sent from:", email);
+    return { success: true, messageId: data.id };
+  } catch (error) {
+    console.error("❌ Error sending contact email:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendBookingConfirmationEmail,
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendPasswordSuccessEmail,
+  sendContactFormEmail,
 };

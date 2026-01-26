@@ -519,7 +519,11 @@ exports.updateProfile = async (req, res) => {
         role: user.role,
         avatar: user.avatar,
         address: user.address,
+        avatar: user.avatar,
+        address: user.address,
         city: user.city,
+        state: user.state,
+        // Traveler fields
         // Traveler fields
         title: user.title,
         gender: user.gender,

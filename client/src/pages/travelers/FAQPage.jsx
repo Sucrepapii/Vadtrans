@@ -6,28 +6,24 @@ import { FaChevronDown, FaChevronUp } from "react-icons/fa";
 const FAQPage = () => {
   const [openIndex, setOpenIndex] = useState(2); // Third item open by default
 
-  const faqs = [
-    {
-      question: "How can I use VadTrans?",
-      answer:
-        "VadTrans is easy to use. Simply search for your destination, select your preferred transport company, choose your seat, and make payment. You will receive your ticket via email and SMS.",
-    },
-    {
-      question: "What services does VadTrans offer?",
-      answer:
-        "VadTrans offers a comprehensive platform for booking bus, train, and flight tickets across Nigeria. We partner with verified transport companies to provide you with safe and reliable travel options.",
-    },
-    {
-      question: "Can I pay for trips in installments?",
-      answer:
-        "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Etiam eu turpis molestie, dictum est a, mattis tellus. Sed dignissim, metus nec fringilla accumsan, risus sem sollicitudin lacus.",
-    },
-    {
-      question: "How safe are the transport companies here?",
-      answer:
-        "All transport companies on VadTrans are thoroughly vetted and verified. We ensure they meet safety standards and have valid licenses. You can also view ratings and reviews from other travelers.",
-    },
-  ];
+  const [faqs, setFaqs] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        const { data } = await import("../../services/api").then((m) =>
+          m.faqAPI.getFAQs(),
+        );
+        setFaqs(data.data);
+      } catch (error) {
+        console.error("Failed to fetch FAQs:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchFAQs();
+  }, []);
 
   const toggleFAQ = (index) => {
     setOpenIndex(openIndex === index ? null : index);

@@ -114,4 +114,15 @@ export const contactAPI = {
   sendMessage: (data) => api.post("/contact", data),
 };
 
+// FAQ API
+export const faqAPI = {
+  getFAQs: () => api.get("/faqs"),
+
+  // Admin
+  getAllFAQsAdmin: () => api.get("/faqs/admin"),
+  createFAQ: (data) => api.post("/faqs/admin", data),
+  updateFAQ: (id, data) => api.put(`/faqs/admin/${id}`, data),
+  deleteFAQ: (id) => api.delete(`/faqs/admin/${id}`),
+};
+
 export default api;
