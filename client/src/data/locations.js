@@ -56,6 +56,7 @@ export const westAfricanCountries = [
   "Senegal",
   "Sierra Leone",
   "Togo",
+  "Nigeria",
 ];
 
 // Nigerian States with Major Cities (for Intra-State city-to-city trips)
@@ -600,6 +601,7 @@ export const africanCountries = [
 ];
 
 export const westAfricanCities = {
+  Nigeria: ["Lagos", "Abuja", "Port Harcourt", "Kano", "Ibadan"],
   "Benin Republic": [
     "Cotonou",
     "Porto-Novo",
