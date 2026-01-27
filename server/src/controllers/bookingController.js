@@ -41,7 +41,7 @@ exports.createBooking = async (req, res) => {
     // Check if seats are available
     const bookedSeats = trip.bookedSeats || [];
     const unavailableSeats = selectedSeats.filter((seat) =>
-      bookedSeats.includes(seat)
+      bookedSeats.includes(seat),
     );
 
     if (unavailableSeats.length > 0) {
@@ -77,7 +77,7 @@ exports.createBooking = async (req, res) => {
         serviceFee,
         paymentStatus: "paid", // Simulating successful payment
       },
-      { transaction }
+      { transaction },
     );
 
     // Update trip seats
@@ -213,6 +213,21 @@ exports.cancelBooking = async (req, res) => {
       });
     }
 
+    // Check cancellation policy: Must be within 7 days of booking
+    const bookingDate = new Date(booking.createdAt);
+    const currentDate = new Date();
+    const diffTime = Math.abs(currentDate - bookingDate);
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+    if (diffDays > 7) {
+      await transaction.rollback();
+      return res.status(400).json({
+        success: false,
+        message:
+          "Cancellation is only allowed within a week (7 days) from the booked date",
+      });
+    }
+
     // Update booking status
     booking.bookingStatus = "cancelled";
     booking.cancellationReason = req.body.reason || "User cancelled";
@@ -225,7 +240,7 @@ exports.cancelBooking = async (req, res) => {
     if (trip) {
       const bookedSeats = trip.bookedSeats || [];
       trip.bookedSeats = bookedSeats.filter(
-        (seat) => !booking.selectedSeats.includes(seat)
+        (seat) => !booking.selectedSeats.includes(seat),
       );
       trip.availableSeats = trip.availableSeats + booking.selectedSeats.length;
       await trip.save({ transaction });

@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
+import Modal from "../../components/Modal";
+import Button from "../../components/Button";
 import { bookingAPI } from "../../services/api";
 import {
   FaEye,
@@ -10,6 +12,7 @@ import {
   FaArrowLeft,
   FaArrowRight,
   FaSearch,
+  FaBan,
 } from "react-icons/fa";
 
 const MyBookings = () => {
@@ -18,6 +21,11 @@ const MyBookings = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("latest");
+
+  // Cancellation Modal State
+  const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [bookingToCancel, setBookingToCancel] = useState(null);
+  const [cancelling, setCancelling] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(5);
@@ -44,6 +52,43 @@ const MyBookings = () => {
     }
   };
 
+  // Check if booking can be cancelled (within 7 days of creation)
+  const canCancel = (booking) => {
+    if (booking.bookingStatus !== "confirmed") return false;
+
+    const bookingDate = new Date(booking.createdAt);
+    const currentDate = new Date();
+    const diffTime = Math.abs(currentDate - bookingDate);
+    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+    return diffDays <= 7;
+  };
+
+  const initiateCancel = (booking) => {
+    setBookingToCancel(booking);
+    setIsCancelModalOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    if (!bookingToCancel) return;
+
+    try {
+      setCancelling(true);
+      await bookingAPI.cancelBooking(
+        bookingToCancel.id,
+        "User requested cancellation",
+      );
+      toast.success("Booking cancelled successfully");
+      setIsCancelModalOpen(false);
+      fetchBookings(); // Refresh list to show updated status
+    } catch (error) {
+      console.error("Error cancelling booking:", error);
+      toast.error(error.response?.data?.message || "Failed to cancel booking");
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   // Filter bookings by search term
   const filteredBookings = bookings.filter((booking) => {
     const searchLower = searchTerm.toLowerCase();
@@ -66,7 +111,7 @@ const MyBookings = () => {
 
   const paginatedBookings = sortedBookings.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   const totalPages = Math.ceil(sortedBookings.length / itemsPerPage);
@@ -166,15 +211,29 @@ const MyBookings = () => {
                         <span className="font-semibold text-charcoal">
                           {booking.bookingId}
                         </span>
-                        <button
-                          onClick={() =>
-                            navigate(`/booking/confirmation`, {
-                              state: { bookingId: booking.bookingId },
-                            })
-                          }
-                          className="text-primary hover:text-primary-dark">
-                          <FaEye size={20} />
-                        </button>
+                        <div className="flex gap-2">
+                          {canCancel(booking) ? (
+                            <button
+                              onClick={() => initiateCancel(booking)}
+                              className="text-red-600 hover:text-red-800"
+                              title="Cancel Booking">
+                              <FaBan size={18} />
+                            </button>
+                          ) : booking.bookingStatus === "cancelled" ? (
+                            <span className="text-xs bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
+                              Cancelled
+                            </span>
+                          ) : null}
+                          <button
+                            onClick={() =>
+                              navigate(`/booking/confirmation`, {
+                                state: { bookingId: booking.bookingId },
+                              })
+                            }
+                            className="text-primary hover:text-primary-dark">
+                            <FaEye size={20} />
+                          </button>
+                        </div>
                       </div>
                       <div>
                         <p className="text-sm text-neutral-600 mb-1">Company</p>
@@ -237,8 +296,21 @@ const MyBookings = () => {
                       </div>
                       <div className="text-neutral-700">
                         {formatDate(booking.createdAt)}
+                        {booking.bookingStatus === "cancelled" && (
+                          <span className="block text-xs text-red-600 font-medium">
+                            Cancelled
+                          </span>
+                        )}
                       </div>
-                      <div className="flex justify-end">
+                      <div className="flex justify-end gap-3">
+                        {canCancel(booking) && (
+                          <button
+                            onClick={() => initiateCancel(booking)}
+                            className="text-red-600 hover:text-red-800 flex items-center gap-1 text-sm"
+                            title="Cancel Booking">
+                            <span>Cancel</span>
+                          </button>
+                        )}
                         <button
                           onClick={() =>
                             navigate(`/booking/confirmation`, {
@@ -296,6 +368,54 @@ const MyBookings = () => {
       </div>
 
       <Footer />
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        isOpen={isCancelModalOpen}
+        onClose={() => !cancelling && setIsCancelModalOpen(false)}
+        title="Cancel Booking"
+        footer={
+          <>
+            <Button
+              variant="secondary"
+              onClick={() => setIsCancelModalOpen(false)}
+              disabled={cancelling}>
+              Close
+            </Button>
+            <Button
+              variant="danger" // Assuming Button supports 'danger' or just use custom style
+              onClick={confirmCancel}
+              disabled={cancelling}
+              className="bg-red-600 text-white hover:bg-red-700">
+              {cancelling ? (
+                <div className="flex items-center gap-2">
+                  <FaSpinner className="animate-spin" />
+                  <span>Cancelling...</span>
+                </div>
+              ) : (
+                "Confirm Cancel"
+              )}
+            </Button>
+          </>
+        }>
+        <div className="space-y-4">
+          <p className="text-neutral-600">
+            Are you sure you want to cancel this booking?
+          </p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
+            <p className="font-semibold mb-1">Cancellation Policy</p>
+            <p>
+              Cancellations are only allowed within 7 days of the booking date.
+              Refunds will be processed according to our terms and conditions.
+            </p>
+          </div>
+          {bookingToCancel && (
+            <div className="text-sm text-neutral-500">
+              Booking ID: <strong>{bookingToCancel.bookingId}</strong>
+            </div>
+          )}
+        </div>
+      </Modal>
     </div>
   );
 };

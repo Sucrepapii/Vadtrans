@@ -18,6 +18,7 @@ const Button = ({
     secondary:
       "bg-white text-primary border-2 border-primary px-6 py-3 rounded-button hover:bg-neutral-50",
     text: "text-primary hover:text-primary-dark px-4 py-2",
+    danger: "bg-red-600 text-white px-6 py-3 rounded-button hover:bg-red-700",
   };
 
   const widthClass = fullWidth ? "w-full" : "";
