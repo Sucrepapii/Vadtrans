@@ -12,6 +12,7 @@ import {
   nigerianStates,
   westAfricanCountries,
   nigerianStatesWithCities,
+  westAfricanCities,
 } from "../../data/locations";
 import { tripAPI } from "../../services/api";
 import {
@@ -43,7 +44,11 @@ const TicketsManagement = () => {
     duration: "",
     price: "",
     seats: "",
+
     state: "", // For intra-state: the selected state for city-to-city trips
+    vehicleType: "Bus",
+    terminal: "",
+    city: "",
   });
 
   // Determine location options based on transport type
@@ -108,7 +113,11 @@ const TicketsManagement = () => {
       duration: "",
       price: "",
       seats: "",
+
       state: "",
+      vehicleType: "Bus",
+      terminal: "",
+      city: "",
     });
     setIsModalOpen(true);
   };
@@ -123,7 +132,11 @@ const TicketsManagement = () => {
       departureTime: ticket.departureTime,
       duration: ticket.duration || "",
       price: ticket.price,
+
       seats: ticket.seats,
+      vehicleType: ticket.vehicleType || "Bus",
+      terminal: ticket.terminal || "",
+      city: ticket.city || "",
     });
     setIsModalOpen(true);
   };
@@ -154,7 +167,11 @@ const TicketsManagement = () => {
         departureTime: formData.departureTime,
         duration: formData.duration || null,
         price: Number(formData.price),
+
         seats: Number(formData.seats),
+        vehicleType: formData.vehicleType,
+        terminal: formData.terminal,
+        city: formData.city,
       };
 
       if (editingTicket) {
@@ -264,7 +281,7 @@ const TicketsManagement = () => {
   const totalPages = Math.ceil(tickets.length / itemsPerPage);
   const paginatedTickets = tickets.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   return (
@@ -379,6 +396,25 @@ const TicketsManagement = () => {
               <option value="intra-state">
                 Intra-State City-to-City Trips
               </option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Vehicle Type
+            </label>
+            <select
+              value={formData.vehicleType}
+              onChange={(e) =>
+                setFormData({ ...formData, vehicleType: e.target.value })
+              }
+              className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              disabled={saving}>
+              <option value="Bus">Bus</option>
+              <option value="Sienna">Sienna</option>
+              <option value="Minivan">Minivan</option>
+              <option value="Luxury Bus">Luxury Bus</option>
+              <option value="Sedan">Sedan</option>
             </select>
           </div>
 
@@ -512,6 +548,59 @@ const TicketsManagement = () => {
                     </option>
                   ))}
                 </select>
+              </div>
+            </>
+          )}
+
+          {(formData.transportType === "inter-state" ||
+            formData.transportType === "international") && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Terminal
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Jibowu Terminal"
+                    value={formData.terminal}
+                    onChange={(e) =>
+                      setFormData({ ...formData, terminal: e.target.value })
+                    }
+                    disabled={saving}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    City
+                  </label>
+                  <select
+                    value={formData.city}
+                    onChange={(e) =>
+                      setFormData({ ...formData, city: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    disabled={saving}>
+                    <option value="">Select City</option>
+                    {formData.transportType === "inter-state" &&
+                    formData.from &&
+                    nigerianStatesWithCities[formData.from]
+                      ? nigerianStatesWithCities[formData.from].map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))
+                      : formData.transportType === "international" &&
+                          formData.from &&
+                          westAfricanCities[formData.from]
+                        ? westAfricanCities[formData.from].map((city) => (
+                            <option key={city} value={city}>
+                              {city}
+                            </option>
+                          ))
+                        : null}
+                  </select>
+                </div>
               </div>
             </>
           )}

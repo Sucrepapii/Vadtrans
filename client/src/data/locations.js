@@ -598,3 +598,33 @@ export const africanCountries = [
   "Zambia",
   "Zimbabwe",
 ];
+
+export const westAfricanCities = {
+  "Benin Republic": [
+    "Cotonou",
+    "Porto-Novo",
+    "Parakou",
+    "Abomey",
+    "Natitingou",
+  ],
+  "Burkina Faso": [
+    "Ouagadougou",
+    "Bobo-Dioulasso",
+    "Koudougou",
+    "Banfora",
+    "Ouahigouya",
+  ],
+  "Cape Verde": ["Praia", "Mindelo", "Espargos", "Assomada", "Tarrafal"],
+  Gambia: ["Banjul", "Serekunda", "Brikama", "Bakau", "Farafenni"],
+  Ghana: ["Accra", "Kumasi", "Tamale", "Takoradi", "Tema", "Cape Coast"],
+  Guinea: ["Conakry", "Nzérékoré", "Kankan", "Kindia", "Labé"],
+  "Guinea-Bissau": ["Bissau", "Bafatá", "Gabú", "Bissorã", "Bolama"],
+  "Ivory Coast": ["Abidjan", "Bouaké", "Yamoussoukro", "San-Pédro", "Korhogo"],
+  Liberia: ["Monrovia", "Gbarnga", "Buchanan", "Ganta", "Kakata"],
+  Mali: ["Bamako", "Sikasso", "Mopti", "Koutiala", "Ségou"],
+  Mauritania: ["Nouakchott", "Nouadhibou", "Kiffa", "Rosso", "Kaédi"],
+  "Niger Republic": ["Niamey", "Zinder", "Maradi", "Tahoua", "Agadez"],
+  Senegal: ["Dakar", "Touba", "Thiès", "Rufisque", "Kaolack", "Saint-Louis"],
+  "Sierra Leone": ["Freetown", "Bo", "Kenema", "Makeni", "Koidu Town"],
+  Togo: ["Lomé", "Sokodé", "Kara", "Kpalimé", "Atakpamé"],
+};

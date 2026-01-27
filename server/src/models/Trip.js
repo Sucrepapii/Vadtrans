@@ -23,6 +23,19 @@ const Trip = sequelize.define(
       comment:
         "inter-state: Nigeria state-to-state | international: West Africa cross-border | intra-state: City-to-city within same state",
     },
+    vehicleType: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "Bus",
+    },
+    terminal: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    city: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     departureTime: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -77,7 +90,7 @@ const Trip = sequelize.define(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Define association

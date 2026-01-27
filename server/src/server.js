@@ -230,6 +230,11 @@ app.get("/api/fix-db-schema", async (req, res) => {
     // Patch FAQs
     await addCol("FAQs", "category", "VARCHAR(255) DEFAULT 'General'");
 
+    // Patch Trips
+    await addCol("Trips", "vehicleType", "VARCHAR(255) DEFAULT 'Bus'");
+    await addCol("Trips", "terminal", "VARCHAR(255)");
+    await addCol("Trips", "city", "VARCHAR(255)");
+
     res.json({
       success: true,
       message: "Database patch attempted",
