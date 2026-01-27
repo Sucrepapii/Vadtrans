@@ -1,5 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
@@ -23,6 +24,15 @@ import {
 
 const LandingPage = () => {
   const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+
+  // Redirect company users to their dashboard
+  useEffect(() => {
+    if (isAuthenticated && user?.role === "company") {
+      navigate("/company/tickets");
+    }
+  }, [isAuthenticated, user, navigate]);
+
   const [searchData, setSearchData] = useState({
     from: "",
     to: "",
