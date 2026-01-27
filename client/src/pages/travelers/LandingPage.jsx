@@ -277,14 +277,22 @@ const LandingPage = () => {
                   <MaterialDatePicker
                     label="Date"
                     value={searchData.date}
-                    onChange={(dateObj) =>
-                      setSearchData({
-                        ...searchData,
-                        date: dateObj
-                          ? dateObj.toISOString().split("T")[0]
-                          : "",
-                      })
-                    }
+                    onChange={(dateObj) => {
+                      if (dateObj) {
+                        // Create date string manually using local time to prevent timezone shift issues
+                        // toISOString() converts to UTC which can shift date back by one day
+                        const year = dateObj.getFullYear();
+                        const month = String(dateObj.getMonth() + 1).padStart(
+                          2,
+                          "0",
+                        );
+                        const day = String(dateObj.getDate()).padStart(2, "0");
+                        const dateStr = `${year}-${month}-${day}`;
+                        setSearchData({ ...searchData, date: dateStr });
+                      } else {
+                        setSearchData({ ...searchData, date: "" });
+                      }
+                    }}
                     minDate={new Date()} // Prevent past dates
                     className="w-full"
                   />
