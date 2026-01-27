@@ -226,6 +226,9 @@ app.get("/api/fix-db-schema", async (req, res) => {
 
     // Patch Users
     await addCol("Users", "bookingCount", "INTEGER DEFAULT 0");
+    // SQLite/Postgres compatible JSON storage (Text for SQLite, JSON for PG)
+    // Using TEXT to be safe across both, Sequelize will parse it
+    await addCol("Users", "documents", "TEXT");
 
     // Patch FAQs
     await addCol("FAQs", "category", "VARCHAR(255) DEFAULT 'General'");
