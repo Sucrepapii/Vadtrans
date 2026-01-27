@@ -116,8 +116,15 @@ const UserProfile = () => {
     const file = e.target.files[0];
     if (file) {
       // Check file size (max 2MB)
-      if (file.size > 2 * 1024 * 1024) {
-        toast.error("Image size should be less than 2MB");
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+      if (file.size > maxSize) {
+        const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+        toast.error(
+          `Image size (${fileSizeMB}MB) exceeds the maximum allowed size of 2MB. Please choose a smaller image.`,
+          { autoClose: 5000 },
+        );
+        // Reset the file input
+        e.target.value = "";
         return;
       }
 
@@ -208,9 +215,14 @@ const UserProfile = () => {
                       disabled={saving}
                     />
                   </div>
-                  <p className="text-sm text-neutral-600 text-center">
-                    Click the camera icon to edit photo
-                  </p>
+                  <div className="text-center">
+                    <p className="text-sm text-neutral-600 mb-1">
+                      Click the camera icon to edit photo
+                    </p>
+                    <p className="text-xs text-neutral-500">
+                      Maximum file size: 2MB
+                    </p>
+                  </div>
                 </div>
 
                 {/* Right: Form Fields */}
