@@ -75,7 +75,7 @@ const SearchResults = () => {
 
       if (searchParams.transportType && searchParams.transportType !== "all") {
         filteredTrips = filteredTrips.filter((trip) =>
-          trip.transportType.includes(searchParams.transportType)
+          trip.transportType.includes(searchParams.transportType),
         );
       }
 
@@ -171,9 +171,23 @@ const SearchResults = () => {
                   {searchParams.to || "your destination"}. Please check back
                   soon!
                 </p>
-                <Button variant="primary" onClick={() => navigate("/")}>
-                  Search Other Routes
-                </Button>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button variant="primary" onClick={() => navigate("/")}>
+                    Search Other Routes
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() =>
+                      setSearchParams({
+                        from: "",
+                        to: "",
+                        date: "",
+                        transportType: "all",
+                      })
+                    }>
+                    View All Available Trips
+                  </Button>
+                </div>
               </div>
             </Card>
           ) : (
