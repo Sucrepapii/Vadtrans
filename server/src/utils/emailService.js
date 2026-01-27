@@ -24,59 +24,160 @@ const sendWelcomeEmail = async (user) => {
       return { success: true, mode: "console" };
     }
 
-    const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "VadTrans <onboarding@resend.dev>", // Fallback for testing
-      to: [user.email],
-      subject: "Welcome to VadTrans! 🚀",
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
-            .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-            .header { background: linear-gradient(135deg, #FF6B6B 0%, #FF3D3D 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-            .content { background: #f9f9f9; padding: 30px; border-radius: 0 0 10px 10px; }
-            .button { display: inline-block; padding: 12px 30px; background: #FF3D3D; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
-            .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>Welcome to VadTrans!</h1>
-            </div>
-            <div class="content">
-              <h2>Hi ${user.name}! 👋</h2>
-              <p>Thank you for joining VadTrans - Nigeria's premier transportation booking platform!</p>
-              
-              <p>With VadTrans, you can:</p>
-              <ul>
-                <li>✅ Book bus, train, and flight tickets easily</li>
-                <li>✅ Compare prices from multiple transport companies</li>
-                <li>✅ Track your journey in real-time</li>
-                <li>✅ Manage all your bookings in one place</li>
-              </ul>
+    const isCompany = user.role === "company";
+    const subject = isCompany
+      ? "Welcome to VadTrans Partner Network | Let's Drive Growth Together"
+      : "Welcome to VadTrans | Your Journey Starts Here";
 
-              <p>Ready to start your journey?</p>
+    const companyHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #1a1a1a; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+          .header { background-color: #0f172a; padding: 30px; text-align: center; }
+          .logo { font-size: 24px; font-weight: bold; color: #ffffff; text-decoration: none; letter-spacing: 1px; }
+          .hero { background-color: #f8fafc; padding: 40px 30px; text-align: center; border-bottom: 1px solid #e2e8f0; }
+          .content { padding: 40px 30px; }
+          .feature-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 30px 0; }
+          .feature { background: #f8fafc; padding: 20px; border-radius: 8px; border: 1px solid #e2e8f0; }
+          .button { display: inline-block; padding: 14px 32px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 16px; margin: 20px 0; }
+          .footer { background-color: #f1f5f9; padding: 30px; text-align: center; color: #64748b; font-size: 13px; }
+          h1 { color: #0f172a; margin: 0 0 15px 0; font-size: 24px; }
+          h2 { color: #0f172a; font-size: 18px; margin-bottom: 10px; }
+          p { margin: 0 0 15px 0; color: #475569; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <span class="logo">VADTRANS PARTNER</span>
+          </div>
+          <div class="hero">
+            <h1>Welcome to the Partner Network</h1>
+            <p>Dear ${user.name},</p>
+            <p>We are thrilled to welcome your transportation business to VadTrans. You have taken a significant step towards digitizing your operations and reaching thousands of new travelers.</p>
+            <a href="${
+              process.env.CLIENT_URL || "https://www.vadtrans.com"
+            }/signin" class="button">Access Company Dashboard</a>
+          </div>
+          <div class="content">
+            <p>As a verified partner, you now have access to powerful tools designed to scale your business:</p>
+            
+            <div style="margin: 30px 0;">
+              <div style="margin-bottom: 20px;">
+                <strong>📊 Fleet Management</strong>
+                <p>Track your vehicles and manage drivers efficiently from a single dashboard.</p>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <strong>🎫 Digital Ticketing</strong>
+                <p>Automate your booking process and receive instant payments securely.</p>
+              </div>
+              <div style="margin-bottom: 20px;">
+                <strong>📈 Real-time Analytics</strong>
+                <p>Gain insights into your revenue, popular routes, and customer demographics.</p>
+              </div>
+            </div>
+
+            <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+
+            <h3>Next Steps for Your Business:</h3>
+            <ol style="color: #475569; padding-left: 20px;">
+              <li style="margin-bottom: 10px;">Login to your dashboard</li>
+              <li style="margin-bottom: 10px;">Complete your company profile and fleet details</li>
+              <li style="margin-bottom: 10px;">Set up your first trip route</li>
+              <li style="margin-bottom: 10px;">Verify your bank details for payouts</li>
+            </ol>
+          </div>
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} VadTrans Ltd. All rights reserved.</p>
+            <p>46, Amos Olagboyega Street, Ikeja, Lagos</p>
+            <p><a href="#" style="color: #2563eb; text-decoration: none;">Partner Support</a> | <a href="#" style="color: #2563eb; text-decoration: none;">Terms of Service</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const travelerHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: 'Helvetica Neue', Arial, sans-serif; line-height: 1.6; color: #333; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 0 auto; background-color: #ffffff; }
+          .header { background: linear-gradient(to right, #6366f1, #8b5cf6); padding: 40px; text-align: center; }
+          .logo { font-size: 28px; font-weight: bold; color: #ffffff; letter-spacing: 2px; }
+          .content { padding: 40px 40px; }
+          .button { display: inline-block; padding: 15px 35px; background-color: #6366f1; color: #ffffff; text-decoration: none; border-radius: 30px; font-weight: bold; font-size: 16px; margin: 25px 0; box-shadow: 0 4px 6px -1px rgba(99, 102, 241, 0.4); }
+          .feature-row { display: flex; align-items: flex-start; margin-bottom: 25px; }
+          .icon { background: #e0e7ff; color: #6366f1; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-right: 15px; font-weight: bold; }
+          .footer { background-color: #f9fafb; padding: 30px; text-align: center; color: #9ca3af; font-size: 12px; }
+          h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 300; }
+          h2 { color: #111827; font-size: 22px; margin-top: 0; }
+          p { margin: 0 0 15px 0; color: #4b5563; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="margin-bottom: 10px;">Welcome to VadTrans</h1>
+            <p style="color: #e0e7ff; font-size: 16px;">Travel Made Simple</p>
+          </div>
+          <div class="content">
+            <p>Hello ${user.name},</p>
+            <p>Thank you for choosing VadTrans. Your account has been successfully created, and you are now part of Nigeria's most reliable transportation network.</p>
+            
+            <div style="text-align: center;">
               <a href="${
                 process.env.CLIENT_URL || "https://www.vadtrans.com"
-              }/search" class="button">
-                Search Trips Now
-              </a>
-
-              <p>If you have any questions, feel free to contact our support team at <a href="mailto:support@vadtrans.com">support@vadtrans.com</a></p>
-
-              <p>Best regards,<br><strong>The VadTrans Team</strong></p>
+              }/search" class="button">Book Your First Trip</a>
             </div>
-            <div class="footer">
-              <p>&copy; ${new Date().getFullYear()} VadTrans. All rights reserved.</p>
-              <p>46, Amos Olagboyega Street, Ikeja, Lagos</p>
+
+            <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 30px 0;">
+
+            <h3 style="color: #374151; margin-bottom: 20px;">Why travel with us?</h3>
+            
+            <div class="feature-row">
+              <div style="min-width: 30px; font-size: 20px;">🛡️</div>
+              <div style="margin-left: 15px;">
+                <strong>Verified Operators</strong>
+                <div style="font-size: 14px; color: #6b7280;">Every transport company is vetted for safety and reliability.</div>
+              </div>
             </div>
+
+            <div class="feature-row">
+              <div style="min-width: 30px; font-size: 20px;">💳</div>
+              <div style="margin-left: 15px;">
+                <strong>Secure Payments</strong>
+                <div style="font-size: 14px; color: #6b7280;">Instant booking confirmation with multiple payment options.</div>
+              </div>
+            </div>
+
+            <div class="feature-row">
+              <div style="min-width: 30px; font-size: 20px;">📍</div>
+              <div style="margin-left: 15px;">
+                <strong>Live Tracking</strong>
+                <div style="font-size: 14px; color: #6b7280;">Share your journey status with loved ones in real-time.</div>
+              </div>
+            </div>
+
           </div>
-        </body>
-        </html>
-      `,
+          <div class="footer">
+            <p>&copy; ${new Date().getFullYear()} VadTrans Ltd. All rights reserved.</p>
+            <p>Need help? <a href="mailto:support@vadtrans.com" style="color: #6366f1; text-decoration: none;">Contact Support</a></p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    const { data, error } = await resend.emails.send({
+      from: process.env.SMTP_FROM || "VadTrans <onboarding@resend.dev>",
+      to: [user.email],
+      subject: subject,
+      html: isCompany ? companyHtml : travelerHtml,
     });
 
     if (error) {
@@ -84,7 +185,10 @@ const sendWelcomeEmail = async (user) => {
       return { success: false, error: error.message };
     }
 
-    console.log("✅ Welcome email sent successfully to:", user.email);
+    console.log(
+      `✅ Welcome email sent successfully to ${isCompany ? "Company" : "Traveler"}:`,
+      user.email,
+    );
     return { success: true, messageId: data.id };
   } catch (error) {
     console.error("❌ Error sending welcome email:", error.message);
