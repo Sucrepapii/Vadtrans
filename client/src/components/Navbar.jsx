@@ -96,15 +96,27 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
                   }>
                   About Us
                 </NavLink>
-                <NavLink
-                  to="/tracking"
-                  className={({ isActive }) =>
-                    isActive
-                      ? "text-primary font-bold transition-colors"
-                      : "text-charcoal hover:text-primary transition-colors font-medium"
-                  }>
-                  Tracking
-                </NavLink>
+                {user?.role === "company" ? (
+                  <NavLink
+                    to="/company/driver-console"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "text-primary font-bold transition-colors"
+                        : "text-charcoal hover:text-primary transition-colors font-medium"
+                    }>
+                    Driver Console
+                  </NavLink>
+                ) : (
+                  <NavLink
+                    to="/tracking"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "text-primary font-bold transition-colors"
+                        : "text-charcoal hover:text-primary transition-colors font-medium"
+                    }>
+                    Tracking
+                  </NavLink>
+                )}
                 <NavLink
                   to="/help"
                   className={({ isActive }) =>
@@ -187,11 +199,19 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
                 className="block py-2 hover:text-primary transition-colors">
                 About Us
               </Link>
-              <Link
-                to="/tracking"
-                className="block py-2 hover:text-primary transition-colors">
-                Tracking
-              </Link>
+              {user?.role === "company" ? (
+                <Link
+                  to="/company/driver-console"
+                  className="block py-2 hover:text-primary transition-colors">
+                  Driver Console
+                </Link>
+              ) : (
+                <Link
+                  to="/tracking"
+                  className="block py-2 hover:text-primary transition-colors">
+                  Tracking
+                </Link>
+              )}
               <Link
                 to="/help"
                 className="block py-2 hover:text-primary transition-colors">

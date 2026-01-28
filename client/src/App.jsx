@@ -34,6 +34,7 @@ import DocumentUpload from "./pages/company/DocumentUpload";
 import TicketsManagement from "./pages/company/TicketsManagement";
 import CompanyProfile from "./pages/company/CompanyProfile";
 import DriverConsole from "./pages/company/DriverConsole";
+import DriverConsoleList from "./pages/company/DriverConsoleList";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ClientManagement from "./pages/admin/ClientManagement";
@@ -90,6 +91,14 @@ const App = () => {
         <Route path="/company/register" element={<DocumentUpload />} />
         <Route path="/company/tickets" element={<TicketsManagement />} />
         <Route path="/company/profile" element={<CompanyProfile />} />
+        <Route
+          path="/company/driver-console"
+          element={
+            <ProtectedRoute allowedRoles={["company"]}>
+              <DriverConsoleList />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/company/driver-console/:id"
           element={
