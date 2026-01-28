@@ -6,6 +6,7 @@ import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import MaterialDatePicker from "../../components/MaterialDatePicker";
+import ReviewSection from "../../components/ReviewSection";
 import {
   nigerianStates,
   westAfricanCountries,
@@ -418,6 +419,9 @@ const LandingPage = () => {
           </button>
         </div>
       </section>
+
+      {/* Reviews Section */}
+      <ReviewSection />
 
       <Footer />
     </div>

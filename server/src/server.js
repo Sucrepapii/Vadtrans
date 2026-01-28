@@ -20,9 +20,10 @@ const Trip = require("./models/Trip");
 const Booking = require("./models/Booking");
 const Fare = require("./models/Fare");
 const FAQ = require("./models/FAQ");
+const Review = require("./models/Review");
 
 // Set up model associations
-const models = { User, Trip, Booking, Fare, FAQ };
+const models = { User, Trip, Booking, Fare, FAQ, Review };
 
 // Call associate methods if they exist
 Object.values(models).forEach((model) => {
@@ -180,6 +181,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/faqs", require("./routes/faqRoutes"));
+app.use("/api/reviews", require("./routes/reviewRoutes"));
 
 app.get("/api/fix-db-schema", async (req, res) => {
   try {

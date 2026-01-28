@@ -125,4 +125,11 @@ export const faqAPI = {
   deleteFAQ: (id) => api.delete(`/faqs/admin/${id}`),
 };
 
+// Review API
+export const reviewAPI = {
+  createReview: (data) => api.post("/reviews", data),
+  getReviews: () => api.get("/reviews"),
+  likeReview: (id) => api.put(`/reviews/${id}/like`),
+};
+
 export default api;
