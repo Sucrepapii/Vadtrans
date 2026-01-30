@@ -57,16 +57,14 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
           <div className="container-custom">
             <div className="flex items-center justify-between h-20">
               {/* Logo */}
-              <Link to="/" className="flex flex-col group">
-                <div className="h-16 w-auto">
-                  <img
-                    src={vadtransLogo}
-                    alt="VadTrans Logo"
-                    className="h-16 w-auto object-contain bg-white px-4 py-2 rounded-lg shadow-sm transition-all duration-300 group-hover:shadow-md"
-                  />
-                </div>
+              <Link to="/" className="flex items-center gap-2 group">
+                <img
+                  src={vadtransLogo}
+                  alt="VadTrans Logo"
+                  className="h-14 w-auto object-contain bg-white px-4 py-2 rounded-lg shadow-sm transition-all duration-300 group-hover:shadow-md"
+                />
                 {portalLabel && (
-                  <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mt-1">
+                  <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
                     {portalLabel}
                   </span>
                 )}
