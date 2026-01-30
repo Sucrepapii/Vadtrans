@@ -12,6 +12,8 @@ import {
   FaBus,
 } from "react-icons/fa";
 import Button from "./Button";
+import vadtransLogo from "../assets/vadtrans-logo.jpg";
+import vadtransLogoAlt from "../assets/vadtrans-logo-alt.jpg";
 
 const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,10 +41,10 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
                 <span>+234-912-328-4931</span>
               </a>
               <a
-                href="mailto:contact@vadtrans.com"
+                href="mailto:Support@vadtrans.com"
                 className="flex items-center gap-2 hover:text-primary transition-colors">
                 <FaEnvelope className="text-xs" />
-                <span>contact@vadtrans.com</span>
+                <span>Support@vadtrans.com</span>
               </a>
             </div>
             <button className="px-3 sm:px-4 py-1 border border-white rounded-full text-xs sm:text-sm hover:bg-white hover:text-black transition-colors">
@@ -56,21 +58,21 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
           <div className="container-custom">
             <div className="flex items-center justify-between h-20">
               {/* Logo */}
-              <Link to="/" className="flex flex-col">
-                <div className="flex items-center gap-2 group">
-                  <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
-                    <span className="text-xl text-primary group-hover:text-white transition-colors duration-300">
-                      <FaBus />
-                    </span>
-                  </div>
-                  <div className="flex flex-col justify-center">
-                    <h1 className="text-xl sm:text-2xl font-raleway font-bold text-charcoal leading-none">
-                      Vad<span className="text-primary">Trans</span>
-                    </h1>
-                  </div>
+              <Link to="/" className="flex flex-col group">
+                <div className="relative h-12 w-auto">
+                  <img
+                    src={vadtransLogo}
+                    alt="VadTrans Logo"
+                    className="h-12 w-auto object-contain transition-opacity duration-300 group-hover:opacity-0"
+                  />
+                  <img
+                    src={vadtransLogoAlt}
+                    alt="VadTrans Logo"
+                    className="h-12 w-auto object-contain absolute top-0 left-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                  />
                 </div>
                 {portalLabel && (
-                  <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
+                  <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase mt-1">
                     {portalLabel}
                   </span>
                 )}
@@ -268,13 +270,13 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
                     </span>
                   </a>
                   <a
-                    href="mailto:contact@vadtrans.com"
+                    href="mailto:Support@vadtrans.com"
                     className="flex items-center gap-3 text-charcoal hover:text-primary transition-colors">
                     <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
                       <FaEnvelope size={14} />
                     </div>
                     <span className="font-medium text-sm">
-                      contact@vadtrans.com
+                      Support@vadtrans.com
                     </span>
                   </a>
                 </div>
@@ -291,14 +293,13 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
     <nav className="bg-charcoal text-white">
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-              <FaBus className="text-sm text-primary" />
-            </div>
-            <div>
-              <h1 className="text-xl font-raleway font-bold text-white leading-none">
-                Vad<span className="text-primary">Trans</span>
-              </h1>
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className="relative h-10 w-auto">
+              <img
+                src={vadtransLogo}
+                alt="VadTrans Logo"
+                className="h-10 w-auto object-contain brightness-0 invert transition-all duration-300 group-hover:brightness-100 group-hover:invert-0"
+              />
             </div>
           </Link>
 

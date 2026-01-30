@@ -53,7 +53,7 @@ const ContactUs = () => {
       console.error("Contact error:", error);
       toast.error(
         error.response?.data?.message ||
-          "Failed to send message. Please try again."
+          "Failed to send message. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -218,7 +218,7 @@ const ContactUs = () => {
                     Email address
                   </h3>
                   <p className="text-sm text-neutral-600">
-                    contact@vadtrans.com
+                    Support@vadtrans.com
                   </p>
                 </div>
               </Card>
