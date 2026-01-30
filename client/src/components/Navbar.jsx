@@ -59,16 +59,16 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
             <div className="flex items-center justify-between h-20">
               {/* Logo */}
               <Link to="/" className="flex flex-col group">
-                <div className="relative h-12 w-auto">
+                <div className="relative h-20 w-auto">
                   <img
                     src={vadtransLogo}
                     alt="VadTrans Logo"
-                    className="h-12 w-auto object-contain transition-opacity duration-300 group-hover:opacity-0"
+                    className="h-20 w-auto object-contain transition-opacity duration-300 group-hover:opacity-0"
                   />
                   <img
                     src={vadtransLogoAlt}
                     alt="VadTrans Logo"
-                    className="h-12 w-auto object-contain absolute top-0 left-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                    className="h-20 w-auto object-contain absolute top-0 left-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
                   />
                 </div>
                 {portalLabel && (
@@ -294,11 +294,11 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="relative h-10 w-auto">
+            <div className="relative h-14 w-auto">
               <img
                 src={vadtransLogo}
                 alt="VadTrans Logo"
-                className="h-10 w-auto object-contain brightness-0 invert transition-all duration-300 group-hover:brightness-100 group-hover:invert-0"
+                className="h-14 w-auto object-contain brightness-0 invert transition-all duration-300 group-hover:brightness-100 group-hover:invert-0"
               />
             </div>
           </Link>
