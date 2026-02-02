@@ -82,8 +82,8 @@ const LandingPage = () => {
                 <span className="text-primary">Anytime</span>
               </h1>
               <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8">
-                Book bus, train, and flight tickets with ease. Safe, reliable,
-                and affordable travel across Nigeria and Africa.
+                Book bus tickets with ease. Safe, reliable, and affordable
+                travel across Nigeria and Africa.
               </p>
 
               {/* Search Form */}
@@ -311,7 +311,7 @@ const LandingPage = () => {
             <div className="mt-8 lg:mt-0 lg:block">
               <div className="relative">
                 <img
-                  src="/hero-bus.jpg"
+                  src="/hero_bus_mature.png"
                   alt="Travel"
                   className="w-full h-auto rounded-lg shadow-xl"
                   onError={(e) => {

@@ -62,7 +62,7 @@ const ContactUs = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
-      <Navbar variant="desktop" />
+      <Navbar variant="desktop" hideLogo={true} />
 
       {/* Hero Section */}
       <div className="relative h-64 bg-gradient-to-r from-charcoal/90 to-charcoal/70 flex items-center justify-center">
