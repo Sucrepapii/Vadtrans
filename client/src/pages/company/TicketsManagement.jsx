@@ -43,7 +43,7 @@ const TicketsManagement = () => {
     departureTime: "",
     duration: "",
     price: "",
-    seats: "",
+    seats: 18,
 
     state: "", // For intra-state: the selected state for city-to-city trips
     vehicleType: "Hiace Bus (18 seater)",
@@ -112,7 +112,7 @@ const TicketsManagement = () => {
       departureTime: "",
       duration: "",
       price: "",
-      seats: "",
+      seats: 18,
 
       state: "",
       vehicleType: "Hiace Bus (18 seater)",
@@ -405,9 +405,20 @@ const TicketsManagement = () => {
             </label>
             <select
               value={formData.vehicleType}
-              onChange={(e) =>
-                setFormData({ ...formData, vehicleType: e.target.value })
-              }
+              onChange={(e) => {
+                const vehicleType = e.target.value;
+                let seats = formData.seats;
+
+                // Auto-set seats based on vehicle type
+                if (vehicleType.includes("18 seater")) seats = 18;
+                else if (vehicleType.includes("32 seater")) seats = 32;
+                else if (vehicleType.includes("52 seater")) seats = 52;
+                else if (vehicleType === "Mini Buses (7 seater)") seats = 7;
+                else if (vehicleType === "Sienna car (7 seats)") seats = 7;
+                else if (vehicleType === "Sedan (small car)") seats = 4;
+
+                setFormData({ ...formData, vehicleType, seats });
+              }}
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               disabled={saving}>
               <option value="Hiace Bus (18 seater)">

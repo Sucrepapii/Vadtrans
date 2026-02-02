@@ -254,6 +254,14 @@ const SearchResults = () => {
                                   {trip.status}
                                 </span>
                               </div>
+                              <div>
+                                <p className="text-xs text-neutral-500">
+                                  Vehicle
+                                </p>
+                                <p className="font-medium text-charcoal mt-1 capitalize">
+                                  {trip.vehicleType || "Bus"}
+                                </p>
+                              </div>
                             </div>
                           </div>
 

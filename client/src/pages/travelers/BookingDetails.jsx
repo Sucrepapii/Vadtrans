@@ -127,6 +127,12 @@ const BookingDetails = () => {
                     <span className="text-neutral-600">Arrival:</span>
                     <span className="font-semibold">{trip.arrivalTime}</span>
                   </div>
+                  <div className="flex justify-between">
+                    <span className="text-neutral-600">Vehicle:</span>
+                    <span className="font-semibold">
+                      {trip.vehicleType || "Bus"}
+                    </span>
+                  </div>
                 </div>
               </Card>
 

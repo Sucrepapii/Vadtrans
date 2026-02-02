@@ -100,7 +100,7 @@ const BookingConfirmation = () => {
 
       // Parse departure time
       const timeMatch = finalTrip.departureTime.match(
-        /(\d+):(\d+)\s*(AM|PM)?/i
+        /(\d+):(\d+)\s*(AM|PM)?/i,
       );
       if (!timeMatch) return "-";
 
@@ -195,6 +195,9 @@ const BookingConfirmation = () => {
                       <h3 className="font-bold text-lg">{companyName}</h3>
                       <p className="text-sm text-neutral-600">
                         {finalBookingId}
+                      </p>
+                      <p className="text-sm text-neutral-600 font-medium mt-1">
+                        Vehicle: {finalTrip.vehicleType || "Bus"}
                       </p>
                     </div>
                   </div>
