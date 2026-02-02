@@ -13,11 +13,7 @@ import {
 } from "react-icons/fa";
 import Button from "./Button";
 
-const Navbar = ({
-  variant = "desktop",
-  portalLabel = "TRAVELER PORTAL",
-  hideLogo = false,
-}) => {
+const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -62,13 +58,6 @@ const Navbar = ({
               {/* Logo */}
               <Link to="/" className="flex flex-col">
                 <div className="flex items-center gap-2 group">
-                  {!hideLogo && (
-                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center group-hover:bg-primary transition-colors duration-300">
-                      <span className="text-xl text-primary group-hover:text-white transition-colors duration-300">
-                        <FaBus />
-                      </span>
-                    </div>
-                  )}
                   <div className="flex flex-col justify-center">
                     <h1 className="text-xl sm:text-2xl font-raleway font-bold text-charcoal leading-none">
                       Vad<span className="text-primary">Trans</span>
@@ -298,9 +287,6 @@ const Navbar = ({
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-              <FaBus className="text-sm text-primary" />
-            </div>
             <div>
               <h1 className="text-xl font-raleway font-bold text-white leading-none">
                 Vad<span className="text-primary">Trans</span>

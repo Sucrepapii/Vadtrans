@@ -23,29 +23,29 @@ const DocumentUpload = () => {
   const [formData, setFormData] = useState({
     businessRegistration: null,
     vehiclePermits: null,
-    insurance: null,
+    driversLicense: null,
     taxId: "",
   });
 
   const steps = [
     {
       number: 1,
-      title: "Business Registration",
+      title: "Business registration (CAC)",
       description: "Upload your business registration certificate",
     },
     {
       number: 2,
-      title: "Vehicle Permits",
+      title: "Vehicle license permit",
       description: "Upload vehicle permits and licenses",
     },
     {
       number: 3,
-      title: "Insurance",
-      description: "Upload insurance certificates",
+      title: "Drivers license",
+      description: "Upload drivers license",
     },
     {
       number: 4,
-      title: "Tax Information",
+      title: "Tax information certificate",
       description: "Provide tax identification number",
     },
   ];
@@ -58,7 +58,7 @@ const DocumentUpload = () => {
     // Check if user is authenticated before proceeding
     if (!isAuthenticated) {
       toast.info(
-        "Please sign up or log in to continue uploading your documents"
+        "Please sign up or log in to continue uploading your documents",
       );
       navigate("/signup?role=company&redirect=/company/register");
       return;
@@ -70,7 +70,7 @@ const DocumentUpload = () => {
       // Submit logic would go here
       // For now, redirect to company profile/tickets
       toast.success(
-        "Documents submitted successfully! Redirecting to dashboard..."
+        "Documents submitted successfully! Redirecting to dashboard...",
       );
       navigate("/company/tickets");
     }
@@ -164,18 +164,18 @@ const DocumentUpload = () => {
             <div className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
               <input
                 type="file"
-                id="insurance"
+                id="driversLicense"
                 className="hidden"
                 onChange={(e) =>
-                  handleFileChange("insurance", e.target.files[0])
+                  handleFileChange("driversLicense", e.target.files[0])
                 }
                 accept=".pdf,.jpg,.jpeg,.png"
               />
-              <label htmlFor="insurance" className="cursor-pointer">
+              <label htmlFor="driversLicense" className="cursor-pointer">
                 <FaUpload className="text-4xl text-neutral-400 mx-auto mb-3" />
                 <p className="font-semibold mb-1">
-                  {formData.insurance
-                    ? formData.insurance.name
+                  {formData.driversLicense
+                    ? formData.driversLicense.name
                     : "Click to upload"}
                 </p>
                 <p className="text-sm text-neutral-600">
@@ -188,9 +188,8 @@ const DocumentUpload = () => {
                 Required Documents:
               </h4>
               <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Comprehensive Vehicle Insurance</li>
-                <li>• Passenger Liability Insurance</li>
-                <li>• Third-Party Insurance</li>
+                <li>• Valid Drivers License</li>
+                <li>• Professional Driving Permit (if applicable)</li>
               </ul>
             </div>
           </div>
@@ -228,7 +227,7 @@ const DocumentUpload = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
-      <Navbar variant="desktop" />
+      <Navbar variant="desktop" portalLabel="TRANSPORT PORTAL" />
 
       <div className="flex-1 py-8 px-4">
         <div className="container-custom max-w-3xl">
@@ -265,8 +264,8 @@ const DocumentUpload = () => {
                         step.number < currentStep
                           ? "bg-green-600 text-white"
                           : step.number === currentStep
-                          ? "bg-primary text-white"
-                          : "bg-neutral-200 text-neutral-600"
+                            ? "bg-primary text-white"
+                            : "bg-neutral-200 text-neutral-600"
                       }`}>
                       {step.number < currentStep ? (
                         <FaCheckCircle />

@@ -46,7 +46,7 @@ const TicketsManagement = () => {
     seats: "",
 
     state: "", // For intra-state: the selected state for city-to-city trips
-    vehicleType: "Bus",
+    vehicleType: "Hiace Bus (18 seater)",
     terminal: "",
     city: "",
   });
@@ -115,7 +115,7 @@ const TicketsManagement = () => {
       seats: "",
 
       state: "",
-      vehicleType: "Bus",
+      vehicleType: "Hiace Bus (18 seater)",
       terminal: "",
       city: "",
     });
@@ -134,7 +134,7 @@ const TicketsManagement = () => {
       price: ticket.price,
 
       seats: ticket.seats,
-      vehicleType: ticket.vehicleType || "Bus",
+      vehicleType: ticket.vehicleType || "Hiace Bus (18 seater)",
       terminal: ticket.terminal || "",
       city: ticket.city || "",
     });
@@ -286,7 +286,7 @@ const TicketsManagement = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
-      <Navbar variant="desktop" portalLabel="COMPANY PORTAL" />
+      <Navbar variant="desktop" portalLabel="TRANSPORT PORTAL" />
 
       <div className="flex-1 py-8 px-4">
         <div className="container-custom max-w-6xl">
@@ -410,11 +410,20 @@ const TicketsManagement = () => {
               }
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               disabled={saving}>
-              <option value="Bus">Bus</option>
-              <option value="Sienna">Sienna</option>
-              <option value="Minivan">Minivan</option>
-              <option value="Luxury Bus">Luxury Bus</option>
-              <option value="Sedan">Sedan</option>
+              <option value="Hiace Bus (18 seater)">
+                Hiace Bus (18 seater)
+              </option>
+              <option value="Coaster Bus (32 seater)">
+                Coaster Bus (32 seater)
+              </option>
+              <option value="Luxirious Bus (52 seater)">
+                Luxirious Bus (52 seater)
+              </option>
+              <option value="Mini Buses (7 seater)">
+                Mini Buses (7 seater)
+              </option>
+              <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
+              <option value="Sedan (small car)">Sedan (small car)</option>
             </select>
           </div>
 
