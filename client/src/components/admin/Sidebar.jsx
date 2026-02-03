@@ -28,7 +28,6 @@ const Sidebar = () => {
     { icon: FaBuilding, label: "Companies", path: "/admin/companies" },
     { icon: FaTicketAlt, label: "Tickets", path: "/admin/tickets" },
     { icon: FaCalendarCheck, label: "Bookings", path: "/admin/bookings" },
-    { icon: FaDollarSign, label: "Fares", path: "/admin/fares" },
     { icon: FaQuestionCircle, label: "FAQs", path: "/admin/faqs" },
   ];
 

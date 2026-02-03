@@ -133,14 +133,14 @@ const App = () => {
             </ProtectedRoute>
           }
         />
-        <Route
+        {/* <Route
           path="/admin/fares"
           element={
             <ProtectedRoute requireAdmin={true}>
               <FareManagement />
             </ProtectedRoute>
           }
-        />
+        /> */}
         <Route
           path="/admin/tickets"
           element={

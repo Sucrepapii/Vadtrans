@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
@@ -28,6 +29,7 @@ import {
 import { MaterialTimePicker } from "../../components/MaterialDatePicker";
 
 const TicketsManagement = () => {
+  const { user } = useAuth(); // Get user for verification status check
   const [tickets, setTickets] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
@@ -104,6 +106,14 @@ const TicketsManagement = () => {
   };
 
   const handleAddTicket = () => {
+    // Check verification status
+    if (user?.verificationStatus !== "verified") {
+      toast.error(
+        "Your account must be verified by an admin before you can create trips.",
+      );
+      return;
+    }
+
     setEditingTicket(null);
     setFormData({
       from: "",
