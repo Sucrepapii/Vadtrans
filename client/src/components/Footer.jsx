@@ -13,7 +13,11 @@ const Footer = () => {
       <div className="container-custom py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <h3 className="text-xl font-raleway font-bold mb-4">Vadtrans</h3>
+            <img
+              src="/logo_full.png"
+              alt="VadTrans"
+              className="h-8 w-auto object-contain brightness-0 invert mb-4"
+            />
             <p className="text-neutral-300 text-sm">
               Your trusted transportation booking platform. Travel with ease and
               comfort.

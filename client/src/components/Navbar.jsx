@@ -59,9 +59,11 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
               <Link to="/" className="flex flex-col">
                 <div className="flex items-center gap-2 group">
                   <div className="flex flex-col justify-center">
-                    <h1 className="text-xl sm:text-2xl font-raleway font-bold text-charcoal leading-none">
-                      Vad<span className="text-primary">Trans</span>
-                    </h1>
+                    <img
+                      src="/logo_full.png"
+                      alt="VadTrans"
+                      className="h-10 w-auto object-contain"
+                    />
                   </div>
                 </div>
                 {portalLabel && (
@@ -288,9 +290,11 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
             <div>
-              <h1 className="text-xl font-raleway font-bold text-white leading-none">
-                Vad<span className="text-primary">Trans</span>
-              </h1>
+              <img
+                src="/logo_full.png"
+                alt="VadTrans"
+                className="h-8 w-auto object-contain brightness-0 invert"
+              />
             </div>
           </Link>
 
