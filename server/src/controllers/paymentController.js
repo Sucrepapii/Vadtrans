@@ -1,0 +1,98 @@
+const paystack = require("paystack-api")(process.env.PAYSTACK_SECRET_KEY);
+const Booking = require("../models/Booking");
+const Trip = require("../models/Trip");
+const { sequelize } = require("../config/database");
+
+/**
+ * @desc    Initialize Paystack transaction
+ * @route   POST /api/payment/initialize
+ * @access  Private
+ */
+exports.initializePayment = async (req, res) => {
+  try {
+    const { amount, email, metadata } = req.body;
+
+    if (!amount || !email) {
+      return res.status(400).json({
+        success: false,
+        message: "Amount and email are required",
+      });
+    }
+
+    const response = await paystack.transaction.initialize({
+      amount: amount * 100, // Paystack amount is in kobo
+      email,
+      metadata,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: response.data,
+    });
+  } catch (error) {
+    console.error("Paystack initialization error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Payment initialization failed",
+      error: error.message,
+    });
+  }
+};
+
+/**
+ * @desc    Verify Paystack transaction
+ * @route   GET /api/payment/verify/:reference
+ * @access  Private
+ */
+exports.verifyPayment = async (req, res) => {
+  const { reference } = req.params;
+  const transaction = await sequelize.transaction();
+
+  try {
+    const response = await paystack.transaction.verify({ reference });
+
+    if (response.data.status === "success") {
+      // Get bookingId from metadata OR query params
+      const bookingId =
+        response.data.metadata?.bookingId || req.query.bookingId;
+
+      if (!bookingId) {
+        await transaction.rollback();
+        return res.status(400).json({
+          success: false,
+          message: "Booking ID missing from transaction metadata and query",
+        });
+      }
+
+      const booking = await Booking.findByPk(bookingId, { transaction });
+      if (booking) {
+        booking.paymentStatus = "paid";
+        booking.paymentReference = reference;
+        await booking.save({ transaction });
+      }
+
+      await transaction.commit();
+
+      res.status(200).json({
+        success: true,
+        message: "Payment verified successfully",
+        data: response.data,
+      });
+    } else {
+      await transaction.rollback();
+      res.status(400).json({
+        success: false,
+        message: "Payment verification failed",
+        data: response.data,
+      });
+    }
+  } catch (error) {
+    await transaction.rollback();
+    console.error("Paystack verification error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Payment verification error",
+      error: error.message,
+    });
+  }
+};

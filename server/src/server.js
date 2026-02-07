@@ -13,6 +13,7 @@ const tripRoutes = require("./routes/trips");
 const bookingRoutes = require("./routes/bookings");
 const adminRoutes = require("./routes/admin");
 const contactRoutes = require("./routes/contact.routes");
+const paymentRoutes = require("./routes/payment");
 
 // Initialize all models
 const User = require("./models/User");
@@ -180,6 +181,9 @@ app.use("/api/trips", tripRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/payment", paymentRoutes);
+app.use("/api/faqs", require("./routes/faqRoutes"));
+
 app.use("/api/faqs", require("./routes/faqRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 

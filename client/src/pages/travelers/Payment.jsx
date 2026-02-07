@@ -1,5 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { usePaystackPayment } from "react-paystack";
+import { useAuth } from "../../context/AuthContext";
+import axios from "axios";
+import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
@@ -26,6 +30,7 @@ const Payment = () => {
     serviceFee = 5,
   } = location.state || {};
 
+  const { user } = useAuth();
   const [paymentMethod, setPaymentMethod] = useState("card");
   const [cardDetails, setCardDetails] = useState({
     cardNumber: "",
@@ -35,25 +40,131 @@ const Payment = () => {
   });
   const [processing, setProcessing] = useState(false);
 
-  const handlePayment = async (e) => {
-    e.preventDefault();
-    setProcessing(true);
+  const config = {
+    reference: new Date().getTime().toString(),
+    email: user?.email || passengerDetails?.[0]?.email || "",
+    amount: Math.round(totalAmount * 100), // Paystack expects amount in Kobo
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+  };
 
-    // Simulate payment processing
-    setTimeout(() => {
-      setProcessing(false);
-      navigate("/booking/confirmation", {
-        state: {
-          trip,
-          searchParams,
-          passengers,
-          passengerDetails,
-          totalAmount,
-          paymentMethod,
-          bookingId: `BK-${Date.now().toString().slice(-6)}`,
+  const initializePayment = usePaystackPayment(config);
+
+  const handlePaystackSuccess = async (reference) => {
+    try {
+      setProcessing(true);
+      // The booking was already created in handlePayment
+      // Now we just verify it
+      const bookingId = localStorage.getItem("lastPendingBookingId");
+
+      if (!bookingId) {
+        toast.error("Booking reference lost. Please contact support.");
+        return;
+      }
+
+      // 2. Verify payment on backend
+      const verifyRes = await axios.get(
+        `/api/payment/verify/${reference.reference}`,
+        {
+          params: { bookingId }, // Send booking ID for verification mapping
         },
-      });
-    }, 2000);
+      );
+
+      if (verifyRes.data.success) {
+        toast.success("Payment successful!");
+        localStorage.removeItem("lastPendingBookingId");
+        navigate("/booking/confirmation", {
+          state: {
+            trip,
+            searchParams,
+            passengers,
+            passengerDetails,
+            totalAmount,
+            paymentMethod: "card",
+            bookingId:
+              verifyRes.data.data.metadata?.bookingReference || "Confirmed",
+          },
+        });
+      }
+    } catch (error) {
+      console.error("Payment processing error:", error);
+      toast.error(error.response?.data?.message || "Payment processing failed");
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handlePaystackClose = () => {
+    toast.info("Transaction cancelled");
+    setProcessing(false);
+  };
+
+  const handlePayment = async (e) => {
+    if (e) e.preventDefault();
+    if (paymentMethod === "card") {
+      try {
+        setProcessing(true);
+        // 1. Create the booking on the backend first (status: pending)
+        const bookingData = {
+          tripId: trip.id,
+          passengers,
+          selectedSeats: location.state?.selectedSeats || [],
+          paymentMethod: "card",
+          totalAmount,
+        };
+
+        const bookingRes = await axios.post("/api/bookings", bookingData);
+
+        if (bookingRes.data.success) {
+          const bookingId = bookingRes.data.booking.id;
+          localStorage.setItem("lastPendingBookingId", bookingId);
+
+          // 2. Initialize Paystack with the specific booking metadata
+          const paystackConfig = {
+            ...config,
+            metadata: {
+              bookingId,
+              bookingReference: bookingRes.data.booking.bookingId,
+            },
+          };
+
+          const initialize = () => {
+            const handler = window.PaystackPop.setup({
+              key: config.publicKey,
+              email: config.email,
+              amount: config.amount,
+              ref: config.reference,
+              metadata: {
+                bookingId,
+                bookingReference: bookingRes.data.booking.bookingId,
+              },
+              callback: function (response) {
+                handlePaystackSuccess(response);
+              },
+              onClose: function () {
+                handlePaystackClose();
+              },
+            });
+            handler.openIframe();
+          };
+
+          // If react-paystack hook doesn't support dynamic config well enough,
+          // we can use the library directly if loaded.
+          // But let's try to trigger it.
+          initialize();
+        }
+      } catch (error) {
+        console.error("Booking creation error:", error);
+        toast.error(error.response?.data?.message || "Booking failed");
+        setProcessing(false);
+      }
+    } else {
+      // Handle other methods
+      setProcessing(true);
+      setTimeout(() => {
+        setProcessing(false);
+        toast.info("This payment method is not yet fully integrated.");
+      }, 1000);
+    }
   };
 
   if (!trip) {
@@ -150,87 +261,23 @@ const Payment = () => {
                 </div>
               </Card>
 
-              {/* Card Details Form */}
+              {/* Paystack Info */}
               {paymentMethod === "card" && (
                 <Card>
-                  <h2 className="text-lg font-semibold mb-4 flex items-center gap-2">
-                    <FaLock className="text-green-600" />
-                    Card Details
-                  </h2>
-                  <form onSubmit={handlePayment} className="space-y-4">
-                    <Input
-                      label="Card Number"
-                      name="cardNumber"
-                      placeholder="1234 5678 9012 3456"
-                      value={cardDetails.cardNumber}
-                      onChange={(e) =>
-                        setCardDetails({
-                          ...cardDetails,
-                          cardNumber: e.target.value,
-                        })
-                      }
-                      icon={FaCreditCard}
-                      required
-                    />
-                    <Input
-                      label="Cardholder Name"
-                      name="cardName"
-                      placeholder="John Doe"
-                      value={cardDetails.cardName}
-                      onChange={(e) =>
-                        setCardDetails({
-                          ...cardDetails,
-                          cardName: e.target.value,
-                        })
-                      }
-                      icon={FaUser}
-                      required
-                    />
-                    <div className="grid grid-cols-2 gap-4">
-                      <Input
-                        label="Expiry Date"
-                        name="expiryDate"
-                        placeholder="MM/YY"
-                        value={cardDetails.expiryDate}
-                        onChange={(e) =>
-                          setCardDetails({
-                            ...cardDetails,
-                            expiryDate: e.target.value,
-                          })
-                        }
-                        icon={FaCalendar}
-                        required
-                      />
-                      <Input
-                        label="CVV"
-                        name="cvv"
-                        placeholder="123"
-                        type="password"
-                        value={cardDetails.cvv}
-                        onChange={(e) =>
-                          setCardDetails({
-                            ...cardDetails,
-                            cvv: e.target.value,
-                          })
-                        }
-                        icon={FaLock}
-                        required
+                  <div className="text-center py-8">
+                    <FaLock className="text-6xl text-green-600 mx-auto mb-4" />
+                    <p className="text-neutral-600 mb-4">
+                      Secure payment via Paystack. You can pay with your Card,
+                      Bank Transfer, or USSD.
+                    </p>
+                    <div className="flex justify-center gap-4">
+                      <img
+                        src="https://paystack.com/assets/payment/cards.png"
+                        alt="Cards"
+                        className="h-8"
                       />
                     </div>
-
-                    <div className="bg-neutral-50 p-4 rounded-lg flex items-start gap-3">
-                      <FaLock className="text-green-600 mt-1" />
-                      <div className="text-sm text-neutral-600">
-                        <p className="font-semibold text-charcoal mb-1">
-                          Secure Payment
-                        </p>
-                        <p>
-                          Your payment information is encrypted and secure. We
-                          never store your card details.
-                        </p>
-                      </div>
-                    </div>
-                  </form>
+                  </div>
                 </Card>
               )}
 

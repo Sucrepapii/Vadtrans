@@ -75,7 +75,7 @@ exports.createBooking = async (req, res) => {
         paymentMethod,
         totalAmount: bookingTotalAmount,
         serviceFee,
-        paymentStatus: "paid", // Simulating successful payment
+        paymentStatus: "pending", // Payment will be verified via Paystack
       },
       { transaction },
     );
