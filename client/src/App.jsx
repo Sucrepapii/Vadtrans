@@ -11,10 +11,8 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import Services from "./pages/travelers/Services";
 import SearchResults from "./pages/travelers/SearchResults";
-import BookingDetails from "./pages/travelers/BookingDetails";
 import PassengerInfo from "./pages/travelers/PassengerInfo";
 import SeatSelection from "./pages/travelers/SeatSelection";
-import ReviewConfirm from "./pages/travelers/ReviewConfirm";
 import ReviewConfirm from "./pages/travelers/ReviewConfirm";
 import BookingConfirmation from "./pages/travelers/BookingConfirmation";
 import Tracking from "./pages/travelers/Tracking";
@@ -59,8 +57,7 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/search" element={<SearchResults />} />
-        <Route path="/booking/details" element={<BookingDetails />} />
-        {/* New 4-step payment flow */}
+        {/* New 3-step payment flow */}
         <Route path="/booking/passenger-info" element={<PassengerInfo />} />
         <Route path="/booking/seat-selection" element={<SeatSelection />} />
         <Route path="/booking/review" element={<ReviewConfirm />} />
