@@ -19,12 +19,6 @@ const PaymentMethod = () => {
   const { tripData, passengers, selectedSeats } = location.state || {};
 
   const [paymentMethod, setPaymentMethod] = useState("card");
-  const [cardDetails, setCardDetails] = useState({
-    cardNumber: "",
-    cardName: "",
-    expiryDate: "",
-    cvv: "",
-  });
 
   const paymentMethods = [
     { id: "card", label: "Credit/Debit Card", icon: FaCreditCard },
@@ -40,7 +34,6 @@ const PaymentMethod = () => {
         passengers,
         selectedSeats,
         paymentMethod,
-        cardDetails,
       },
     });
   };
@@ -69,7 +62,7 @@ const PaymentMethod = () => {
                       <div className="w-12 md:w-24 h-1 bg-neutral-200 mx-1"></div>
                     )}
                   </div>
-                )
+                ),
               )}
             </div>
           </div>
@@ -120,65 +113,17 @@ const PaymentMethod = () => {
               </div>
             </Card>
 
-            {/* Card Details Form */}
+            {/* Card Info Notice */}
             {paymentMethod === "card" && (
               <Card>
-                <h3 className="font-semibold mb-4">Card Details</h3>
-                <div className="space-y-4">
-                  <Input
-                    label="Card Number"
-                    type="text"
-                    placeholder="1234 5678 9012 3456"
-                    value={cardDetails.cardNumber}
-                    onChange={(e) =>
-                      setCardDetails({
-                        ...cardDetails,
-                        cardNumber: e.target.value,
-                      })
-                    }
-                    icon={FaCreditCard}
-                    required
-                  />
-                  <Input
-                    label="Cardholder Name"
-                    type="text"
-                    placeholder="John Doe"
-                    value={cardDetails.cardName}
-                    onChange={(e) =>
-                      setCardDetails({
-                        ...cardDetails,
-                        cardName: e.target.value,
-                      })
-                    }
-                    required
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input
-                      label="Expiry Date"
-                      type="text"
-                      placeholder="MM/YY"
-                      value={cardDetails.expiryDate}
-                      onChange={(e) =>
-                        setCardDetails({
-                          ...cardDetails,
-                          expiryDate: e.target.value,
-                        })
-                      }
-                      required
-                    />
-                    <Input
-                      label="CVV"
-                      type="text"
-                      placeholder="123"
-                      value={cardDetails.cvv}
-                      onChange={(e) =>
-                        setCardDetails({
-                          ...cardDetails,
-                          cvv: e.target.value,
-                        })
-                      }
-                      required
-                    />
+                <div className="flex items-center gap-3 p-2 text-neutral-700">
+                  <FaCreditCard className="text-2xl text-primary" />
+                  <div>
+                    <h3 className="font-semibold">Secure Card Payment</h3>
+                    <p className="text-sm">
+                      You'll be able to securely enter your card details and pay
+                      via Paystack in the next step.
+                    </p>
                   </div>
                 </div>
               </Card>

@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { bookingAPI } from "../../services/api";
+import { usePaystackPayment } from "react-paystack";
+import { useAuth } from "../../context/AuthContext";
+import api, { bookingAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
@@ -19,7 +21,8 @@ import {
 const ReviewConfirm = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { tripData, passengers, selectedSeats, paymentMethod, cardDetails } =
+  const { user } = useAuth();
+  const { tripData, passengers, selectedSeats, paymentMethod } =
     location.state || {};
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -29,43 +32,136 @@ const ReviewConfirm = () => {
   const serviceFee = calculateServiceFee(subtotal);
   const total = subtotal + serviceFee;
 
-  const handleConfirmPayment = async () => {
+  const paystackConfig = {
+    reference: new Date().getTime().toString(),
+    email: user?.email || passengers?.[0]?.email || "",
+    amount: Math.round(total * 100),
+    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+  };
+
+  const initializePayment = usePaystackPayment(paystackConfig);
+
+  const handlePaystackSuccess = async (reference) => {
     try {
       setIsProcessing(true);
+      const bookingId = localStorage.getItem("lastPendingBookingId");
 
-      // Create booking in database
-      const bookingData = {
-        tripId: tripData.id,
-        passengers,
-        selectedSeats,
-        paymentMethod,
-        totalAmount: total, // Send calculated total to backend
-      };
+      if (!bookingId) {
+        toast.error("Booking reference lost. Please contact support.");
+        return;
+      }
 
-      console.log("📤 Creating booking:", bookingData);
-      const response = await bookingAPI.createBooking(bookingData);
-      console.log("✅ Booking created:", response.data);
-
-      toast.success("Booking confirmed successfully!");
-
-      // Navigate to confirmation page with booking details
-      navigate("/booking/confirmation", {
-        state: {
-          trip: tripData,
-          bookingId: response.data.booking.bookingId,
-          passengers,
-          passengerDetails: passengers,
-          selectedSeats,
-          totalAmount: total,
-          paymentMethod,
+      // Verify payment on backend
+      const verifyRes = await api.get(
+        `/payment/verify/${reference.reference}`,
+        {
+          params: { bookingId },
         },
-      });
+      );
+
+      if (verifyRes.data.success) {
+        toast.success("Booking confirmed successfully!");
+        localStorage.removeItem("lastPendingBookingId");
+        navigate("/booking/confirmation", {
+          state: {
+            trip: tripData,
+            bookingId:
+              verifyRes.data.data.metadata?.bookingReference || "Confirmed",
+            passengers,
+            passengerDetails: passengers,
+            selectedSeats,
+            totalAmount: total,
+            paymentMethod,
+          },
+        });
+      }
     } catch (error) {
-      console.error("❌ Error creating booking:", error);
-      console.error("❌ Error response:", error.response?.data);
-      console.error("❌ Error message:", error.response?.data?.error);
-      toast.error(error.response?.data?.message || "Failed to create booking");
+      console.error("Payment processing error:", error);
+      toast.error(error.response?.data?.message || "Payment processing failed");
+    } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handlePaystackClose = () => {
+    toast.info("Transaction cancelled");
+    setIsProcessing(false);
+  };
+
+  const handleConfirmPayment = async () => {
+    if (paymentMethod === "card") {
+      try {
+        setIsProcessing(true);
+        // 1. Create the booking on the backend first (status: pending)
+        const bookingData = {
+          tripId: tripData.id,
+          passengers,
+          selectedSeats: selectedSeats || [],
+          paymentMethod: "card",
+          totalAmount: total,
+        };
+
+        const response = await bookingAPI.createBooking(bookingData);
+
+        if (response.data.success) {
+          const bookingId = response.data.booking.id;
+          localStorage.setItem("lastPendingBookingId", bookingId);
+
+          const initialize = () => {
+            const handler = window.PaystackPop.setup({
+              key: paystackConfig.publicKey,
+              email: paystackConfig.email,
+              amount: paystackConfig.amount,
+              ref: paystackConfig.reference,
+              metadata: {
+                bookingId,
+                bookingReference: response.data.booking.bookingId,
+              },
+              callback: function (response) {
+                handlePaystackSuccess(response);
+              },
+              onClose: function () {
+                handlePaystackClose();
+              },
+            });
+            handler.openIframe();
+          };
+
+          initialize();
+        }
+      } catch (error) {
+        console.error("Booking creation error:", error);
+        toast.error(error.response?.data?.message || "Booking failed");
+        setIsProcessing(false);
+      }
+    } else {
+      // For bank or mobile, we can keep the simulation or process differently
+      try {
+        setIsProcessing(true);
+        const bookingData = {
+          tripId: tripData.id,
+          passengers,
+          selectedSeats,
+          paymentMethod,
+          totalAmount: total,
+        };
+        const response = await bookingAPI.createBooking(bookingData);
+        toast.success("Booking requested! Please complete manual payment.");
+        navigate("/booking/confirmation", {
+          state: {
+            trip: tripData,
+            bookingId: response.data.booking.bookingId,
+            passengers,
+            passengerDetails: passengers,
+            selectedSeats,
+            totalAmount: total,
+            paymentMethod,
+          },
+        });
+      } catch (error) {
+        toast.error("Failed to create booking");
+        setIsProcessing(false);
+      }
     }
   };
 
@@ -88,7 +184,7 @@ const ReviewConfirm = () => {
                       <div className="w-12 md:w-24 h-1 bg-primary mx-1"></div>
                     )}
                   </div>
-                )
+                ),
               )}
             </div>
           </div>
@@ -160,12 +256,12 @@ const ReviewConfirm = () => {
                     {paymentMethod === "card"
                       ? "Credit/Debit Card"
                       : paymentMethod === "bank"
-                      ? "Bank Transfer"
-                      : "Mobile Money"}
+                        ? "Bank Transfer"
+                        : "Mobile Money"}
                   </p>
-                  {paymentMethod === "card" && cardDetails && (
+                  {paymentMethod === "card" && (
                     <p className="text-sm text-neutral-600 mt-1">
-                      •••• •••• •••• {cardDetails.cardNumber?.slice(-4)}
+                      Payment via Paystack
                     </p>
                   )}
                 </div>

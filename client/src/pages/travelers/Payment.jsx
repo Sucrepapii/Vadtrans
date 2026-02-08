@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { usePaystackPayment } from "react-paystack";
 import { useAuth } from "../../context/AuthContext";
-import axios from "axios";
+import api from "../../services/api";
 import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -62,8 +62,8 @@ const Payment = () => {
       }
 
       // 2. Verify payment on backend
-      const verifyRes = await axios.get(
-        `/api/payment/verify/${reference.reference}`,
+      const verifyRes = await api.get(
+        `/payment/verify/${reference.reference}`,
         {
           params: { bookingId }, // Send booking ID for verification mapping
         },
@@ -112,7 +112,7 @@ const Payment = () => {
           totalAmount,
         };
 
-        const bookingRes = await axios.post("/api/bookings", bookingData);
+        const bookingRes = await api.post("/bookings", bookingData);
 
         if (bookingRes.data.success) {
           const bookingId = bookingRes.data.booking.id;
