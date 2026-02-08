@@ -62,7 +62,7 @@ const SeatSelection = () => {
         setSelectedSeats([...selectedSeats, seatNumber]);
       } else {
         toast.warning(
-          `You can only select ${passengers?.length} seat(s) for ${passengers?.length} passenger(s)`
+          `You can only select ${passengers?.length} seat(s) for ${passengers?.length} passenger(s)`,
         );
       }
     }
@@ -73,8 +73,8 @@ const SeatSelection = () => {
       toast.warning(`Please select exactly ${passengers?.length} seat(s)`);
       return;
     }
-    navigate("/booking/payment-method", {
-      state: { tripData, passengers, selectedSeats },
+    navigate("/booking/review", {
+      state: { tripData, passengers, selectedSeats, paymentMethod: "card" },
     });
   };
 
@@ -87,7 +87,7 @@ const SeatSelection = () => {
           {/* Progress Steps */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              {["Passenger Info", "Seat Selection", "Payment", "Review"].map(
+              {["Passenger Info", "Seat Selection", "Review & Pay"].map(
                 (step, idx) => (
                   <div key={step} className="flex items-center">
                     <div
@@ -98,11 +98,11 @@ const SeatSelection = () => {
                       }`}>
                       {idx + 1}
                     </div>
-                    {idx < 3 && (
+                    {idx < 2 && (
                       <div className="w-12 md:w-24 h-1 bg-neutral-200 mx-1"></div>
                     )}
                   </div>
-                )
+                ),
               )}
             </div>
           </div>
@@ -162,8 +162,8 @@ const SeatSelection = () => {
                       seat.isBooked
                         ? "bg-neutral-400 text-white cursor-not-allowed"
                         : selectedSeats.includes(seat.number)
-                        ? "bg-primary text-white"
-                        : "bg-neutral-200 hover:bg-neutral-300"
+                          ? "bg-primary text-white"
+                          : "bg-neutral-200 hover:bg-neutral-300"
                     }`}>
                     {selectedSeats.includes(seat.number) ? (
                       <FaCheck />
@@ -210,7 +210,7 @@ const SeatSelection = () => {
               Back
             </Button>
             <Button variant="primary" onClick={handleContinue} fullWidth>
-              Continue to Payment
+              Continue to Review
             </Button>
           </div>
         </div>

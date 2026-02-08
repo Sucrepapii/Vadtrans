@@ -14,9 +14,8 @@ import SearchResults from "./pages/travelers/SearchResults";
 import BookingDetails from "./pages/travelers/BookingDetails";
 import PassengerInfo from "./pages/travelers/PassengerInfo";
 import SeatSelection from "./pages/travelers/SeatSelection";
-import PaymentMethod from "./pages/travelers/PaymentMethod";
 import ReviewConfirm from "./pages/travelers/ReviewConfirm";
-import Payment from "./pages/travelers/Payment";
+import ReviewConfirm from "./pages/travelers/ReviewConfirm";
 import BookingConfirmation from "./pages/travelers/BookingConfirmation";
 import Tracking from "./pages/travelers/Tracking";
 import Notifications from "./pages/travelers/Notifications";
@@ -64,10 +63,7 @@ const App = () => {
         {/* New 4-step payment flow */}
         <Route path="/booking/passenger-info" element={<PassengerInfo />} />
         <Route path="/booking/seat-selection" element={<SeatSelection />} />
-        <Route path="/booking/payment-method" element={<PaymentMethod />} />
         <Route path="/booking/review" element={<ReviewConfirm />} />
-        {/* Old payment route (keep for backward compatibility) */}
-        <Route path="/booking/payment" element={<Payment />} />
         <Route path="/booking/confirmation" element={<BookingConfirmation />} />
         <Route
           path="/tracking"

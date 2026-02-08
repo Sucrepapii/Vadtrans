@@ -66,7 +66,7 @@ const BookingDetails = () => {
     const serviceFee = calculateServiceFee(subtotal);
     const totalAmount = subtotal + serviceFee;
 
-    navigate("/booking/payment", {
+    navigate("/booking/passenger-info", {
       state: {
         trip,
         searchParams,
@@ -252,7 +252,7 @@ const BookingDetails = () => {
                   </div>
                 </div>
                 <Button variant="primary" fullWidth onClick={handleContinue}>
-                  Continue to Payment
+                  Continue to Passenger Info
                 </Button>
                 <Button
                   variant="secondary"

@@ -167,6 +167,12 @@ const ReviewConfirm = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate("/booking/seat-selection", {
+      state: { tripData, passengers, selectedSeats },
+    });
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
       <Navbar variant="desktop" />
@@ -176,13 +182,13 @@ const ReviewConfirm = () => {
           {/* Progress Steps */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              {["Passenger Info", "Seat Selection", "Payment", "Review"].map(
+              {["Passenger Info", "Seat Selection", "Review & Pay"].map(
                 (step, idx) => (
                   <div key={step} className="flex items-center">
                     <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary text-white">
                       {idx + 1}
                     </div>
-                    {idx < 3 && (
+                    {idx < 2 && (
                       <div className="w-12 md:w-24 h-1 bg-primary mx-1"></div>
                     )}
                   </div>
@@ -191,13 +197,12 @@ const ReviewConfirm = () => {
             </div>
           </div>
 
-          {/* Back Button */}
           <Button
             variant="secondary"
-            onClick={() => navigate(-1)}
+            onClick={handleBack}
             className="flex items-center gap-2 text-sm mb-4">
             <FaArrowLeft />
-            <span>Back to Payment</span>
+            <span>Back to Seat Selection</span>
           </Button>
 
           <h1 className="text-xl sm:text-2xl font-raleway font-bold text-charcoal mb-6">
@@ -324,9 +329,9 @@ const ReviewConfirm = () => {
                 <Button
                   variant="secondary"
                   fullWidth
-                  onClick={() => navigate(-1)}
+                  onClick={handleBack}
                   className="mt-3">
-                  Back to Payment
+                  Back to Seat Selection
                 </Button>
               </Card>
             </div>

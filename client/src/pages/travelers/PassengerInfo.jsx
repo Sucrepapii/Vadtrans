@@ -70,7 +70,7 @@ const PassengerInfo = () => {
           {/* Progress Steps */}
           <div className="mb-8">
             <div className="flex items-center justify-between">
-              {["Passenger Info", "Seat Selection", "Payment", "Review"].map(
+              {["Passenger Info", "Seat Selection", "Review & Pay"].map(
                 (step, idx) => (
                   <div key={step} className="flex items-center">
                     <div
@@ -81,15 +81,15 @@ const PassengerInfo = () => {
                       }`}>
                       {idx + 1}
                     </div>
-                    {idx < 3 && (
+                    {idx < 2 && (
                       <div className="w-12 md:w-24 h-1 bg-neutral-200 mx-1"></div>
                     )}
                   </div>
-                )
+                ),
               )}
             </div>
             <div className="flex justify-between mt-2">
-              {["Passenger Info", "Seat Selection", "Payment", "Review"].map(
+              {["Passenger Info", "Seat Selection", "Review & Pay"].map(
                 (step) => (
                   <p
                     key={step}
@@ -97,7 +97,7 @@ const PassengerInfo = () => {
                     style={{ width: "80px" }}>
                     {step}
                   </p>
-                )
+                ),
               )}
             </div>
           </div>
