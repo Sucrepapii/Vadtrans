@@ -32,12 +32,18 @@ const ReviewConfirm = () => {
   const serviceFee = calculateServiceFee(subtotal);
   const total = subtotal + serviceFee;
 
-  const paystackConfig = {
-    reference: new Date().getTime().toString(),
-    email: user?.email || passengers?.[0]?.email || "",
-    amount: Math.round(total * 100),
-    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-  };
+  // Stabilize the config to prevent hook re-initialization issues
+  const paystackConfig = React.useMemo(() => {
+    const email = user?.email || passengers?.[0]?.email || "";
+    const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+
+    return {
+      reference: new Date().getTime().toString(),
+      email,
+      amount: Math.round(total * 100),
+      publicKey,
+    };
+  }, [user?.email, passengers?.[0]?.email, total]);
 
   const initializePayment = usePaystackPayment(paystackConfig);
 
@@ -107,27 +113,23 @@ const ReviewConfirm = () => {
           const bookingId = response.data.booking.id;
           localStorage.setItem("lastPendingBookingId", bookingId);
 
-          const initialize = () => {
-            const handler = window.PaystackPop.setup({
-              key: paystackConfig.publicKey,
-              email: paystackConfig.email,
-              amount: paystackConfig.amount,
-              ref: paystackConfig.reference,
-              metadata: {
-                bookingId,
-                bookingReference: response.data.booking.bookingId,
-              },
-              callback: function (response) {
-                handlePaystackSuccess(response);
-              },
-              onClose: function () {
-                handlePaystackClose();
-              },
-            });
-            handler.openIframe();
-          };
+          // Validation before opening
+          if (!paystackConfig.publicKey) {
+            console.error("❌ Paystack Public Key is missing!");
+            toast.error("Payment configuration error. Please contact support.");
+            setIsProcessing(false);
+            return;
+          }
 
-          initialize();
+          if (!paystackConfig.email) {
+            console.error("❌ Email is missing for Paystack!");
+            toast.error("Contact email is required for payment.");
+            setIsProcessing(false);
+            return;
+          }
+
+          // Use the hook-provided initialize function
+          initializePayment(handlePaystackSuccess, handlePaystackClose);
         }
       } catch (error) {
         console.error("Booking creation error:", error);
@@ -135,7 +137,7 @@ const ReviewConfirm = () => {
         setIsProcessing(false);
       }
     } else {
-      // For bank or mobile, we can keep the simulation or process differently
+      // For bank transfer, we can keep the simulation or process differently
       try {
         setIsProcessing(true);
         const bookingData = {

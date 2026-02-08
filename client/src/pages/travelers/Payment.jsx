@@ -40,12 +40,17 @@ const Payment = () => {
   });
   const [processing, setProcessing] = useState(false);
 
-  const config = {
-    reference: new Date().getTime().toString(),
-    email: user?.email || passengerDetails?.[0]?.email || "",
-    amount: Math.round(totalAmount * 100), // Paystack expects amount in Kobo
-    publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-  };
+  const config = React.useMemo(() => {
+    const email = user?.email || passengerDetails?.[0]?.email || "";
+    const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+
+    return {
+      reference: new Date().getTime().toString(),
+      email,
+      amount: Math.round(totalAmount * 100), // Paystack expects amount in Kobo
+      publicKey,
+    };
+  }, [user?.email, passengerDetails?.[0]?.email, totalAmount]);
 
   const initializePayment = usePaystackPayment(config);
 
@@ -118,39 +123,19 @@ const Payment = () => {
           const bookingId = bookingRes.data.booking.id;
           localStorage.setItem("lastPendingBookingId", bookingId);
 
-          // 2. Initialize Paystack with the specific booking metadata
-          const paystackConfig = {
-            ...config,
-            metadata: {
-              bookingId,
-              bookingReference: bookingRes.data.booking.bookingId,
-            },
-          };
-
-          const initialize = () => {
-            const handler = window.PaystackPop.setup({
-              key: config.publicKey,
-              email: config.email,
-              amount: config.amount,
-              ref: config.reference,
-              metadata: {
-                bookingId,
-                bookingReference: bookingRes.data.booking.bookingId,
-              },
-              callback: function (response) {
-                handlePaystackSuccess(response);
-              },
-              onClose: function () {
-                handlePaystackClose();
-              },
+          // Validation
+          if (!config.publicKey || !config.email) {
+            console.error("❌ Paystack Config missing:", {
+              key: !!config.publicKey,
+              email: !!config.email,
             });
-            handler.openIframe();
-          };
+            toast.error("Payment setup incomplete.");
+            setProcessing(false);
+            return;
+          }
 
-          // If react-paystack hook doesn't support dynamic config well enough,
-          // we can use the library directly if loaded.
-          // But let's try to trigger it.
-          initialize();
+          // Use the hook-provided initialize function
+          initializePayment(handlePaystackSuccess, handlePaystackClose);
         }
       } catch (error) {
         console.error("Booking creation error:", error);

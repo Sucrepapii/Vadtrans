@@ -23,7 +23,6 @@ const PaymentMethod = () => {
   const paymentMethods = [
     { id: "card", label: "Credit/Debit Card", icon: FaCreditCard },
     { id: "bank", label: "Bank Transfer", icon: FaUniversity },
-    { id: "mobile", label: "Mobile Money", icon: FaMobileAlt },
   ];
 
   const handleContinue = (e) => {
@@ -149,27 +148,6 @@ const PaymentMethod = () => {
                   <p className="text-xs text-neutral-600 mt-3">
                     Please use your booking reference as the transfer
                     description
-                  </p>
-                </div>
-              </Card>
-            )}
-
-            {/* Mobile Money Instructions */}
-            {paymentMethod === "mobile" && (
-              <Card className="bg-green-50 border-green-200">
-                <h3 className="font-semibold mb-2">Mobile Money Payment</h3>
-                <p className="text-sm text-neutral-700 mb-3">
-                  Send payment to:
-                </p>
-                <div className="space-y-2 text-sm">
-                  <p>
-                    <strong>Number:</strong> +234 800 VADTRANS
-                  </p>
-                  <p>
-                    <strong>Provider:</strong> Any mobile money service
-                  </p>
-                  <p className="text-xs text-neutral-600 mt-3">
-                    You will receive a confirmation code after payment
                   </p>
                 </div>
               </Card>
