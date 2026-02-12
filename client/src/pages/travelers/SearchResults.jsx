@@ -60,6 +60,7 @@ const SearchResults = () => {
 
       if (searchParams.from) params.from = searchParams.from;
       if (searchParams.to) params.to = searchParams.to;
+      if (searchParams.date) params.date = searchParams.date;
 
       // Handle transport type filter
       if (searchParams.transportType !== "all") {
@@ -275,15 +276,23 @@ const SearchResults = () => {
                                 ₦{Number(trip.price).toLocaleString()}
                               </p>
                             </div>
-                            <Button
-                              variant="primary"
-                              onClick={() => handleSelectTrip(trip)}
-                              disabled={trip.availableSeats === 0}
-                              className="whitespace-nowrap text-sm sm:text-base px-4 sm:px-6">
-                              {trip.availableSeats === 0
-                                ? "Sold Out"
-                                : "Select Trip"}
-                            </Button>
+                            <div className="flex flex-col items-end gap-2">
+                              <Button
+                                variant="primary"
+                                onClick={() => handleSelectTrip(trip)}
+                                disabled={trip.availableSeats === 0}
+                                className="whitespace-nowrap text-sm sm:text-base px-4 sm:px-6">
+                                {trip.availableSeats === 0
+                                  ? "Sold Out"
+                                  : "Select Trip"}
+                              </Button>
+                              {trip.availableSeats === 0 && (
+                                <p className="text-[10px] sm:text-xs text-red-600 font-medium max-w-[150px] text-right">
+                                  Fully booked for today! This vehicle will be
+                                  available tomorrow.
+                                </p>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -40,6 +40,11 @@ const Trip = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    departureDate: {
+      type: DataTypes.DATEONLY,
+      allowNull: true,
+      comment: "The specific date for this trip instance",
+    },
     duration: {
       type: DataTypes.STRING,
       allowNull: true,

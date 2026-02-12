@@ -27,6 +27,7 @@ import {
   FaSpinner,
 } from "react-icons/fa";
 import { MaterialTimePicker } from "../../components/MaterialDatePicker";
+import MaterialDatePicker from "../../components/MaterialDatePicker";
 
 const TicketsManagement = () => {
   const { user } = useAuth(); // Get user for verification status check
@@ -43,6 +44,7 @@ const TicketsManagement = () => {
     to: "",
     transportType: "inter-state",
     departureTime: "",
+    departureDate: "",
     duration: "",
     price: "",
     seats: 18,
@@ -90,6 +92,7 @@ const TicketsManagement = () => {
         route: `${trip.from} - ${trip.to}`,
         transportType: trip.transportType,
         departureTime: trip.departureTime,
+        departureDate: trip.departureDate,
         price: Number(trip.price),
         seats: trip.seats,
         availableSeats: trip.availableSeats,
@@ -140,6 +143,7 @@ const TicketsManagement = () => {
       to,
       transportType: ticket.transportType,
       departureTime: ticket.departureTime,
+      departureDate: ticket.departureDate || "",
       duration: ticket.duration || "",
       price: ticket.price,
 
@@ -175,6 +179,7 @@ const TicketsManagement = () => {
         to: formData.to,
         transportType: formData.transportType,
         departureTime: formData.departureTime,
+        departureDate: formData.departureDate,
         duration: formData.duration || null,
         price: Number(formData.price),
 
@@ -231,6 +236,12 @@ const TicketsManagement = () => {
           {value}
         </div>
       ),
+    },
+    {
+      key: "departureDate",
+      label: "Date",
+      sortable: true,
+      render: (value) => value || "Daily",
     },
     {
       key: "price",
@@ -641,6 +652,24 @@ const TicketsManagement = () => {
             onChange={(timeStr) =>
               setFormData({ ...formData, departureTime: timeStr })
             }
+            className="w-full"
+          />
+
+          <MaterialDatePicker
+            label="Departure Date"
+            value={formData.departureDate}
+            onChange={(date) => {
+              if (date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                const dateStr = `${year}-${month}-${day}`;
+                setFormData({ ...formData, departureDate: dateStr });
+              } else {
+                setFormData({ ...formData, departureDate: "" });
+              }
+            }}
+            minDate={new Date()}
             className="w-full"
           />
 
