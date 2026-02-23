@@ -67,17 +67,25 @@ const ReviewConfirm = () => {
 
       if (verifyRes.data.success) {
         toast.success("Booking confirmed successfully!");
+        const savedRef =
+          localStorage.getItem("lastPendingBookingRef") || `BK-${bookingId}`;
         localStorage.removeItem("lastPendingBookingId");
+        localStorage.removeItem("lastPendingBookingRef");
         navigate("/booking/confirmation", {
           state: {
             trip: tripData,
-            bookingId:
-              verifyRes.data.data.metadata?.bookingReference || "Confirmed",
+            bookingId: savedRef,
             passengers,
             passengerDetails: passengers,
             selectedSeats,
             totalAmount: total,
             paymentMethod,
+            searchParams: {
+              date:
+                tripData?.departureDate ||
+                tripData?.date ||
+                new Date().toLocaleDateString(),
+            },
           },
         });
       }
@@ -111,7 +119,10 @@ const ReviewConfirm = () => {
 
         if (response.data.success) {
           const bookingId = response.data.booking.id;
+          const bookingRef =
+            response.data.booking.bookingId || `BK-${bookingId}`;
           localStorage.setItem("lastPendingBookingId", bookingId);
+          localStorage.setItem("lastPendingBookingRef", bookingRef);
 
           // Validation before opening
           if (!paystackConfig.publicKey) {
@@ -151,16 +162,25 @@ const ReviewConfirm = () => {
           totalAmount: total,
         };
         const response = await bookingAPI.createBooking(bookingData);
+        const bookingRef =
+          response.data.booking?.bookingId ||
+          `BK-${response.data.booking?.id || Date.now()}`;
         toast.success("Booking requested! Please complete manual payment.");
         navigate("/booking/confirmation", {
           state: {
             trip: tripData,
-            bookingId: response.data.booking.bookingId,
+            bookingId: bookingRef,
             passengers,
             passengerDetails: passengers,
             selectedSeats,
             totalAmount: total,
             paymentMethod,
+            searchParams: {
+              date:
+                tripData?.departureDate ||
+                tripData?.date ||
+                new Date().toLocaleDateString(),
+            },
           },
         });
       } catch (error) {
