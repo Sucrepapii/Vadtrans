@@ -55,7 +55,6 @@ const Booking = sequelize.define(
     },
     serviceFee: {
       type: DataTypes.FLOAT,
-      defaultValue: 5,
     },
     bookingStatus: {
       type: DataTypes.ENUM("confirmed", "cancelled", "completed"),
@@ -83,7 +82,7 @@ const Booking = sequelize.define(
       },
     },
     indexes: [{ fields: ["userId", "createdAt"] }, { fields: ["bookingId"] }],
-  }
+  },
 );
 
 // Define associations

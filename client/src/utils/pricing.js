@@ -4,7 +4,7 @@
 
 // Service fee configuration
 const SERVICE_FEE_PERCENTAGE = 0.05; // 5% of subtotal
-const MIN_SERVICE_FEE = 500; // Minimum service fee in Naira
+const MIN_SERVICE_FEE = 0; // Minimum service fee in Naira (removed 500 minimum)
 const MAX_SERVICE_FEE = 100000000000; // Maximum service fee in Naira
 
 /**
@@ -13,12 +13,11 @@ const MAX_SERVICE_FEE = 100000000000; // Maximum service fee in Naira
  * @returns {number} The calculated service fee
  */
 export const calculateServiceFee = (subtotal) => {
-  if (!subtotal || subtotal <= 0) return MIN_SERVICE_FEE;
+  if (!subtotal || subtotal <= 0) return 0;
 
   const calculatedFee = subtotal * SERVICE_FEE_PERCENTAGE;
 
-  // Apply min/max constraints
-  if (calculatedFee < MIN_SERVICE_FEE) return MIN_SERVICE_FEE;
+  // Apply max constraints (min constraint removed)
   if (calculatedFee > MAX_SERVICE_FEE) return MAX_SERVICE_FEE;
 
   return Math.round(calculatedFee);

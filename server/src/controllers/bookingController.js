@@ -61,9 +61,17 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // Use totalAmount from frontend (already includes service fee)
-    const serviceFee = 5;
-    const bookingTotalAmount = Number(totalAmount);
+    // Calculate service fee: 5% of subtotal (price * passengers)
+    const subtotal = Number(trip.price) * passengers.length;
+    const serviceFee = Math.round(subtotal * 0.05);
+    const bookingTotalAmount = subtotal + serviceFee;
+
+    // Optional: Validate that the total from frontend roughly matches our calculation
+    if (Math.abs(bookingTotalAmount - Number(totalAmount)) > 1) {
+      console.warn(
+        `Total amount mismatch: Frontend ${totalAmount}, Backend ${bookingTotalAmount}`,
+      );
+    }
 
     // Create booking
     const booking = await Booking.create(
