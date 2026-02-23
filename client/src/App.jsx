@@ -25,6 +25,7 @@ import FAQPage from "./pages/travelers/FAQPage";
 import AboutUs from "./pages/travelers/AboutUs";
 import TermsOfService from "./pages/travelers/TermsOfService";
 import PrivacyPolicy from "./pages/travelers/PrivacyPolicy";
+import RefundPolicy from "./pages/travelers/RefundPolicy";
 
 import CompanyLanding from "./pages/company/CompanyLanding";
 import DocumentUpload from "./pages/company/DocumentUpload";
@@ -78,6 +79,7 @@ const App = () => {
         <Route path="/faqs" element={<FAQPage />} />
         <Route path="/terms" element={<TermsOfService />} />
         <Route path="/privacy" element={<PrivacyPolicy />} />
+        <Route path="/refund-policy" element={<RefundPolicy />} />
 
         {/* Company Routes */}
         <Route path="/company" element={<CompanyLanding />} />
