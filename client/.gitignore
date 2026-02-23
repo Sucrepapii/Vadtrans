@@ -23,10 +23,11 @@ dist-ssr
 *.sln
 *.sw?
 
-# Environment Variables - NEVER commit these
+# Environment Variables
+# .env.local and .env contain secrets - never commit
 .env
 .env.local
 .env.development
-.env.production
 .env.staging
 .env*.local
+# .env.production is SAFE to commit (only public VITE_ keys, no secrets)
