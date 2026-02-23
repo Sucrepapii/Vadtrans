@@ -128,8 +128,11 @@ const ReviewConfirm = () => {
             return;
           }
 
-          // Use the hook-provided initialize function
-          initializePayment(handlePaystackSuccess, handlePaystackClose);
+          // Use the hook-provided initialize function (react-paystack v6 syntax)
+          initializePayment({
+            onSuccess: handlePaystackSuccess,
+            onClose: handlePaystackClose,
+          });
         }
       } catch (error) {
         console.error("Booking creation error:", error);
