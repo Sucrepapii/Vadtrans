@@ -53,8 +53,21 @@ const BookingConfirmation = () => {
       : finalTrip.company || "Vadtrans";
 
   const finalPassengers = passengerDetails || passengers || [];
-  const finalTotal = totalAmount || 100;
+  const passengerCount = finalPassengers.length || 1;
+  const finalTotal = Number(totalAmount) || 0;
   const finalBookingId = bookingId;
+
+  // Derive subtotal from total (totalAmount already includes service fee from ReviewConfirm)
+  // pricePerPerson from trip, else back-calculate from total
+  const pricePerPerson = Number(finalTrip?.price) || 0;
+  const subtotal =
+    pricePerPerson > 0
+      ? pricePerPerson * passengerCount
+      : finalTotal - calculateServiceFee(finalTotal * (1 / 1.05)); // approximate reverse
+  const serviceFee =
+    finalTotal - subtotal > 0
+      ? finalTotal - subtotal
+      : calculateServiceFee(subtotal);
 
   const handleDownloadTicket = async () => {
     const element = document.getElementById("ticket-content");
@@ -84,12 +97,6 @@ const BookingConfirmation = () => {
   const handlePrint = () => {
     window.print();
   };
-
-  // Calculate pricing breakdown
-  const pricePerPerson =
-    Number(finalTrip.price) || finalTotal / (finalPassengers.length || 1);
-  const subtotal = pricePerPerson * finalPassengers.length;
-  const serviceFee = calculateServiceFee(subtotal);
 
   // Calculate arrival time based on departure time and duration
   const calculateArrivalTime = () => {
@@ -350,7 +357,7 @@ const BookingConfirmation = () => {
                     <div className="space-y-3 mb-4 pb-4 border-b border-neutral-200">
                       <div className="flex justify-between text-sm">
                         <span className="text-neutral-600">
-                          Adult X {finalPassengers.length}
+                          Adult X {passengerCount}
                         </span>
                         <span className="font-semibold">
                           ₦{subtotal.toLocaleString()}
@@ -377,8 +384,8 @@ const BookingConfirmation = () => {
                         </span>
                       </div>
                       <p className="text-xs text-neutral-600 mt-1">
-                        {finalPassengers.length} traveller
-                        {finalPassengers.length > 1 ? "s" : ""}
+                        {passengerCount} traveller
+                        {passengerCount > 1 ? "s" : ""}
                       </p>
                     </div>
 
