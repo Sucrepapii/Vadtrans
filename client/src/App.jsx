@@ -58,11 +58,39 @@ const App = () => {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/search" element={<SearchResults />} />
-        {/* New 3-step payment flow */}
-        <Route path="/booking/passenger-info" element={<PassengerInfo />} />
-        <Route path="/booking/seat-selection" element={<SeatSelection />} />
-        <Route path="/booking/review" element={<ReviewConfirm />} />
-        <Route path="/booking/confirmation" element={<BookingConfirmation />} />
+        {/* New 3-step payment flow - requires auth */}
+        <Route
+          path="/booking/passenger-info"
+          element={
+            <ProtectedRoute>
+              <PassengerInfo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking/seat-selection"
+          element={
+            <ProtectedRoute>
+              <SeatSelection />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking/review"
+          element={
+            <ProtectedRoute>
+              <ReviewConfirm />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking/confirmation"
+          element={
+            <ProtectedRoute>
+              <BookingConfirmation />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/tracking"
           element={
