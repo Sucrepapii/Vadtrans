@@ -3,6 +3,18 @@ const Booking = require("../models/Booking");
 const Trip = require("../models/Trip");
 const { sequelize } = require("../config/database");
 
+// Startup check
+if (!process.env.PAYSTACK_SECRET_KEY) {
+  console.error(
+    "❌ CRITICAL: PAYSTACK_SECRET_KEY is not set! Payment verification will fail.",
+  );
+} else {
+  console.log(
+    "✅ Paystack secret key loaded:",
+    process.env.PAYSTACK_SECRET_KEY.substring(0, 10) + "...",
+  );
+}
+
 /**
  * @desc    Initialize Paystack transaction
  * @route   POST /api/payment/initialize
@@ -88,11 +100,18 @@ exports.verifyPayment = async (req, res) => {
     }
   } catch (error) {
     await transaction.rollback();
-    console.error("Paystack verification error:", error);
+    console.error("❌ Paystack verification error:", error?.message || error);
+    console.error(
+      "❌ Error details:",
+      JSON.stringify(error?.response?.data || error, null, 2),
+    );
     res.status(500).json({
       success: false,
       message: "Payment verification error",
       error: error.message,
+      hint: !process.env.PAYSTACK_SECRET_KEY
+        ? "PAYSTACK_SECRET_KEY is not set on the server"
+        : "Check Railway logs for details",
     });
   }
 };
