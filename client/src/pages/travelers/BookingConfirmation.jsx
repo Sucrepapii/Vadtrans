@@ -239,11 +239,12 @@ const BookingConfirmation = () => {
                   </div>
                 </div>
 
-                {/* Date */}
                 <div className="flex items-center gap-2 text-sm text-neutral-600 mb-4">
                   <FaCalendar className="text-primary" />
                   <span>
-                    {searchParams?.date || new Date().toLocaleDateString()}
+                    {searchParams?.date ||
+                      finalTrip?.departureDate ||
+                      new Date().toLocaleDateString()}
                   </span>
                 </div>
               </div>

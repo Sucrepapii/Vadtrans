@@ -17,6 +17,7 @@ const PassengerInfo = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const tripData = location.state?.tripData;
+  const searchDate = location.state?.searchDate;
 
   const [passengers, setPassengers] = useState([
     {
@@ -57,7 +58,7 @@ const PassengerInfo = () => {
     e.preventDefault();
     // Pass passenger data to next step
     navigate("/booking/seat-selection", {
-      state: { tripData, passengers },
+      state: { tripData, passengers, searchDate },
     });
   };
 

@@ -22,7 +22,7 @@ const ReviewConfirm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { tripData, passengers, selectedSeats, paymentMethod } =
+  const { tripData, passengers, selectedSeats, paymentMethod, searchDate } =
     location.state || {};
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -69,6 +69,7 @@ const ReviewConfirm = () => {
           paymentMethod,
           searchParams: {
             date:
+              searchDate ||
               tripData?.departureDate ||
               tripData?.date ||
               new Date().toLocaleDateString(),
@@ -189,6 +190,7 @@ const ReviewConfirm = () => {
             paymentMethod,
             searchParams: {
               date:
+                searchDate ||
                 tripData?.departureDate ||
                 tripData?.date ||
                 new Date().toLocaleDateString(),

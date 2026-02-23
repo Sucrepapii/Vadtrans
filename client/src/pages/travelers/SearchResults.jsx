@@ -105,7 +105,9 @@ const SearchResults = () => {
   };
 
   const handleSelectTrip = (trip) => {
-    navigate("/booking/passenger-info", { state: { tripData: trip } });
+    navigate("/booking/passenger-info", {
+      state: { tripData: trip, searchDate: searchParams.date },
+    });
   };
 
   return (
