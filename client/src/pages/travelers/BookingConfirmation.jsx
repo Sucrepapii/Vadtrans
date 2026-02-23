@@ -394,8 +394,14 @@ const BookingConfirmation = () => {
                       <p className="text-xs text-neutral-600 mb-1">
                         Payment Method
                       </p>
-                      <p className="font-medium capitalize">
-                        {paymentMethod || "Card"}
+                      <p className="font-medium">
+                        {paymentMethod === "card" || paymentMethod === "Card"
+                          ? "Credit/Debit Card (Paystack)"
+                          : paymentMethod === "bank"
+                            ? "Bank Transfer"
+                            : paymentMethod === "mobile"
+                              ? "Mobile Money"
+                              : paymentMethod || "Credit/Debit Card (Paystack)"}
                       </p>
                     </div>
                   </div>
