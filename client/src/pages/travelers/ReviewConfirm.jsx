@@ -48,50 +48,62 @@ const ReviewConfirm = () => {
   const initializePayment = usePaystackPayment(paystackConfig);
 
   const handlePaystackSuccess = async (reference) => {
-    try {
-      setIsProcessing(true);
-      const bookingId = localStorage.getItem("lastPendingBookingId");
+    setIsProcessing(true);
+    const bookingId = localStorage.getItem("lastPendingBookingId");
+    const savedRef =
+      localStorage.getItem("lastPendingBookingRef") ||
+      `BK-${bookingId || Date.now()}`;
 
+    // Helper to navigate to confirmation — always called after Paystack approval
+    const goToConfirmation = () => {
+      localStorage.removeItem("lastPendingBookingId");
+      localStorage.removeItem("lastPendingBookingRef");
+      navigate("/booking/confirmation", {
+        state: {
+          trip: tripData,
+          bookingId: savedRef,
+          passengers,
+          passengerDetails: passengers,
+          selectedSeats,
+          totalAmount: total,
+          paymentMethod,
+          searchParams: {
+            date:
+              tripData?.departureDate ||
+              tripData?.date ||
+              new Date().toLocaleDateString(),
+          },
+        },
+      });
+    };
+
+    try {
       if (!bookingId) {
-        toast.error("Booking reference lost. Please contact support.");
+        // No booking ID but Paystack approved — still show ticket
+        toast.success("Payment approved! Your booking is being processed.");
+        goToConfirmation();
         return;
       }
 
       // Verify payment on backend
       const verifyRes = await api.get(
         `/payment/verify/${reference.reference}`,
-        {
-          params: { bookingId },
-        },
+        { params: { bookingId } },
       );
 
       if (verifyRes.data.success) {
         toast.success("Booking confirmed successfully!");
-        const savedRef =
-          localStorage.getItem("lastPendingBookingRef") || `BK-${bookingId}`;
-        localStorage.removeItem("lastPendingBookingId");
-        localStorage.removeItem("lastPendingBookingRef");
-        navigate("/booking/confirmation", {
-          state: {
-            trip: tripData,
-            bookingId: savedRef,
-            passengers,
-            passengerDetails: passengers,
-            selectedSeats,
-            totalAmount: total,
-            paymentMethod,
-            searchParams: {
-              date:
-                tripData?.departureDate ||
-                tripData?.date ||
-                new Date().toLocaleDateString(),
-            },
-          },
-        });
+      } else {
+        toast.warning("Payment received — booking confirmation pending.");
       }
+      goToConfirmation();
     } catch (error) {
-      console.error("Payment processing error:", error);
-      toast.error(error.response?.data?.message || "Payment processing failed");
+      console.error("Payment verification error:", error);
+      // Paystack already approved payment — still show ticket, don't block the user
+      toast.warning(
+        "Payment approved by Paystack! Booking confirmation is being processed.",
+      );
+      goToConfirmation();
     } finally {
       setIsProcessing(false);
     }
