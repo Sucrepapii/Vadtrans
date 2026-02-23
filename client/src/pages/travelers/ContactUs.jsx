@@ -192,7 +192,9 @@ const ContactUs = () => {
                     Office address
                   </h3>
                   <p className="text-sm text-neutral-600">
-                    46, Amos Olagboyega Street, Ikeja, Lagos
+                    Nitel Bus Stop, Festac Town,
+                    <br />
+                    Lagos, Nigeria
                   </p>
                 </div>
               </Card>
