@@ -396,12 +396,12 @@ const BookingConfirmation = () => {
                       </p>
                       <p className="font-medium">
                         {paymentMethod === "card" || paymentMethod === "Card"
-                          ? "Credit/Debit Card (Paystack)"
+                          ? "Paystack"
                           : paymentMethod === "bank"
                             ? "Bank Transfer"
                             : paymentMethod === "mobile"
                               ? "Mobile Money"
-                              : paymentMethod || "Credit/Debit Card (Paystack)"}
+                              : paymentMethod || "Paystack"}
                       </p>
                     </div>
                   </div>
