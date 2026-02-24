@@ -64,6 +64,24 @@ const DocumentUpload = () => {
       return;
     }
 
+    // Validation
+    if (currentStep === 1 && !formData.businessRegistration) {
+      toast.error("Please upload your business registration certificate");
+      return;
+    }
+    if (currentStep === 2 && !formData.vehiclePermits) {
+      toast.error("Please upload your vehicle permits and licenses");
+      return;
+    }
+    if (currentStep === 3 && !formData.driversLicense) {
+      toast.error("Please upload your drivers license");
+      return;
+    }
+    if (currentStep === 4 && !formData.taxId) {
+      toast.error("Please provide your tax identification number");
+      return;
+    }
+
     if (currentStep < 4) {
       setCurrentStep(currentStep + 1);
     } else {
