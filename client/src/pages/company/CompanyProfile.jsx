@@ -31,6 +31,8 @@ import {
   nigerianStatesWithCities,
 } from "../../data/locations";
 import DocumentsTab from "../../components/company/DocumentsTab";
+import PassengersTab from "../../components/company/PassengersTab";
+import { FaUsers } from "react-icons/fa";
 
 const CompanyProfile = () => {
   const { user, updateUser } = useAuth();
@@ -82,6 +84,7 @@ const CompanyProfile = () => {
   const tabs = [
     { id: "profile", label: "Profile", icon: FaUser },
     { id: "tickets", label: "Tickets", icon: FaTicketAlt },
+    { id: "passengers", label: "Passengers", icon: FaUsers },
     { id: "documents", label: "Documents", icon: FaFileInvoice },
   ];
 
@@ -308,8 +311,8 @@ const CompanyProfile = () => {
                     companyData.verificationStatus === "verified"
                       ? "bg-green-50 border-green-200"
                       : companyData.verificationStatus === "pending"
-                      ? "bg-yellow-50 border-yellow-200"
-                      : "bg-red-50 border-red-200"
+                        ? "bg-yellow-50 border-yellow-200"
+                        : "bg-red-50 border-red-200"
                   }`}>
                   <div className="flex items-center gap-3">
                     <FaCheckCircle
@@ -317,8 +320,8 @@ const CompanyProfile = () => {
                         companyData.verificationStatus === "verified"
                           ? "text-green-600"
                           : companyData.verificationStatus === "pending"
-                          ? "text-yellow-600"
-                          : "text-red-600"
+                            ? "text-yellow-600"
+                            : "text-red-600"
                       }`}
                     />
                     <div>
@@ -327,8 +330,8 @@ const CompanyProfile = () => {
                           companyData.verificationStatus === "verified"
                             ? "text-green-800"
                             : companyData.verificationStatus === "pending"
-                            ? "text-yellow-800"
-                            : "text-red-800"
+                              ? "text-yellow-800"
+                              : "text-red-800"
                         }`}>
                         {companyData.verificationStatus === "verified" &&
                           "Verified Company"}
@@ -342,8 +345,8 @@ const CompanyProfile = () => {
                           companyData.verificationStatus === "verified"
                             ? "text-green-700"
                             : companyData.verificationStatus === "pending"
-                            ? "text-yellow-700"
-                            : "text-red-700"
+                              ? "text-yellow-700"
+                              : "text-red-700"
                         }`}>
                         {companyData.verificationStatus === "verified" &&
                           "Your company has been verified and approved"}
@@ -757,8 +760,8 @@ const CompanyProfile = () => {
                             {saving
                               ? "Saving..."
                               : editingTrip
-                              ? "Update"
-                              : "Create"}
+                                ? "Update"
+                                : "Create"}
                           </Button>
                         </div>
                       </form>
@@ -772,6 +775,9 @@ const CompanyProfile = () => {
             {activeTab === "documents" && (
               <DocumentsTab user={user} onRefresh={fetchProfile} />
             )}
+
+            {/* Passengers Tab */}
+            {activeTab === "passengers" && <PassengersTab />}
           </div>
         </div>
       </div>

@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   createBooking,
   getUserBookings,
+  getCompanyBookings,
   getBooking,
   cancelBooking,
 } = require("../controllers/bookingController");
@@ -13,6 +14,7 @@ router.use(protect);
 
 router.post("/", createBooking);
 router.get("/", getUserBookings);
+router.get("/company/my-bookings", getCompanyBookings);
 router.get("/:id", getBooking);
 router.put("/:id/cancel", cancelBooking);
 

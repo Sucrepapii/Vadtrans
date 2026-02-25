@@ -73,6 +73,7 @@ export const tripAPI = {
 export const bookingAPI = {
   createBooking: (bookingData) => api.post("/bookings", bookingData),
   getUserBookings: () => api.get("/bookings"),
+  getCompanyBookings: () => api.get("/bookings/company/my-bookings"),
   getBooking: (id) => api.get(`/bookings/${id}`),
   cancelBooking: (id, reason) => api.put(`/bookings/${id}/cancel`, { reason }),
 };

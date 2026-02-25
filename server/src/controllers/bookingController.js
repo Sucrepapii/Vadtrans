@@ -145,6 +145,52 @@ exports.getUserBookings = async (req, res) => {
   }
 };
 
+// @desc    Get company bookings
+// @route   GET /api/bookings/company/my-bookings
+// @access  Private (Company only)
+exports.getCompanyBookings = async (req, res) => {
+  try {
+    // 1. Find all trips that belong to this company
+    const myTrips = await Trip.findAll({
+      where: { companyId: req.user.id },
+      attributes: ["id"], // Only need IDs to fetch the bookings
+    });
+
+    const tripIds = myTrips.map((trip) => trip.id);
+
+    if (tripIds.length === 0) {
+      return res.status(200).json({
+        success: true,
+        count: 0,
+        bookings: [],
+      });
+    }
+
+    // 2. Find all bookings for those trips
+    const bookings = await Booking.findAll({
+      where: { tripId: tripIds },
+      include: [
+        { model: Trip, as: "trip" },
+        { model: User, as: "user", attributes: ["name", "email", "phone"] },
+      ],
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.status(200).json({
+      success: true,
+      count: bookings.length,
+      bookings,
+    });
+  } catch (error) {
+    console.error("Get company bookings error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching company bookings",
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Get single booking
 // @route   GET /api/bookings/:id
 // @access  Private
