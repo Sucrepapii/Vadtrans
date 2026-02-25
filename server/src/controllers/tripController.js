@@ -16,8 +16,30 @@ exports.getAllTrips = async (req, res) => {
     // Filter by to location (exact match)
     if (to) where.to = to;
 
-    // Filter by departureDate if provided
-    if (req.query.date) where.departureDate = req.query.date;
+    // Filter by departureDate if provided (handles both specific dates and recurring trips)
+    if (req.query.date) {
+      const searchDate = new Date(req.query.date);
+      const daysOfWeek = [
+        "Sunday",
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+      ];
+      const dayName = daysOfWeek[searchDate.getUTCDay()];
+
+      where[Op.or] = [
+        { departureDate: req.query.date }, // Matches exact date
+        {
+          departureDate: null,
+          operatingDays: {
+            [Op.like]: `%${dayName}%`, // Matches operating day
+          },
+        },
+      ];
+    }
 
     // Filter by status (default to active only)
     where.status = status || "active";
@@ -108,6 +130,7 @@ exports.createTrip = async (req, res) => {
       transportType,
       departureTime,
       departureDate,
+      operatingDays,
       duration,
       price,
       seats,
@@ -127,6 +150,7 @@ exports.createTrip = async (req, res) => {
       transportType,
       departureTime,
       departureDate: departureDate || null,
+      operatingDays: operatingDays || null,
       duration: duration || null,
       price,
       seats,
@@ -178,6 +202,7 @@ exports.updateTrip = async (req, res) => {
       transportType,
       departureTime,
       departureDate,
+      operatingDays,
       duration,
       price,
       seats,
@@ -189,6 +214,7 @@ exports.updateTrip = async (req, res) => {
     if (transportType) trip.transportType = transportType;
     if (departureTime) trip.departureTime = departureTime;
     if (departureDate !== undefined) trip.departureDate = departureDate;
+    if (operatingDays !== undefined) trip.operatingDays = operatingDays;
     if (duration !== undefined) trip.duration = duration;
     if (price) trip.price = price;
     if (seats) {

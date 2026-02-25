@@ -45,6 +45,7 @@ const TicketsManagement = () => {
     transportType: "inter-state",
     departureTime: "",
     departureDate: "",
+    operatingDays: [],
     duration: "",
     price: "",
     seats: 18,
@@ -93,6 +94,7 @@ const TicketsManagement = () => {
         transportType: trip.transportType,
         departureTime: trip.departureTime,
         departureDate: trip.departureDate,
+        operatingDays: trip.operatingDays ? trip.operatingDays.split(",") : [],
         price: Number(trip.price),
         seats: trip.seats,
         availableSeats: trip.availableSeats,
@@ -123,6 +125,7 @@ const TicketsManagement = () => {
       to: "",
       transportType: "inter-state",
       departureTime: "",
+      operatingDays: [],
       duration: "",
       price: "",
       seats: 18,
@@ -144,6 +147,9 @@ const TicketsManagement = () => {
       transportType: ticket.transportType,
       departureTime: ticket.departureTime,
       departureDate: ticket.departureDate || "",
+      operatingDays: ticket.operatingDays
+        ? ticket.operatingDays.split(",")
+        : [],
       duration: ticket.duration || "",
       price: ticket.price,
 
@@ -180,6 +186,10 @@ const TicketsManagement = () => {
         transportType: formData.transportType,
         departureTime: formData.departureTime,
         departureDate: formData.departureDate,
+        operatingDays:
+          formData.operatingDays.length > 0
+            ? formData.operatingDays.join(",")
+            : null,
         duration: formData.duration || null,
         price: Number(formData.price),
 
@@ -239,9 +249,15 @@ const TicketsManagement = () => {
     },
     {
       key: "departureDate",
-      label: "Date",
+      label: "Date / Days",
       sortable: true,
-      render: (value) => value || "Daily",
+      render: (value, row) => {
+        if (value) return value;
+        if (row.operatingDays && row.operatingDays.length > 0) {
+          return row.operatingDays.join(", ");
+        }
+        return "Not Set";
+      },
     },
     {
       key: "price",
@@ -655,23 +671,77 @@ const TicketsManagement = () => {
             className="w-full"
           />
 
-          <MaterialDatePicker
-            label="Departure Date"
-            value={formData.departureDate}
-            onChange={(date) => {
-              if (date) {
-                const year = date.getFullYear();
-                const month = String(date.getMonth() + 1).padStart(2, "0");
-                const day = String(date.getDate()).padStart(2, "0");
-                const dateStr = `${year}-${month}-${day}`;
-                setFormData({ ...formData, departureDate: dateStr });
-              } else {
-                setFormData({ ...formData, departureDate: "" });
-              }
-            }}
-            minDate={new Date()}
-            className="w-full"
-          />
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-neutral-700 border-b pb-2 pt-2">
+              Schedule & Dates
+            </h3>
+
+            <MaterialDatePicker
+              label="Specific Departure Date (Optional)"
+              value={formData.departureDate}
+              onChange={(date) => {
+                if (date) {
+                  const year = date.getFullYear();
+                  const month = String(date.getMonth() + 1).padStart(2, "0");
+                  const day = String(date.getDate()).padStart(2, "0");
+                  const dateStr = `${year}-${month}-${day}`;
+                  setFormData({
+                    ...formData,
+                    departureDate: dateStr,
+                    operatingDays: [],
+                  });
+                } else {
+                  setFormData({ ...formData, departureDate: "" });
+                }
+              }}
+              minDate={new Date()}
+              className="w-full"
+            />
+
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Or Operating Days (Recurring Trip)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                  "Sunday",
+                ].map((day) => (
+                  <label
+                    key={day}
+                    className="flex items-center gap-1.5 bg-neutral-100 px-3 py-1.5 rounded-full cursor-pointer hover:bg-neutral-200 transition-colors">
+                    <input
+                      type="checkbox"
+                      className="rounded text-primary focus:ring-primary w-4 h-4"
+                      checked={formData.operatingDays.includes(day)}
+                      disabled={saving || formData.departureDate}
+                      onChange={(e) => {
+                        const newDays = e.target.checked
+                          ? [...formData.operatingDays, day]
+                          : formData.operatingDays.filter((d) => d !== day);
+                        setFormData({
+                          ...formData,
+                          operatingDays: newDays,
+                          departureDate: "",
+                        });
+                      }}
+                    />
+                    <span className="text-sm">{day.substring(0, 3)}</span>
+                  </label>
+                ))}
+              </div>
+              {formData.departureDate && (
+                <p className="text-xs text-amber-600 mt-2">
+                  Clear specific date to use recurring days.
+                </p>
+              )}
+            </div>
+          </div>
 
           <Input
             label="Duration (hours)"

@@ -15,7 +15,7 @@ const Footer = () => {
           <div>
             <img
               src="/logo_full.png"
-              alt="VadTrans"
+              alt="Vad Transportation Limited"
               className="h-8 w-auto object-contain brightness-0 invert mb-4"
             />
             <p className="text-neutral-300 text-sm">
@@ -109,7 +109,8 @@ const Footer = () => {
 
         <div className="border-t border-neutral-700 mt-8 pt-6 text-center text-sm text-neutral-400">
           <p>
-            &copy; {new Date().getFullYear()} Vadtrans. All rights reserved.
+            &copy; {new Date().getFullYear()} Vad Transportation Limited. All
+            rights reserved.
           </p>
         </div>
       </div>

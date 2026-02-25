@@ -233,6 +233,13 @@ const SearchResults = () => {
                                     {trip.departureTime}
                                   </span>
                                 </div>
+                                {trip.operatingDays && (
+                                  <div
+                                    className="text-[10px] text-primary font-medium mt-0.5 max-w-[120px] truncate"
+                                    title={trip.operatingDays}>
+                                    Runs: {trip.operatingDays}
+                                  </div>
+                                )}
                               </div>
 
                               <div>

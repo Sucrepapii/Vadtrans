@@ -13,7 +13,7 @@ import {
 } from "react-icons/fa";
 import Button from "./Button";
 
-const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
+const Navbar = ({ variant = "desktop", portalLabel }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
@@ -66,9 +66,15 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
                     />
                   </div>
                 </div>
-                {portalLabel && (
+                {(portalLabel ||
+                  (user?.role === "company"
+                    ? "TRANSPORT PORTAL"
+                    : "TRAVELLER PORTAL")) && (
                   <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
-                    {portalLabel}
+                    {portalLabel ||
+                      (user?.role === "company"
+                        ? "TRANSPORT PORTAL"
+                        : "TRAVELLER PORTAL")}
                   </span>
                 )}
               </Link>
@@ -124,7 +130,7 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
                   Contact Us
                 </NavLink>
                 <NavLink
-                  to="/company/register"
+                  to="/signup?role=company"
                   className={({ isActive }) =>
                     isActive
                       ? "text-primary font-bold transition-colors"
@@ -215,7 +221,7 @@ const Navbar = ({ variant = "desktop", portalLabel = "TRAVELER PORTAL" }) => {
                 Contact Us
               </Link>
               <Link
-                to="/company/register"
+                to="/signup?role=company"
                 className="block py-2 hover:text-primary transition-colors">
                 List Your Company
               </Link>

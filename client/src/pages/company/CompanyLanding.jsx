@@ -64,7 +64,7 @@ const CompanyLanding = () => {
 
               <div className="flex flex-col sm:flex-row gap-4">
                 <button
-                  onClick={() => navigate("/company/register")}
+                  onClick={() => navigate("/signup?role=company")}
                   className="px-8 py-4 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors">
                   Register Your Company
                 </button>
@@ -237,7 +237,7 @@ const CompanyLanding = () => {
             Join hundreds of transport companies already using VadTrans
           </p>
           <button
-            onClick={() => navigate("/company/register")}
+            onClick={() => navigate("/signup?role=company")}
             className="px-8 py-4 bg-white text-primary rounded-lg font-medium hover:bg-neutral-100 transition-colors">
             Get Started Today
           </button>

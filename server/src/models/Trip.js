@@ -45,6 +45,12 @@ const Trip = sequelize.define(
       allowNull: true,
       comment: "The specific date for this trip instance",
     },
+    operatingDays: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment:
+        "Comma-separated days of the week the trip runs (e.g., 'Monday,Tuesday')",
+    },
     duration: {
       type: DataTypes.STRING,
       allowNull: true,
