@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { toast } from "react-toastify";
-import { bookingAPI } from "../../../services/api";
-import Card from "../../Card";
+import { bookingAPI } from "../../services/api";
+import Card from "../Card";
 import {
   FaUsers,
   FaSpinner,
