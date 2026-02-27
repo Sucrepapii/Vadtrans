@@ -267,18 +267,19 @@ exports.cancelBooking = async (req, res) => {
       });
     }
 
-    // Check cancellation policy: Must be within 7 days of booking
+    // Check cancellation policy: 48 hours for refund, +30 days for reuse (total 32 days)
     const bookingDate = new Date(booking.createdAt);
     const currentDate = new Date();
     const diffTime = Math.abs(currentDate - bookingDate);
-    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    const diffHours = diffTime / (1000 * 60 * 60);
 
-    if (diffDays > 7) {
+    // 48 hours + 30 days = 32 days = 768 hours
+    if (diffHours > 768) {
       await transaction.rollback();
       return res.status(400).json({
         success: false,
         message:
-          "Cancellation is only allowed within a week (7 days) from the booked date",
+          "Ticket has expired. Cancellations and reuse are only allowed within 32 days (48 hours + 30 days) from the booked date",
       });
     }
 
@@ -286,7 +287,15 @@ exports.cancelBooking = async (req, res) => {
     booking.bookingStatus = "cancelled";
     booking.cancellationReason = req.body.reason || "User cancelled";
     booking.cancelledAt = new Date();
-    booking.paymentStatus = "refunded";
+
+    // Set payment status based on whether it is within the 48-hour refund window
+    if (diffHours <= 48) {
+      booking.paymentStatus = "refunded";
+    } else {
+      // Kept as 'paid', meaning it is cancelled for reuse
+      // (No explicit "reusable" enum value exists, so we leave it paid)
+    }
+
     await booking.save({ transaction });
 
     // Release seats

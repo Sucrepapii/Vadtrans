@@ -52,16 +52,16 @@ const MyBookings = () => {
     }
   };
 
-  // Check if booking can be cancelled (within 7 days of creation)
+  // Check if booking can be cancelled (within 32 days total: 48hr refund + 30-day reuse)
   const canCancel = (booking) => {
     if (booking.bookingStatus !== "confirmed") return false;
 
     const bookingDate = new Date(booking.createdAt);
     const currentDate = new Date();
     const diffTime = Math.abs(currentDate - bookingDate);
-    const diffDays = diffTime / (1000 * 60 * 60 * 24);
+    const diffHours = diffTime / (1000 * 60 * 60);
 
-    return diffDays <= 7;
+    return diffHours <= 768; // 32 days limit
   };
 
   const initiateCancel = (booking) => {
@@ -419,11 +419,52 @@ const MyBookings = () => {
             Are you sure you want to cancel this booking?
           </p>
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 text-sm text-yellow-800">
-            <p className="font-semibold mb-1">Cancellation Policy</p>
-            <p>
-              Cancellations are only allowed within 7 days of the booking date.
-              Refunds will be processed according to our terms and conditions.
-            </p>
+            <p className="font-semibold mb-2">Refund & Ticket Reuse Policy</p>
+            <div className="space-y-3">
+              <div>
+                <p className="font-medium text-yellow-900 mb-1">
+                  1. Refund Eligibility (48 Hours Only)
+                </p>
+                <p>
+                  Customers are eligible for a full refund within 48 hours from
+                  the time a trip is booked. Refund requests made after 48 hours
+                  from the booking time will not be approved.
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-yellow-900 mb-1">
+                  2. Ticket Reuse After 48 Hours
+                </p>
+                <p>
+                  If a request is made after the 48-hour refund window has
+                  expired, the ticket will no longer be eligible for a monetary
+                  refund. However, the ticket may be reused for another travel
+                  date, with the same transport company, and for the same trip
+                  route.
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-yellow-900 mb-1">
+                  3. 30-Day Reuse Validity Period
+                </p>
+                <p>
+                  The ticket reuse option remains valid for 30 days, starting 48
+                  hours after the original booking time. If the ticket is not
+                  reused within this 30-day period, it will automatically expire
+                  and cannot be refunded, reused, or transferred.
+                </p>
+              </div>
+              <div>
+                <p className="font-medium text-yellow-900 mb-1">
+                  4. Non-Transferability
+                </p>
+                <p>
+                  Reused tickets are non-transferable and must be used by the
+                  original passenger unless otherwise permitted by the transport
+                  company.
+                </p>
+              </div>
+            </div>
           </div>
           {bookingToCancel && (
             <div className="text-sm text-neutral-500">
