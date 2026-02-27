@@ -227,7 +227,15 @@ const MyBookings = () => {
                           <button
                             onClick={() =>
                               navigate(`/booking/confirmation`, {
-                                state: { bookingId: booking.bookingId },
+                                state: {
+                                  bookingId: booking.bookingId,
+                                  trip: booking.trip,
+                                  passengers: booking.passengers,
+                                  selectedSeats: booking.selectedSeats,
+                                  paymentMethod: booking.paymentMethod,
+                                  totalAmount: booking.totalAmount,
+                                  serviceFee: booking.serviceFee,
+                                },
                               })
                             }
                             className="text-primary hover:text-primary-dark">
@@ -314,7 +322,15 @@ const MyBookings = () => {
                         <button
                           onClick={() =>
                             navigate(`/booking/confirmation`, {
-                              state: { bookingId: booking.bookingId },
+                              state: {
+                                bookingId: booking.bookingId,
+                                trip: booking.trip,
+                                passengers: booking.passengers,
+                                selectedSeats: booking.selectedSeats,
+                                paymentMethod: booking.paymentMethod,
+                                totalAmount: booking.totalAmount,
+                                serviceFee: booking.serviceFee,
+                              },
                             })
                           }
                           className="text-primary hover:text-primary-dark flex items-center gap-1 text-sm">

@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
+import { bookingAPI } from "../../services/api";
 import { calculateServiceFee } from "../../utils/pricing";
 import {
   FaCheckCircle,
@@ -32,17 +33,41 @@ const BookingConfirmation = () => {
     selectedSeats,
     totalAmount,
     paymentMethod,
-    bookingId = `BK-${Date.now()}`,
-  } = location.state || {};
+    bookingId,
+  } = location.state || {}; // bookingId might be passed from MyBookings
 
-  // Set default values if coming from new flow
-  const finalTrip = trip || {
-    from: "Lagos",
-    to: "Abuja",
-    departureTime: "08:00 AM",
-    company: "Vadtrans",
-    type: "inter-state",
-  };
+  // State to hold fetched booking details
+  const [fetchedBooking, setFetchedBooking] = useState(null);
+  const [loading, setLoading] = useState(!trip && !!bookingId); // Only load if we have an ID but no trip data
+
+  useEffect(() => {
+    const fetchBookingDetails = async () => {
+      if (!trip && bookingId) {
+        try {
+          const response = await bookingAPI.getBooking(bookingId);
+          if (response.data && response.data.success) {
+            setFetchedBooking(response.data.booking);
+          }
+        } catch (error) {
+          console.error("Failed to fetch booking details:", error);
+          toast.error("Failed to load full ticket details.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    };
+    fetchBookingDetails();
+  }, [trip, bookingId]);
+
+  // Use fetched data if available, otherwise use location state, otherwise fallback
+  const finalTrip = fetchedBooking?.trip ||
+    trip || {
+      from: "Lagos",
+      to: "Abuja",
+      departureTime: "08:00 AM",
+      company: "Vadtrans",
+      type: "inter-state",
+    };
 
   // Handle company name - it could be an object or string
   const companyName =
@@ -52,10 +77,16 @@ const BookingConfirmation = () => {
         "Unknown Company"
       : finalTrip.company || "Vadtrans";
 
-  const finalPassengers = passengerDetails || passengers || [];
+  const finalPassengers =
+    fetchedBooking?.passengers || passengerDetails || passengers || [];
   const passengerCount = finalPassengers.length || 1;
-  const finalTotal = Number(totalAmount) || 0;
-  const finalBookingId = bookingId;
+  const finalTotal = fetchedBooking?.totalAmount
+    ? Number(fetchedBooking.totalAmount)
+    : Number(totalAmount) || 0;
+  const finalBookingId =
+    fetchedBooking?.bookingId || bookingId || `BK-${Date.now()}`;
+  const finalPaymentMethod =
+    fetchedBooking?.paymentMethod || paymentMethod || "Paystack";
 
   // Derive subtotal from total (totalAmount already includes service fee from ReviewConfirm)
   // pricePerPerson from trip, else back-calculate from total
@@ -143,6 +174,19 @@ const BookingConfirmation = () => {
   const durationText = finalTrip.duration
     ? `${finalTrip.duration} hrs`
     : "12 hrs";
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-neutral-50">
+        <Navbar variant="desktop" />
+        <div className="flex-1 flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary mb-4"></div>
+          <p className="text-neutral-600">Loading ticket details...</p>
+        </div>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
@@ -244,7 +288,11 @@ const BookingConfirmation = () => {
                   <span>
                     {searchParams?.date ||
                       finalTrip?.departureDate ||
-                      new Date().toLocaleDateString()}
+                      (fetchedBooking?.createdAt
+                        ? new Date(
+                            fetchedBooking.createdAt,
+                          ).toLocaleDateString()
+                        : new Date().toLocaleDateString())}
                   </span>
                 </div>
               </div>
@@ -395,13 +443,14 @@ const BookingConfirmation = () => {
                         Payment Method
                       </p>
                       <p className="font-medium">
-                        {paymentMethod === "card" || paymentMethod === "Card"
+                        {finalPaymentMethod === "card" ||
+                        finalPaymentMethod === "Card"
                           ? "Paystack"
-                          : paymentMethod === "bank"
+                          : finalPaymentMethod === "bank"
                             ? "Bank Transfer"
-                            : paymentMethod === "mobile"
+                            : finalPaymentMethod === "mobile"
                               ? "Mobile Money"
-                              : paymentMethod || "Paystack"}
+                              : finalPaymentMethod || "Paystack"}
                       </p>
                     </div>
                   </div>
