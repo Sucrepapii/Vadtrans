@@ -33,7 +33,6 @@ import {
 import DocumentsTab from "../../components/company/DocumentsTab";
 import PassengersTab from "../../components/company/PassengersTab";
 import { FaUsers } from "react-icons/fa";
-import { FaUsers } from "react-icons/fa";
 
 const CompanyProfile = () => {
   const { user, updateUser } = useAuth();
