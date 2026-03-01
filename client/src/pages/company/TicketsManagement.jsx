@@ -610,7 +610,8 @@ const TicketsManagement = () => {
           )}
 
           {(formData.transportType === "inter-state" ||
-            formData.transportType === "international") && (
+            formData.transportType === "international" ||
+            formData.transportType === "intra-state") && (
             <>
               <div className="grid grid-cols-2 gap-4">
                 <div>
