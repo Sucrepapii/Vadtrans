@@ -99,6 +99,11 @@ const TicketsManagement = () => {
         seats: trip.seats,
         availableSeats: trip.availableSeats,
         status: trip.status,
+        duration: trip.duration || "",
+        vehicleType: trip.vehicleType || "Hiace Bus (18 seater)",
+        terminal: trip.terminal || "",
+        city: trip.city || "",
+        state: trip.state || "",
       }));
 
       setTickets(transformedTrips);
@@ -147,16 +152,18 @@ const TicketsManagement = () => {
       transportType: ticket.transportType,
       departureTime: ticket.departureTime,
       departureDate: ticket.departureDate || "",
-      operatingDays: ticket.operatingDays
-        ? ticket.operatingDays.split(",")
-        : [],
+      operatingDays: Array.isArray(ticket.operatingDays)
+        ? ticket.operatingDays
+        : ticket.operatingDays
+          ? ticket.operatingDays.split(",")
+          : [],
       duration: ticket.duration || "",
       price: ticket.price,
-
       seats: ticket.seats,
       vehicleType: ticket.vehicleType || "Hiace Bus (18 seater)",
       terminal: ticket.terminal || "",
       city: ticket.city || "",
+      state: ticket.state || "",
     });
     setIsModalOpen(true);
   };

@@ -311,6 +311,12 @@ const BookingConfirmation = () => {
                           <p className="text-sm text-neutral-600">
                             {finalTrip.departureTime}
                           </p>
+                          {finalTrip.terminal && (
+                            <p className="text-xs text-neutral-500 mt-0.5 flex items-center gap-1">
+                              <FaMapMarkerAlt className="text-primary text-[10px]" />
+                              {finalTrip.terminal}
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>
@@ -343,11 +349,17 @@ const BookingConfirmation = () => {
                           <FaBus className="text-white text-xs" />
                         </div>
                         <p className="font-semibold">
-                          Departs Terminal: {finalTrip.from}
+                          Departs: {finalTrip.from}
                         </p>
                         <p className="text-sm text-neutral-600">
                           {finalTrip.departureTime}
                         </p>
+                        {finalTrip.terminal && (
+                          <p className="text-xs text-neutral-500 mt-0.5 flex items-center gap-1">
+                            <FaMapMarkerAlt className="text-primary text-[10px]" />
+                            Terminal: {finalTrip.terminal}
+                          </p>
+                        )}
                       </div>
 
                       {/* Dotted line */}
