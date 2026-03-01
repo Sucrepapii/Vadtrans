@@ -6,6 +6,7 @@ import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Modal from "../../components/Modal";
+import ConfirmationModal from "../../components/ConfirmationModal";
 import Table from "../../components/Table";
 import Pagination from "../../components/Pagination";
 import Input from "../../components/Input";
@@ -38,6 +39,11 @@ const TicketsManagement = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    open: false,
+    id: null,
+    deleting: false,
+  });
 
   const [formData, setFormData] = useState({
     from: "",
@@ -168,16 +174,21 @@ const TicketsManagement = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteTicket = async (id) => {
-    if (window.confirm("Are you sure you want to delete this trip?")) {
-      try {
-        await tripAPI.deleteTrip(id);
-        toast.success("Trip deleted successfully!");
-        fetchTrips(); // Refresh the list
-      } catch (error) {
-        console.error("Error deleting trip:", error);
-        toast.error(error.response?.data?.message || "Failed to delete trip");
-      }
+  const handleDeleteTicket = (id) => {
+    setDeleteConfirm({ open: true, id, deleting: false });
+  };
+
+  const confirmDelete = async () => {
+    setDeleteConfirm((prev) => ({ ...prev, deleting: true }));
+    try {
+      await tripAPI.deleteTrip(deleteConfirm.id);
+      toast.success("Trip deleted successfully!");
+      setDeleteConfirm({ open: false, id: null, deleting: false });
+      fetchTrips();
+    } catch (error) {
+      console.error("Error deleting trip:", error);
+      toast.error(error.response?.data?.message || "Failed to delete trip");
+      setDeleteConfirm((prev) => ({ ...prev, deleting: false }));
     }
   };
 
@@ -789,6 +800,19 @@ const TicketsManagement = () => {
           </div>
         </form>
       </Modal>
+      <ConfirmationModal
+        isOpen={deleteConfirm.open}
+        onClose={() =>
+          setDeleteConfirm({ open: false, id: null, deleting: false })
+        }
+        onConfirm={confirmDelete}
+        title="Delete Trip"
+        message="Are you sure you want to delete this trip? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isProcessing={deleteConfirm.deleting}
+      />
 
       <Footer />
     </div>
