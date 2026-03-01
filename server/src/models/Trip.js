@@ -36,6 +36,12 @@ const Trip = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    state: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment:
+        "For intra-state trips: the state within which cities are located",
+    },
     departureTime: {
       type: DataTypes.STRING,
       allowNull: false,

@@ -242,8 +242,8 @@ app.get("/api/fix-db-schema", async (req, res) => {
     // Patch Trips
     await addCol("Trips", "vehicleType", "VARCHAR(255) DEFAULT 'Bus'");
     await addCol("Trips", "terminal", "VARCHAR(255)");
-    await addCol("Trips", "terminal", "VARCHAR(255)");
     await addCol("Trips", "city", "VARCHAR(255)");
+    await addCol("Trips", "state", "VARCHAR(255)");
 
     // Explicitly sync Reviews table
     try {

@@ -137,6 +137,7 @@ exports.createTrip = async (req, res) => {
       vehicleType,
       terminal,
       city,
+      state,
     } = req.body;
 
     // Validate required fields
@@ -161,6 +162,7 @@ exports.createTrip = async (req, res) => {
       vehicleType: vehicleType || "Bus",
       terminal: terminal || null,
       city: city || null,
+      state: state || null,
       companyId: req.user.id,
       status: "active",
     });
@@ -216,6 +218,7 @@ exports.updateTrip = async (req, res) => {
       vehicleType,
       terminal,
       city,
+      state,
     } = req.body;
 
     if (from) trip.from = from;
@@ -229,6 +232,7 @@ exports.updateTrip = async (req, res) => {
     if (vehicleType !== undefined) trip.vehicleType = vehicleType;
     if (terminal !== undefined) trip.terminal = terminal;
     if (city !== undefined) trip.city = city;
+    if (state !== undefined) trip.state = state;
     if (seats) {
       // Calculate booked seats BEFORE overwriting trip.seats
       const bookedSeats = trip.seats - trip.availableSeats;
