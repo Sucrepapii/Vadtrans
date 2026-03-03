@@ -61,10 +61,11 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // Calculate service fee: 5% of subtotal (price * passengers)
+    // Calculate charges: 5% service fee + 7.5% VAT on subtotal
     const subtotal = Number(trip.price) * passengers.length;
     const serviceFee = Math.round(subtotal * 0.05);
-    const bookingTotalAmount = subtotal + serviceFee;
+    const vat = Math.round(subtotal * 0.075);
+    const bookingTotalAmount = subtotal + serviceFee + vat;
 
     // Optional: Validate that the total from frontend roughly matches our calculation
     if (Math.abs(bookingTotalAmount - Number(totalAmount)) > 1) {
@@ -83,6 +84,7 @@ exports.createBooking = async (req, res) => {
         paymentMethod,
         totalAmount: bookingTotalAmount,
         serviceFee,
+        vat,
         paymentStatus: "pending", // Payment will be verified via Paystack
       },
       { transaction },

@@ -56,6 +56,9 @@ const Booking = sequelize.define(
     serviceFee: {
       type: DataTypes.FLOAT,
     },
+    vat: {
+      type: DataTypes.FLOAT,
+    },
     bookingStatus: {
       type: DataTypes.ENUM("confirmed", "cancelled", "completed"),
       defaultValue: "confirmed",

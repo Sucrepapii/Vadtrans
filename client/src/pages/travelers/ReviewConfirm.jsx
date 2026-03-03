@@ -8,7 +8,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
-import { calculateServiceFee } from "../../utils/pricing";
+import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 import {
   FaUser,
   FaChair,
@@ -30,7 +30,8 @@ const ReviewConfirm = () => {
   const pricePerPerson = Number(tripData?.price) || 0;
   const subtotal = (passengers?.length || 0) * pricePerPerson;
   const serviceFee = calculateServiceFee(subtotal);
-  const total = subtotal + serviceFee;
+  const vat = calculateVAT(subtotal);
+  const total = subtotal + serviceFee + vat;
 
   // Stabilize the config to prevent hook re-initialization issues
   const paystackConfig = React.useMemo(() => {
@@ -327,10 +328,14 @@ const ReviewConfirm = () => {
                     </span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-neutral-600">Service Fee</span>
+                    <span className="text-neutral-600">Service Fee (5%)</span>
                     <span className="font-medium">
                       ₦{serviceFee.toLocaleString()}
                     </span>
+                  </div>
+                  <div className="flex justify-between text-sm border-b pb-2">
+                    <span className="text-neutral-600">VAT (7.5%)</span>
+                    <span className="font-medium">₦{vat.toLocaleString()}</span>
                   </div>
                   <p className="text-xs text-neutral-500 italic mt-1 pb-2">
                     This service fee helps us verify transport partners,

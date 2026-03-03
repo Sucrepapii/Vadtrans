@@ -6,7 +6,7 @@ import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
 import { bookingAPI } from "../../services/api";
-import { calculateServiceFee } from "../../utils/pricing";
+import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 import {
   FaCheckCircle,
   FaDownload,
@@ -94,11 +94,10 @@ const BookingConfirmation = () => {
   const subtotal =
     pricePerPerson > 0
       ? pricePerPerson * passengerCount
-      : finalTotal - calculateServiceFee(finalTotal * (1 / 1.05)); // approximate reverse
-  const serviceFee =
-    finalTotal - subtotal > 0
-      ? finalTotal - subtotal
-      : calculateServiceFee(subtotal);
+      : Math.round(finalTotal / 1.125); // approximate reverse (1 + 0.05 + 0.075)
+
+  const serviceFee = calculateServiceFee(subtotal);
+  const vat = calculateVAT(subtotal);
 
   const handleDownloadTicket = async () => {
     const element = document.getElementById("ticket-content");
@@ -425,9 +424,17 @@ const BookingConfirmation = () => {
                         </span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-neutral-600">Service Fee</span>
+                        <span className="text-neutral-600">
+                          Service Fee (5%)
+                        </span>
                         <span className="font-semibold">
                           ₦{serviceFee.toLocaleString()}
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-neutral-600">VAT (7.5%)</span>
+                        <span className="font-semibold">
+                          ₦{vat.toLocaleString()}
                         </span>
                       </div>
                       <p className="text-xs text-neutral-500 italic mt-1 pb-2">

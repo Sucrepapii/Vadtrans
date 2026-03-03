@@ -85,6 +85,12 @@ const AdminDashboard = () => {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,
+      secondaryValue: loading
+        ? null
+        : `$${(stats.totalRevenueUSD || 0).toLocaleString(undefined, {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+          })}`,
       color: "bg-primary",
     },
   ];
@@ -193,6 +199,11 @@ const AdminDashboard = () => {
                     <h3 className="text-2xl font-bold text-gray-900 tracking-tight">
                       {stat.value}
                     </h3>
+                    {stat.secondaryValue && (
+                      <p className="text-sm font-bold text-primary mt-0.5">
+                        {stat.secondaryValue}
+                      </p>
+                    )}
                     <p className="text-sm font-medium text-gray-400 mt-1">
                       {stat.label}
                     </p>

@@ -23,7 +23,13 @@ exports.getDashboardStats = async (req, res) => {
         [sequelize.fn("SUM", sequelize.col("totalAmount")), "total"],
       ],
     });
-    const totalRevenue = revenueData[0]?.dataValues?.total || 0;
+
+    const totalRevenueNaira =
+      parseFloat(revenueData[0]?.dataValues?.total) || 0;
+
+    // Exchange rate (approximate, should ideally come from an API or config)
+    const NGN_USD_RATE = 1500;
+    const totalRevenueUSD = totalRevenueNaira / NGN_USD_RATE;
 
     // Recent bookings
     const recentBookings = await Booking.findAll({
@@ -57,7 +63,8 @@ exports.getDashboardStats = async (req, res) => {
         totalCompanies,
         totalTrips,
         totalBookings,
-        totalRevenue: parseFloat(totalRevenue) || 0,
+        totalRevenue: totalRevenueNaira,
+        totalRevenueUSD: totalRevenueUSD,
         recentBookings,
       },
     });
