@@ -24,8 +24,9 @@ exports.getDashboardStats = async (req, res) => {
       ],
     });
 
-    const totalRevenueNaira =
-      parseFloat(revenueData[0]?.dataValues?.total) || 0;
+    const totalRevenueNaira = revenueData[0]?.dataValues?.total
+      ? parseFloat(revenueData[0].dataValues.total)
+      : 0;
 
     // Exchange rate (approximate, should ideally come from an API or config)
     const NGN_USD_RATE = 1500;
