@@ -248,10 +248,18 @@ app.get("/api/fix-db-schema", async (req, res) => {
     // Patch Bookings
     await addCol("Bookings", "vat", "FLOAT");
 
-    // Explicitly sync Reviews table
+    // 2. Explicitly sync all models (Sequelize's built-in schema update)
+    try {
+      await sequelize.sync({ alter: true });
+      report.push("✅ Full database synchronization completed (alter: true)");
+    } catch (e) {
+      report.push(`⚠️ Sync (alter: true) failed: ${e.message}`);
+    }
+
+    // 3. Explicitly sync Reviews table fallback
     try {
       await Review.sync({ alter: true });
-      report.push("✅ Synced Reviews table");
+      report.push("✅ Synced Reviews table separately");
     } catch (e) {
       report.push(`⚠️ Failed to sync Reviews table: ${e.message}`);
     }
