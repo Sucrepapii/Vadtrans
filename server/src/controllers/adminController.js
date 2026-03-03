@@ -70,13 +70,13 @@ exports.getDashboardStats = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error("❌ Error fetching dashboard stats:");
-    console.error("Error message:", error.message);
-    console.error("Error stack:", error.stack);
+    console.error("❌ Error fetching dashboard stats:", error);
     res.status(500).json({
       success: false,
       message: "Error fetching dashboard statistics",
       error: error.message,
+      detail:
+        error.name === "SequelizeDatabaseError" ? error.parent.message : null,
     });
   }
 };
@@ -224,6 +224,8 @@ exports.getAllBookings = async (req, res) => {
       success: false,
       message: "Error fetching bookings",
       error: error.message,
+      detail:
+        error.name === "SequelizeDatabaseError" ? error.parent.message : null,
     });
   }
 };
