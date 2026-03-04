@@ -77,7 +77,7 @@ exports.createBooking = async (req, res) => {
       }
     });
     const serviceFee = Math.round(subtotal * 0.05);
-    const vat = Math.round(subtotal * 0.075);
+    const vat = Math.round(serviceFee * 0.075);
     const bookingTotalAmount = subtotal + serviceFee + vat;
 
     // Optional: Validate that the total from frontend roughly matches our calculation

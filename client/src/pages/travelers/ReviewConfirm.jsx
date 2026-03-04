@@ -48,7 +48,7 @@ const ReviewConfirm = () => {
     0,
   );
   const serviceFee = calculateServiceFee(subtotal);
-  const vat = calculateVAT(subtotal);
+  const vat = calculateVAT(serviceFee);
   const total = subtotal + serviceFee + vat;
 
   // Stabilize the config to prevent hook re-initialization issues

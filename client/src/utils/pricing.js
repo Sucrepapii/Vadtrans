@@ -4,7 +4,7 @@
 
 // Service fee configuration
 const SERVICE_FEE_PERCENTAGE = 0.05; // 5% of subtotal
-const VAT_PERCENTAGE = 0.075; // 7.5% of subtotal
+const VAT_PERCENTAGE = 0.075; // 7.5% of service fee
 const MIN_SERVICE_FEE = 0; // Minimum service fee in Naira (removed 500 minimum)
 const MAX_SERVICE_FEE = 100000000000; // Maximum service fee in Naira
 
@@ -25,13 +25,13 @@ export const calculateServiceFee = (subtotal) => {
 };
 
 /**
- * Calculate VAT based on subtotal
- * @param {number} subtotal - The subtotal amount
+ * Calculate VAT based on service fee
+ * @param {number} serviceFee - The service fee amount
  * @returns {number} The calculated VAT
  */
-export const calculateVAT = (subtotal) => {
-  if (!subtotal || subtotal <= 0) return 0;
-  return Math.round(subtotal * VAT_PERCENTAGE);
+export const calculateVAT = (serviceFee) => {
+  if (!serviceFee || serviceFee <= 0) return 0;
+  return Math.round(serviceFee * VAT_PERCENTAGE);
 };
 
 /**
@@ -41,7 +41,7 @@ export const calculateVAT = (subtotal) => {
  */
 export const calculateTotal = (subtotal) => {
   const serviceFee = calculateServiceFee(subtotal);
-  const vat = calculateVAT(subtotal);
+  const vat = calculateVAT(serviceFee);
   const total = subtotal + serviceFee + vat;
 
   return {
