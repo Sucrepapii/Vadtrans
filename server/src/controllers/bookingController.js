@@ -62,7 +62,19 @@ exports.createBooking = async (req, res) => {
     }
 
     // Calculate charges: 5% service fee + 7.5% VAT on subtotal
-    const subtotal = Number(trip.price) * passengers.length;
+    let subtotal = 0;
+    const docPrices = trip.documentPrices || {};
+
+    passengers.forEach((passenger) => {
+      const docType = passenger.documentType || "No Document";
+      const specificPrice = docPrices[docType];
+
+      if (specificPrice && Number(specificPrice) > 0) {
+        subtotal += Number(specificPrice);
+      } else {
+        subtotal += Number(trip.price);
+      }
+    });
     const serviceFee = Math.round(subtotal * 0.05);
     const vat = Math.round(subtotal * 0.075);
     const bookingTotalAmount = subtotal + serviceFee + vat;

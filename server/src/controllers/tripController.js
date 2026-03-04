@@ -138,6 +138,7 @@ exports.createTrip = async (req, res) => {
       terminal,
       city,
       state,
+      documentPrices,
     } = req.body;
 
     // Validate required fields
@@ -163,6 +164,7 @@ exports.createTrip = async (req, res) => {
       terminal: terminal || null,
       city: city || null,
       state: state || null,
+      documentPrices: documentPrices || null,
       companyId: req.user.id,
       status: "active",
     });
@@ -219,6 +221,7 @@ exports.updateTrip = async (req, res) => {
       terminal,
       city,
       state,
+      documentPrices,
     } = req.body;
 
     if (from) trip.from = from;
@@ -233,6 +236,7 @@ exports.updateTrip = async (req, res) => {
     if (terminal !== undefined) trip.terminal = terminal;
     if (city !== undefined) trip.city = city;
     if (state !== undefined) trip.state = state;
+    if (documentPrices !== undefined) trip.documentPrices = documentPrices;
     if (seats) {
       // Calculate booked seats BEFORE overwriting trip.seats
       const bookedSeats = trip.seats - trip.availableSeats;

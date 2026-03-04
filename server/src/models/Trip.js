@@ -66,6 +66,11 @@ const Trip = sequelize.define(
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
+    documentPrices: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      comment: "Map of document types to prices",
+    },
     seats: {
       type: DataTypes.INTEGER,
       allowNull: false,

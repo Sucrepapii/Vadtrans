@@ -27,8 +27,21 @@ const ReviewConfirm = () => {
 
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const pricePerPerson = Number(tripData?.price) || 0;
-  const subtotal = (passengers?.length || 0) * pricePerPerson;
+  const calculatePassengerPrice = (passenger) => {
+    const docType = passenger.documentType || "No Document";
+    const docPrices = tripData?.documentPrices || {};
+    const specificPrice = docPrices[docType];
+
+    // Use specific price if set, otherwise fallback to standard trip price
+    return specificPrice && Number(specificPrice) > 0
+      ? Number(specificPrice)
+      : Number(tripData?.price || 0);
+  };
+
+  const subtotal = passengers?.reduce(
+    (acc, p) => acc + calculatePassengerPrice(p),
+    0,
+  );
   const serviceFee = calculateServiceFee(subtotal);
   const vat = calculateVAT(subtotal);
   const total = subtotal + serviceFee + vat;
@@ -256,20 +269,31 @@ const ReviewConfirm = () => {
                   <h3 className="font-semibold">Passenger Information</h3>
                 </div>
                 <div className="space-y-3">
-                  {passengers?.map((passenger, idx) => (
-                    <div key={idx} className="p-3 bg-neutral-50 rounded">
-                      <p className="font-medium">
-                        Passenger {idx + 1}: {passenger.firstName}{" "}
-                        {passenger.lastName}
-                      </p>
-                      <p className="text-sm text-neutral-600">
-                        {passenger.email} • {passenger.phone}
-                      </p>
-                      <p className="text-sm text-neutral-600">
-                        ID: {passenger.idNumber}
-                      </p>
-                    </div>
-                  ))}
+                  {passengers?.map((passenger, idx) => {
+                    const price = calculatePassengerPrice(passenger);
+                    return (
+                      <div key={idx} className="p-3 bg-neutral-50 rounded">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <p className="font-medium">
+                              Passenger {idx + 1}: {passenger.firstName}{" "}
+                              {passenger.lastName}
+                            </p>
+                            <p className="text-sm text-neutral-600">
+                              {passenger.email} • {passenger.phone}
+                            </p>
+                            <p className="text-sm text-neutral-600">
+                              ID: {passenger.idNumber} (
+                              {passenger.documentType || "No Document"})
+                            </p>
+                          </div>
+                          <span className="font-medium text-sm">
+                            ₦{price.toLocaleString()}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </Card>
 
@@ -320,8 +344,7 @@ const ReviewConfirm = () => {
                 <div className="space-y-3 mb-4">
                   <div className="flex justify-between text-sm">
                     <span className="text-neutral-600">
-                      {passengers?.length} Passenger(s) × ₦
-                      {pricePerPerson.toLocaleString()}
+                      {passengers?.length} Passenger(s)
                     </span>
                     <span className="font-medium">
                       ₦{subtotal.toLocaleString()}
