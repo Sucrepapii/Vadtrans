@@ -64,12 +64,13 @@ exports.createBooking = async (req, res) => {
     // Calculate charges: 5% service fee + 7.5% VAT on subtotal
     let subtotal = 0;
     const docPrices = trip.documentPrices || {};
+    const isInternational = trip.transportType === "international";
 
     passengers.forEach((passenger) => {
       const docType = passenger.documentType || "No Document";
       const specificPrice = docPrices[docType];
 
-      if (specificPrice && Number(specificPrice) > 0) {
+      if (isInternational && specificPrice && Number(specificPrice) > 0) {
         subtotal += Number(specificPrice);
       } else {
         subtotal += Number(trip.price);

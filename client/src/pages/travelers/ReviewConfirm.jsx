@@ -28,6 +28,11 @@ const ReviewConfirm = () => {
   const [isProcessing, setIsProcessing] = useState(false);
 
   const calculatePassengerPrice = (passenger) => {
+    // Only apply document pricing for international trips
+    if (tripData?.transportType !== "international") {
+      return Number(tripData?.price || 0);
+    }
+
     const docType = passenger.documentType || "No Document";
     const docPrices = tripData?.documentPrices || {};
     const specificPrice = docPrices[docType];
@@ -283,8 +288,9 @@ const ReviewConfirm = () => {
                               {passenger.email} • {passenger.phone}
                             </p>
                             <p className="text-sm text-neutral-600">
-                              ID: {passenger.idNumber} (
-                              {passenger.documentType || "No Document"})
+                              ID: {passenger.idNumber}
+                              {tripData?.transportType === "international" &&
+                                ` (${passenger.documentType || "No Document"})`}
                             </p>
                           </div>
                           <span className="font-medium text-sm">

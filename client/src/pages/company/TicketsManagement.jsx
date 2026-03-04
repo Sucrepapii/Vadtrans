@@ -823,80 +823,82 @@ const TicketsManagement = () => {
             />
           </div>
 
-          <div className="space-y-4 pt-4 border-t">
-            <h3 className="text-sm font-medium text-neutral-700">
-              Document-Based Pricing (₦)
-            </h3>
-            <div className="grid grid-cols-2 gap-4">
-              <Input
-                label="Regular Passport"
-                type="number"
-                placeholder="25000"
-                value={formData.documentPrices["Regular Passport"]}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    documentPrices: {
-                      ...formData.documentPrices,
-                      "Regular Passport": e.target.value,
-                    },
-                  })
-                }
-                disabled={saving}
-              />
-              <Input
-                label="Virgin Passport"
-                type="number"
-                placeholder="25000"
-                value={formData.documentPrices["Virgin Passport"]}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    documentPrices: {
-                      ...formData.documentPrices,
-                      "Virgin Passport": e.target.value,
-                    },
-                  })
-                }
-                disabled={saving}
-              />
-              <Input
-                label="NIN"
-                type="number"
-                placeholder="25000"
-                value={formData.documentPrices["NIN"]}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    documentPrices: {
-                      ...formData.documentPrices,
-                      NIN: e.target.value,
-                    },
-                  })
-                }
-                disabled={saving}
-              />
-              <Input
-                label="No Document"
-                type="number"
-                placeholder="25000"
-                value={formData.documentPrices["No Document"]}
-                onChange={(e) =>
-                  setFormData({
-                    ...formData,
-                    documentPrices: {
-                      ...formData.documentPrices,
-                      "No Document": e.target.value,
-                    },
-                  })
-                }
-                disabled={saving}
-              />
+          {formData.transportType === "international" && (
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-sm font-medium text-neutral-700">
+                Document-Based Pricing (₦)
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Regular Passport"
+                  type="number"
+                  placeholder="25000"
+                  value={formData.documentPrices["Regular Passport"]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      documentPrices: {
+                        ...formData.documentPrices,
+                        "Regular Passport": e.target.value,
+                      },
+                    })
+                  }
+                  disabled={saving}
+                />
+                <Input
+                  label="Virgin Passport"
+                  type="number"
+                  placeholder="25000"
+                  value={formData.documentPrices["Virgin Passport"]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      documentPrices: {
+                        ...formData.documentPrices,
+                        "Virgin Passport": e.target.value,
+                      },
+                    })
+                  }
+                  disabled={saving}
+                />
+                <Input
+                  label="NIN"
+                  type="number"
+                  placeholder="25000"
+                  value={formData.documentPrices["NIN"]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      documentPrices: {
+                        ...formData.documentPrices,
+                        NIN: e.target.value,
+                      },
+                    })
+                  }
+                  disabled={saving}
+                />
+                <Input
+                  label="No Document"
+                  type="number"
+                  placeholder="25000"
+                  value={formData.documentPrices["No Document"]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      documentPrices: {
+                        ...formData.documentPrices,
+                        "No Document": e.target.value,
+                      },
+                    })
+                  }
+                  disabled={saving}
+                />
+              </div>
+              <p className="text-xs text-neutral-500 italic">
+                * If left empty, the Standard Price will be used.
+              </p>
             </div>
-            <p className="text-xs text-neutral-500 italic">
-              * If left empty, the Standard Price will be used.
-            </p>
-          </div>
+          )}
         </form>
       </Modal>
       <ConfirmationModal
