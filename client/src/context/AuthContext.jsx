@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
         timeoutId = setTimeout(() => {
           logout();
           // Optional: Could redirect or show a toast here, but logout() clears state
-          window.location.href = "/login?timeout=true";
+          window.location.href = "/signin?timeout=true";
         }, INACTIVITY_LIMIT);
       }
     };
