@@ -270,6 +270,18 @@ app.get("/api/fix-db-schema", async (req, res) => {
     await addCol("Bookings", "vat", "FLOAT", 0);
     await addCol("Bookings", "serviceFee", "FLOAT", 0);
 
+    // Patch ENUM for Bookings (PostgreSQL only)
+    try {
+      if (sequelize.getDialect() === "postgres") {
+        await sequelize.query(
+          `ALTER TYPE "enum_Bookings_bookingStatus" ADD VALUE IF NOT EXISTS 'pending';`,
+        );
+        report.push(`✅ Added 'pending' to enum_Bookings_bookingStatus`);
+      }
+    } catch (e) {
+      report.push(`⚠️ Failed to add 'pending' to enum: ${e.message}`);
+    }
+
     // Diagnostic: Check actual columns for Bookings and Trips
     try {
       const dbStats = {
