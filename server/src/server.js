@@ -248,6 +248,7 @@ app.get("/api/fix-db-schema", async (req, res) => {
 
     // Patch Bookings
     await addCol("Bookings", "vat", "FLOAT");
+    await addCol("Bookings", "serviceFee", "FLOAT");
 
     // 2. Explicitly sync all models (Sequelize's built-in schema update)
     try {

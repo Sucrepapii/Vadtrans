@@ -130,6 +130,8 @@ exports.createBooking = async (req, res) => {
       success: false,
       message: "Error creating booking",
       error: error.message,
+      detail:
+        error.name === "SequelizeDatabaseError" ? error.parent.message : null,
     });
   }
 };
