@@ -258,6 +258,8 @@ exports.updateTrip = async (req, res) => {
       success: false,
       message: "Error updating trip",
       error: error.message,
+      detail:
+        error.name === "SequelizeDatabaseError" ? error.parent.message : null,
     });
   }
 };
