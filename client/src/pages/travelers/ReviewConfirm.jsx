@@ -68,15 +68,15 @@ const ReviewConfirm = () => {
 
   const handlePaystackSuccess = async (reference) => {
     setIsProcessing(true);
-    const bookingId = localStorage.getItem("lastPendingBookingId");
+    const bookingId = sessionStorage.getItem("lastPendingBookingId");
     const savedRef =
-      localStorage.getItem("lastPendingBookingRef") ||
+      sessionStorage.getItem("lastPendingBookingRef") ||
       `BK-${bookingId || Date.now()}`;
 
     // Helper to navigate to confirmation — always called after Paystack approval
     const goToConfirmation = () => {
-      localStorage.removeItem("lastPendingBookingId");
-      localStorage.removeItem("lastPendingBookingRef");
+      sessionStorage.removeItem("lastPendingBookingId");
+      sessionStorage.removeItem("lastPendingBookingRef");
       navigate("/booking/confirmation", {
         state: {
           trip: tripData,
@@ -153,8 +153,8 @@ const ReviewConfirm = () => {
           const bookingId = response.data.booking.id;
           const bookingRef =
             response.data.booking.bookingId || `BK-${bookingId}`;
-          localStorage.setItem("lastPendingBookingId", bookingId);
-          localStorage.setItem("lastPendingBookingRef", bookingRef);
+          sessionStorage.setItem("lastPendingBookingId", bookingId);
+          sessionStorage.setItem("lastPendingBookingRef", bookingRef);
 
           // Validation before opening
           if (!paystackConfig.publicKey) {

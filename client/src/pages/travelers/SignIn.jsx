@@ -49,8 +49,8 @@ const SignIn = () => {
         password: formData.password,
       });
 
-      // Save token
-      localStorage.setItem("token", response.data.token);
+      // Save token (session storage clears on tab close)
+      sessionStorage.setItem("token", response.data.token);
 
       // Update auth context
       login(response.data.user);
