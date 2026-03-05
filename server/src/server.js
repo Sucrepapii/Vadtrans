@@ -202,7 +202,7 @@ app.get("/api/fix-db-schema", async (req, res) => {
     report.push(`Found tables: ${tables.join(", ")}`);
 
     // Helper to safely add column
-    const addCol = async (tableName, colName, colDef) => {
+    const addCol = async (tableName, colName, colDef, defaultValue = null) => {
       // Check if table exists (case sensitive check)
       if (
         !tables.includes(tableName) &&
@@ -218,14 +218,32 @@ app.get("/api/fix-db-schema", async (req, res) => {
         : `"${tableName.toLowerCase()}"`;
 
       try {
+        // First try to add the column
         await sequelize.query(`
           ALTER TABLE ${targetTable} 
           ADD COLUMN IF NOT EXISTS "${colName}" ${colDef};
         `);
-        report.push(`✅ Added ${colName} to ${targetTable}`);
+
+        // If a default value is provided, update existing rows
+        if (defaultValue !== null) {
+          const formattedValue =
+            typeof defaultValue === "string"
+              ? `'${defaultValue}'`
+              : defaultValue;
+          await sequelize.query(`
+            UPDATE ${targetTable} 
+            SET "${colName}" = ${formattedValue} 
+            WHERE "${colName}" IS NULL;
+          `);
+          report.push(
+            `✅ Added ${colName} to ${targetTable} and set default to ${defaultValue}`,
+          );
+        } else {
+          report.push(`✅ Added ${colName} to ${targetTable}`);
+        }
       } catch (e) {
         report.push(
-          `⚠️ Failed to add ${colName} to ${targetTable}: ${e.message}`,
+          `⚠️ Failed to add/update ${colName} in ${targetTable}: ${e.message}`,
         );
       }
     };
@@ -245,10 +263,51 @@ app.get("/api/fix-db-schema", async (req, res) => {
     await addCol("Trips", "city", "VARCHAR(255)");
     await addCol("Trips", "state", "VARCHAR(255)");
     await addCol("Trips", "documentPrices", "TEXT");
+    await addCol("Trips", "bookedSeats", "TEXT", "[]");
 
     // Patch Bookings
-    await addCol("Bookings", "vat", "FLOAT");
-    await addCol("Bookings", "serviceFee", "FLOAT");
+    await addCol("Bookings", "totalAmount", "FLOAT", 0);
+    await addCol("Bookings", "vat", "FLOAT", 0);
+    await addCol("Bookings", "serviceFee", "FLOAT", 0);
+
+    // Diagnostic: Check actual columns for Bookings and Trips
+    try {
+      const dbStats = {
+        dialect: sequelize.getDialect(),
+        nodeEnv: process.env.NODE_ENV,
+        dbFile: process.env.DB_FILE || "unknown",
+      };
+
+      // Get DB version
+      if (dbStats.dialect === "postgres") {
+        const [version] = await sequelize.query("SELECT version()");
+        dbStats.version = version[0].version;
+      }
+
+      report.push(`DB Info: ${JSON.stringify(dbStats)}`);
+
+      const [bookingCols] = await sequelize.query(`
+        SELECT column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'Bookings' OR table_name = 'bookings'
+        ORDER BY column_name;
+      `);
+      report.push(
+        `Bookings Columns: ${bookingCols.map((c) => `${c.column_name}(${c.data_type})`).join(", ")}`,
+      );
+
+      const [tripCols] = await sequelize.query(`
+        SELECT column_name, data_type 
+        FROM information_schema.columns 
+        WHERE table_name = 'Trips' OR table_name = 'trips'
+        ORDER BY column_name;
+      `);
+      report.push(
+        `Trips Columns: ${tripCols.map((c) => `${c.column_name}(${c.data_type})`).join(", ")}`,
+      );
+    } catch (e) {
+      report.push(`⚠️ Diagnostic failed: ${e.message}`);
+    }
 
     // 2. Explicitly sync all models (Sequelize's built-in schema update)
     try {

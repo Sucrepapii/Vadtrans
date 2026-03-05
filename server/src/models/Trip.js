@@ -79,6 +79,12 @@ const Trip = sequelize.define(
       type: DataTypes.INTEGER,
       allowNull: false,
     },
+    bookedSeats: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+      comment: "Array of occupied seat numbers",
+    },
     status: {
       type: DataTypes.ENUM("active", "inactive", "cancelled", "completed"),
       defaultValue: "active",
