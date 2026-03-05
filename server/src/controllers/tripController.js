@@ -228,7 +228,7 @@ exports.updateTrip = async (req, res) => {
     if (to) trip.to = to;
     if (transportType) trip.transportType = transportType;
     if (departureTime) trip.departureTime = departureTime;
-    if (departureDate !== undefined) trip.departureDate = departureDate;
+    if (departureDate !== undefined) trip.departureDate = departureDate || null;
     if (operatingDays !== undefined) trip.operatingDays = operatingDays;
     if (duration !== undefined) trip.duration = duration;
     if (price) trip.price = price;

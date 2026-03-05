@@ -226,7 +226,7 @@ const TicketsManagement = () => {
         to: formData.to,
         transportType: formData.transportType,
         departureTime: formData.departureTime,
-        departureDate: formData.departureDate,
+        departureDate: formData.departureDate || null,
         operatingDays:
           formData.operatingDays.length > 0
             ? formData.operatingDays.join(",")
