@@ -80,6 +80,7 @@ exports.verifyPayment = async (req, res) => {
       if (booking) {
         booking.paymentStatus = "paid";
         booking.paymentReference = reference;
+        booking.bookingStatus = "confirmed";
         await booking.save({ transaction });
       }
 

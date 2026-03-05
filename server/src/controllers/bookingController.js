@@ -99,6 +99,7 @@ exports.createBooking = async (req, res) => {
         serviceFee,
         vat,
         paymentStatus: "pending", // Payment will be verified via Paystack
+        bookingStatus: "pending", // Booking starts pending until payment is verified
       },
       { transaction },
     );

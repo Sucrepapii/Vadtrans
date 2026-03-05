@@ -60,8 +60,8 @@ const Booking = sequelize.define(
       type: DataTypes.FLOAT,
     },
     bookingStatus: {
-      type: DataTypes.ENUM("confirmed", "cancelled", "completed"),
-      defaultValue: "confirmed",
+      type: DataTypes.ENUM("pending", "confirmed", "cancelled", "completed"),
+      defaultValue: "pending",
     },
     cancellationReason: {
       type: DataTypes.STRING,

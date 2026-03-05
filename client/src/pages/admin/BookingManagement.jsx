@@ -4,6 +4,7 @@ import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Table from "../../components/Table";
 import Pagination from "../../components/Pagination";
+import Modal from "../../components/Modal";
 import { FaSearch, FaEye, FaTimes } from "react-icons/fa";
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
@@ -15,6 +16,8 @@ const BookingManagement = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetchBookings();
@@ -32,6 +35,30 @@ const BookingManagement = () => {
       toast.error("Failed to load bookings");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleStatusChange = async (id, newStatus) => {
+    try {
+      const response = await adminAPI.updateBooking(id, newStatus);
+      if (response.data.success) {
+        toast.success("Booking status updated");
+        fetchBookings();
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Failed to update status");
+    }
+  };
+
+  const handleView = (booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
+  };
+
+  const handleCancel = async (id) => {
+    if (window.confirm("Are you sure you want to cancel this booking?")) {
+      handleStatusChange(id, "cancelled");
     }
   };
 
@@ -106,13 +133,26 @@ const BookingManagement = () => {
     {
       key: "bookingStatus",
       label: "Status",
-      render: (value) => (
-        <span
-          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+      render: (value, row) => (
+        <select
+          value={value}
+          onChange={(e) => handleStatusChange(row.id, e.target.value)}
+          className={`px-3 py-1 rounded-full text-xs font-medium border-0 cursor-pointer outline-none appearance-none ${getStatusColor(
             value,
           )}`}>
-          {value}
-        </span>
+          <option value="pending" className="bg-white text-black text-sm">
+            Pending
+          </option>
+          <option value="confirmed" className="bg-white text-black text-sm">
+            Confirmed
+          </option>
+          <option value="completed" className="bg-white text-black text-sm">
+            Completed
+          </option>
+          <option value="cancelled" className="bg-white text-black text-sm">
+            Cancelled
+          </option>
+        </select>
       ),
     },
     {
@@ -120,11 +160,17 @@ const BookingManagement = () => {
       label: "Actions",
       render: (_, row) => (
         <div className="flex gap-2">
-          <Button variant="text" className="text-blue-600">
+          <Button
+            variant="text"
+            className="text-blue-600"
+            onClick={() => handleView(row)}>
             <FaEye />
           </Button>
           {row.bookingStatus !== "cancelled" && (
-            <Button variant="text" className="text-red-600">
+            <Button
+              variant="text"
+              className="text-red-600"
+              onClick={() => handleCancel(row.id)}>
               <FaTimes />
             </Button>
           )}
@@ -247,6 +293,74 @@ const BookingManagement = () => {
           </Card>
         </div>
       </div>
+
+      {/* Booking Details Modal */}
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)}>
+        {selectedBooking && (
+          <div className="p-6 max-w-lg mx-auto">
+            <h2 className="text-2xl font-bold mb-4 font-raleway text-charcoal">
+              Booking Details
+            </h2>
+            <div className="space-y-4">
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-neutral-500">Booking ID</span>
+                <span className="font-mono font-bold">
+                  {selectedBooking.bookingId}
+                </span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-neutral-500">Customer</span>
+                <span className="font-medium">
+                  {selectedBooking.user?.name || "N/A"} (
+                  {selectedBooking.user?.email || "N/A"})
+                </span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-neutral-500">Route</span>
+                <span className="font-medium">
+                  {selectedBooking.trip?.from} - {selectedBooking.trip?.to}
+                </span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-neutral-500">Departure</span>
+                <span className="font-medium">
+                  {selectedBooking.trip?.departureTime}
+                </span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-neutral-500">Payment Status</span>
+                <span className="font-medium capitalize">
+                  {selectedBooking.paymentStatus}
+                </span>
+              </div>
+              <div className="flex justify-between border-b pb-2">
+                <span className="text-neutral-500">Total Amount</span>
+                <span className="font-medium text-primary">
+                  ₦
+                  {parseFloat(
+                    selectedBooking.totalAmount || 0,
+                  ).toLocaleString()}
+                </span>
+              </div>
+              <div className="mt-4">
+                <h3 className="font-bold text-neutral-700 mb-2">
+                  Passengers ({selectedBooking.passengers?.length || 0})
+                </h3>
+                <ul className="list-disc pl-5 space-y-1">
+                  {selectedBooking.passengers?.map((p, i) => (
+                    <li key={i} className="text-sm">
+                      {p.fullName} ({p.gender})
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+            <div className="mt-8 flex justify-end">
+              <Button onClick={() => setIsModalOpen(false)}>Close</Button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </div>
   );
 };
