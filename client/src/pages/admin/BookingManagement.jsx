@@ -18,6 +18,7 @@ const BookingManagement = () => {
   const [selectedStatus, setSelectedStatus] = useState("all");
   const [selectedBooking, setSelectedBooking] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [cancelConfirm, setCancelConfirm] = useState({ open: false, id: null });
 
   useEffect(() => {
     fetchBookings();
@@ -56,9 +57,14 @@ const BookingManagement = () => {
     setIsModalOpen(true);
   };
 
-  const handleCancel = async (id) => {
-    if (window.confirm("Are you sure you want to cancel this booking?")) {
-      handleStatusChange(id, "cancelled");
+  const handleCancel = (id) => {
+    setCancelConfirm({ open: true, id });
+  };
+
+  const confirmCancel = async () => {
+    if (cancelConfirm.id) {
+      await handleStatusChange(cancelConfirm.id, "cancelled");
+      setCancelConfirm({ open: false, id: null });
     }
   };
 
@@ -360,6 +366,34 @@ const BookingManagement = () => {
             </div>
           </div>
         )}
+      </Modal>
+
+      {/* Cancel Confirmation Modal */}
+      <Modal
+        isOpen={cancelConfirm.open}
+        onClose={() => setCancelConfirm({ open: false, id: null })}>
+        <div className="p-6 max-w-sm mx-auto text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FaTimes className="text-2xl text-red-600" />
+          </div>
+          <h2 className="text-xl font-bold mb-2">Cancel Booking</h2>
+          <p className="text-neutral-600 mb-6">
+            Are you sure you want to cancel this booking? This action cannot be
+            undone.
+          </p>
+          <div className="flex gap-4 justify-center">
+            <Button
+              variant="outline"
+              onClick={() => setCancelConfirm({ open: false, id: null })}>
+              No, Keep It
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={confirmCancel}>
+              Yes, Cancel It
+            </Button>
+          </div>
+        </div>
       </Modal>
     </div>
   );
