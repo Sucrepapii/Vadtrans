@@ -109,7 +109,7 @@ const BookingManagement = () => {
       render: (value) => (
         <span
           className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-            value
+            value,
           )}`}>
           {value}
         </span>
@@ -136,7 +136,7 @@ const BookingManagement = () => {
   const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
   const paginatedBookings = filteredBookings.slice(
     (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
+    currentPage * itemsPerPage,
   );
 
   // Calculate statistics from real data
@@ -146,7 +146,9 @@ const BookingManagement = () => {
     pending: bookings.filter((b) => b.bookingStatus === "pending").length,
     completed: bookings.filter((b) => b.bookingStatus === "completed").length,
     revenue: bookings
-      .filter((b) => b.paymentStatus === "paid")
+      .filter(
+        (b) => b.paymentStatus === "paid" || b.bookingStatus === "completed",
+      )
       .reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0),
   };
 
