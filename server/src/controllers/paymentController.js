@@ -85,12 +85,14 @@ exports.verifyPayment = async (req, res) => {
 
         // Create Admin Notification
         const Notification = require("../models/Notification");
+        const displayId =
+          booking.bookingId || String(booking.id).padStart(5, "0");
         await Notification.create(
           {
-            message: `Booking #${booking.bookingId || booking.id.substring(0, 8)} has been paid (₦${parseFloat(booking.totalAmount).toLocaleString()}).`,
+            message: `Booking #${displayId} has been paid (₦${parseFloat(booking.totalAmount).toLocaleString()}).`,
             type: "payment",
             relatedBookingId: booking.id,
-            actionUrl: `/admin/bookings?search=${booking.bookingId || booking.id.substring(0, 8)}`,
+            actionUrl: `/admin/bookings?search=${displayId}`,
           },
           { transaction },
         );
