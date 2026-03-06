@@ -327,6 +327,18 @@ exports.cancelBooking = async (req, res) => {
       await trip.save({ transaction });
     }
 
+    // Create Admin Notification
+    const Notification = require("../models/Notification");
+    await Notification.create(
+      {
+        message: `Booking #${booking.bookingId || booking.id.substring(0, 8)} was cancelled by the user.`,
+        type: "cancellation",
+        relatedBookingId: booking.id,
+        actionUrl: `/admin/bookings?search=${booking.bookingId || booking.id.substring(0, 8)}`,
+      },
+      { transaction },
+    );
+
     await transaction.commit();
 
     res.status(200).json({

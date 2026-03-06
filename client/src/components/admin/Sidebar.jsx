@@ -14,6 +14,7 @@ import {
   FaTimes,
   FaSignOutAlt,
 } from "react-icons/fa";
+import NotificationBell from "./NotificationBell";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -107,6 +108,13 @@ const Sidebar = () => {
             )}
           </button>
         </div>
+
+        {/* Notifications (Desktop & Mobile) */}
+        {(!isCollapsed || isMobileOpen) && (
+          <div className="flex justify-center border-b border-white/10 py-3 relative z-50">
+            <NotificationBell />
+          </div>
+        )}
 
         {/* Menu Items */}
         <nav className="flex-1 py-6 space-y-1 overflow-y-auto">

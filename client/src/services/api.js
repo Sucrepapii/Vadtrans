@@ -110,6 +110,11 @@ export const adminAPI = {
   getCompanies: (params) => api.get("/admin/companies", { params }),
   approveCompany: (id) => api.put(`/admin/companies/${id}/approve`),
   rejectCompany: (id) => api.put(`/admin/companies/${id}/reject`),
+
+  // Notifications
+  getNotifications: () => api.get("/admin/notifications"),
+  markNotificationRead: (id) => api.put(`/admin/notifications/${id}/read`),
+  markAllNotificationsRead: () => api.put("/admin/notifications/read-all"),
 };
 
 // Contact API

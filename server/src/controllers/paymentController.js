@@ -82,6 +82,18 @@ exports.verifyPayment = async (req, res) => {
         booking.paymentReference = reference;
         booking.bookingStatus = "confirmed";
         await booking.save({ transaction });
+
+        // Create Admin Notification
+        const Notification = require("../models/Notification");
+        await Notification.create(
+          {
+            message: `Booking #${booking.bookingId || booking.id.substring(0, 8)} has been paid (₦${parseFloat(booking.totalAmount).toLocaleString()}).`,
+            type: "payment",
+            relatedBookingId: booking.id,
+            actionUrl: `/admin/bookings?search=${booking.bookingId || booking.id.substring(0, 8)}`,
+          },
+          { transaction },
+        );
       }
 
       await transaction.commit();

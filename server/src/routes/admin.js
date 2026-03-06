@@ -18,6 +18,11 @@ const {
   approveCompany,
   rejectCompany,
 } = require("../controllers/adminController");
+const {
+  getNotifications,
+  markAsRead,
+  markAllAsRead,
+} = require("../controllers/notificationController");
 const { protect, authorize } = require("../middleware/auth");
 
 // All admin routes require authentication and admin role
@@ -51,5 +56,10 @@ router.get("/fares", getAllFares);
 router.post("/fares", createFare);
 router.put("/fares/:id", updateFare);
 router.delete("/fares/:id", deleteFare);
+
+// Notifications
+router.get("/notifications", getNotifications);
+router.put("/notifications/read-all", markAllAsRead);
+router.put("/notifications/:id/read", markAsRead);
 
 module.exports = router;
