@@ -1,6 +1,7 @@
 const paystack = require("paystack-api")(process.env.PAYSTACK_SECRET_KEY);
 const Booking = require("../models/Booking");
 const Trip = require("../models/Trip");
+const Notification = require("../models/Notification");
 const { sequelize } = require("../config/database");
 
 // Startup check
@@ -84,7 +85,6 @@ exports.verifyPayment = async (req, res) => {
         await booking.save({ transaction });
 
         // Create Admin Notification
-        const Notification = require("../models/Notification");
         const displayId =
           booking.bookingId || String(booking.id).padStart(5, "0");
         await Notification.create(

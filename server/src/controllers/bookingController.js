@@ -1,6 +1,7 @@
 const Booking = require("../models/Booking");
 const Trip = require("../models/Trip");
 const User = require("../models/User");
+const Notification = require("../models/Notification");
 const { sequelize } = require("../config/database");
 
 // @desc    Create a new booking
@@ -328,7 +329,6 @@ exports.cancelBooking = async (req, res) => {
     }
 
     // Create Admin Notification
-    const Notification = require("../models/Notification");
     const displayId = booking.bookingId || String(booking.id).padStart(5, "0");
     await Notification.create(
       {
