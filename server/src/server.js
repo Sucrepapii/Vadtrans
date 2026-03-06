@@ -3,6 +3,7 @@ const path = require("path");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { sequelize, testConnection, dbType } = require("./config/database");
+const { Op } = require("sequelize");
 
 // Load env vars
 dotenv.config();
@@ -336,6 +337,67 @@ app.get("/api/fix-db-schema", async (req, res) => {
       report.push("✅ Synced Reviews table separately");
     } catch (e) {
       report.push(`⚠️ Failed to sync Reviews table: ${e.message}`);
+    }
+
+    // 4. Backfill calculated totalAmount for legacy bookings
+    try {
+      const bookingsToUpdate = await Booking.findAll({
+        where: {
+          [Op.or]: [{ totalAmount: 0 }, { totalAmount: null }],
+        },
+        include: [{ model: Trip, as: "trip" }], // Needs Trip pricing info
+      });
+
+      let updatedCount = 0;
+      for (const booking of bookingsToUpdate) {
+        if (booking.trip && booking.passengers) {
+          let subtotal = 0;
+          const passengers =
+            typeof booking.passengers === "string"
+              ? JSON.parse(booking.passengers)
+              : booking.passengers;
+          const docPrices =
+            typeof booking.trip.documentPrices === "string" &&
+            booking.trip.documentPrices !== "undefined"
+              ? JSON.parse(booking.trip.documentPrices)
+              : booking.trip.documentPrices || {};
+
+          const isInternational =
+            booking.trip.transportType === "international";
+
+          if (Array.isArray(passengers)) {
+            passengers.forEach((passenger) => {
+              const docType = passenger.documentType || "No Document";
+              const specificPrice = docPrices[docType];
+
+              if (
+                isInternational &&
+                specificPrice &&
+                Number(specificPrice) > 0
+              ) {
+                subtotal += Number(specificPrice);
+              } else {
+                subtotal += Number(booking.trip.price);
+              }
+            });
+
+            const serviceFee = Math.round(subtotal * 0.05);
+            const vat = Math.round(serviceFee * 0.075);
+            const bookingTotalAmount = subtotal + serviceFee + vat;
+
+            booking.totalAmount = bookingTotalAmount;
+            booking.serviceFee = serviceFee;
+            booking.vat = vat;
+            await booking.save();
+            updatedCount++;
+          }
+        }
+      }
+      report.push(
+        `✅ Backfilled totalAmount for ${updatedCount} legacy bookings`,
+      );
+    } catch (e) {
+      report.push(`⚠️ Failed to backfill legacy bookings: ${e.message}`);
     }
 
     res.json({

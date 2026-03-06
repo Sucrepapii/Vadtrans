@@ -30,6 +30,9 @@ exports.getDashboardStats = async (req, res) => {
       ? parseFloat(revenueData[0].dataValues.total)
       : 0;
 
+    console.log("📊 [STATS] Raw Revenue Data:", JSON.stringify(revenueData));
+    console.log("📊 [STATS] Parsed Naira Revenue:", totalRevenueNaira);
+
     // Exchange rate (approximate, should ideally come from an API or config)
     const NGN_USD_RATE = 1500;
     const totalRevenueUSD = totalRevenueNaira / NGN_USD_RATE;
