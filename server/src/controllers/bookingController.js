@@ -320,11 +320,25 @@ exports.cancelBooking = async (req, res) => {
     // Release seats
     const trip = await Trip.findByPk(booking.tripId, { transaction });
     if (trip) {
-      const bookedSeats = trip.bookedSeats || [];
+      let bookedSeats = [];
+      if (typeof trip.bookedSeats === "string") {
+        try {
+          bookedSeats = JSON.parse(trip.bookedSeats);
+        } catch (e) {}
+      } else if (Array.isArray(trip.bookedSeats)) {
+        bookedSeats = trip.bookedSeats;
+      }
+
+      const selectedSeats = Array.isArray(booking.selectedSeats)
+        ? booking.selectedSeats
+        : typeof booking.selectedSeats === "string"
+          ? JSON.parse(booking.selectedSeats || "[]")
+          : [];
+
       trip.bookedSeats = bookedSeats.filter(
-        (seat) => !booking.selectedSeats.includes(seat),
+        (seat) => !selectedSeats.includes(seat),
       );
-      trip.availableSeats = trip.availableSeats + booking.selectedSeats.length;
+      trip.availableSeats = trip.availableSeats + selectedSeats.length;
       await trip.save({ transaction });
     }
 
