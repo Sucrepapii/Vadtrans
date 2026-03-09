@@ -421,29 +421,53 @@ app.get("/api/wipe-db-temp", async (req, res) => {
     const report = [];
 
     // Delete in reverse dependency order
-    const notifDeleted = await Notification.destroy({ where: {} });
-    report.push(`Deleted ${notifDeleted} notifications`);
+    try {
+      const notifDeleted = await Notification.destroy({ where: {} });
+      report.push(`Deleted ${notifDeleted} notifications`);
+    } catch (e) {
+      report.push(`Skipped notifications: ${e.message}`);
+    }
 
-    const bookingsDeleted = await Booking.destroy({ where: {} });
-    report.push(`Deleted ${bookingsDeleted} bookings`);
+    try {
+      const bookingsDeleted = await Booking.destroy({ where: {} });
+      report.push(`Deleted ${bookingsDeleted} bookings`);
+    } catch (e) {
+      report.push(`Skipped bookings: ${e.message}`);
+    }
 
-    const reviewsDeleted = await Review.destroy({ where: {} });
-    report.push(`Deleted ${reviewsDeleted} reviews`);
+    try {
+      const reviewsDeleted = await Review.destroy({ where: {} });
+      report.push(`Deleted ${reviewsDeleted} reviews`);
+    } catch (e) {
+      report.push(`Skipped reviews: ${e.message}`);
+    }
 
-    const faresDeleted = await Fare.destroy({ where: {} });
-    report.push(`Deleted ${faresDeleted} fares`);
+    try {
+      const faresDeleted = await Fare.destroy({ where: {} });
+      report.push(`Deleted ${faresDeleted} fares`);
+    } catch (e) {
+      report.push(`Skipped fares: ${e.message}`);
+    }
 
-    const tripsDeleted = await Trip.destroy({ where: {} });
-    report.push(`Deleted ${tripsDeleted} trips`);
+    try {
+      const tripsDeleted = await Trip.destroy({ where: {} });
+      report.push(`Deleted ${tripsDeleted} trips`);
+    } catch (e) {
+      report.push(`Skipped trips: ${e.message}`);
+    }
 
-    const usersDeleted = await User.destroy({
-      where: {
-        role: { [Op.ne]: "admin" }, // Do not delete the admin!
-      },
-    });
-    report.push(
-      `Deleted ${usersDeleted} travelers and companies (Admin preserved)`,
-    );
+    try {
+      const usersDeleted = await User.destroy({
+        where: {
+          role: { [Op.ne]: "admin" }, // Do not delete the admin!
+        },
+      });
+      report.push(
+        `Deleted ${usersDeleted} travelers and companies (Admin preserved)`,
+      );
+    } catch (e) {
+      report.push(`Skipped users: ${e.message}`);
+    }
 
     res.json({
       success: true,
