@@ -415,6 +415,46 @@ app.get("/api/fix-db-schema", async (req, res) => {
   }
 });
 
+// TEMPORARY DB WIPE ROUTE
+app.get("/api/wipe-db-temp", async (req, res) => {
+  try {
+    const report = [];
+
+    // Delete in reverse dependency order
+    const notifDeleted = await Notification.destroy({ where: {} });
+    report.push(`Deleted ${notifDeleted} notifications`);
+
+    const bookingsDeleted = await Booking.destroy({ where: {} });
+    report.push(`Deleted ${bookingsDeleted} bookings`);
+
+    const reviewsDeleted = await Review.destroy({ where: {} });
+    report.push(`Deleted ${reviewsDeleted} reviews`);
+
+    const faresDeleted = await Fare.destroy({ where: {} });
+    report.push(`Deleted ${faresDeleted} fares`);
+
+    const tripsDeleted = await Trip.destroy({ where: {} });
+    report.push(`Deleted ${tripsDeleted} trips`);
+
+    const usersDeleted = await User.destroy({
+      where: {
+        role: { [Op.ne]: "admin" }, // Do not delete the admin!
+      },
+    });
+    report.push(
+      `Deleted ${usersDeleted} travelers and companies (Admin preserved)`,
+    );
+
+    res.json({
+      success: true,
+      message: "Database wiped successfully",
+      report,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Health check route
 app.get("/api/health", (req, res) => {
   res.status(200).json({
