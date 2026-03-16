@@ -243,6 +243,37 @@ const CompanyManagement = () => {
                             </span>
                           </div>
                         )}
+                        {company.bankDetails && (
+                          <div className="col-span-full mt-2 pt-2 border-t border-neutral-100">
+                            <p className="text-sm font-semibold text-neutral-800 mb-1">
+                              Bank Information
+                            </p>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                              <div className="text-sm">
+                                <span className="text-neutral-500">Bank: </span>
+                                <span className="text-neutral-700">
+                                  {company.bankDetails.bankName || "N/A"}
+                                </span>
+                              </div>
+                              <div className="text-sm">
+                                <span className="text-neutral-500">
+                                  Account No:{" "}
+                                </span>
+                                <span className="text-neutral-700">
+                                  {company.bankDetails.accountNumber || "N/A"}
+                                </span>
+                              </div>
+                              <div className="text-sm">
+                                <span className="text-neutral-500">
+                                  Account Name:{" "}
+                                </span>
+                                <span className="text-neutral-700">
+                                  {company.bankDetails.accountName || "N/A"}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       {company.description && (

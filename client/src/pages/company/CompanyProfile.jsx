@@ -30,6 +30,7 @@ import {
   westAfricanCountries,
   nigerianStatesWithCities,
 } from "../../data/locations";
+import { nigerianBanks } from "../../data/banks";
 import DocumentsTab from "../../components/company/DocumentsTab";
 import PassengersTab from "../../components/company/PassengersTab";
 import { FaUsers } from "react-icons/fa";
@@ -54,6 +55,11 @@ const CompanyProfile = () => {
     vehicles: 0,
     routes: 0,
     verificationStatus: "pending",
+    bankDetails: {
+      bankName: "",
+      accountNumber: "",
+      accountName: "",
+    },
   });
   const [editData, setEditData] = useState(companyData);
 
@@ -114,7 +120,14 @@ const CompanyProfile = () => {
         vehicles: userData.vehicles || 0,
         routes: userData.routes || 0,
         verificationStatus: userData.verificationStatus || "pending",
+        bankDetails: userData.bankDetails || {
+          bankName: "",
+          accountNumber: "",
+          accountName: "",
+        },
       };
+
+      console.log("Loaded Profile Data:", profileData);
 
       setCompanyData(profileData);
       setEditData(profileData);
@@ -472,6 +485,104 @@ const CompanyProfile = () => {
                             <p className="text-sm text-neutral-600">Address</p>
                             <p className="font-semibold">
                               {companyData.address}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </Card>
+
+                {/* Bank Information */}
+                <Card>
+                  <h2 className="text-lg font-semibold mb-4">
+                    Bank Information
+                  </h2>
+                  <div className="space-y-4">
+                    {isEditing ? (
+                      <>
+                        <div>
+                          <label className="block text-sm font-medium mb-2 text-neutral-700">
+                            Bank Name
+                          </label>
+                          <select
+                            value={editData.bankDetails?.bankName || ""}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                bankDetails: {
+                                  ...editData.bankDetails,
+                                  bankName: e.target.value,
+                                },
+                              })
+                            }
+                            className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                            disabled={saving}>
+                            <option value="">Select Bank</option>
+                            {nigerianBanks.map((bank) => (
+                              <option key={bank} value={bank}>
+                                {bank}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <Input
+                          label="Account Number"
+                          value={editData.bankDetails?.accountNumber || ""}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              bankDetails: {
+                                ...editData.bankDetails,
+                                accountNumber: e.target.value,
+                              },
+                            })
+                          }
+                          disabled={saving}
+                        />
+                        <Input
+                          label="Account Name"
+                          value={editData.bankDetails?.accountName || ""}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              bankDetails: {
+                                ...editData.bankDetails,
+                                accountName: e.target.value,
+                              },
+                            })
+                          }
+                          disabled={saving}
+                        />
+                      </>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-neutral-600">
+                              Bank Name
+                            </p>
+                            <p className="font-semibold">
+                              {companyData.bankDetails?.bankName ||
+                                "Not provided"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-neutral-600">
+                              Account Number
+                            </p>
+                            <p className="font-semibold">
+                              {companyData.bankDetails?.accountNumber ||
+                                "Not provided"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-neutral-600">
+                              Account Name
+                            </p>
+                            <p className="font-semibold">
+                              {companyData.bankDetails?.accountName ||
+                                "Not provided"}
                             </p>
                           </div>
                         </div>

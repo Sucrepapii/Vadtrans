@@ -391,6 +391,11 @@ exports.login = async (req, res) => {
         founded: user.founded,
         vehicles: user.vehicles,
         routes: user.routes,
+        bankDetails: user.bankDetails || {
+          bankName: "",
+          accountNumber: "",
+          accountName: "",
+        },
         verificationStatus: user.verificationStatus,
         documents: user.documents || [],
       },
@@ -436,6 +441,11 @@ exports.getMe = async (req, res) => {
         founded: user.founded,
         vehicles: user.vehicles,
         routes: user.routes,
+        bankDetails: user.bankDetails || {
+          bankName: "",
+          accountNumber: "",
+          accountName: "",
+        },
         verificationStatus: user.verificationStatus,
         documents: user.documents || [],
       },
@@ -474,6 +484,7 @@ exports.updateProfile = async (req, res) => {
       founded,
       vehicles,
       routes,
+      bankDetails,
     } = req.body;
 
     const user = await User.findByPk(req.user.id);
@@ -508,6 +519,15 @@ exports.updateProfile = async (req, res) => {
       user.founded = founded || user.founded;
       user.vehicles = vehicles !== undefined ? vehicles : user.vehicles;
       user.routes = routes !== undefined ? routes : user.routes;
+      if (bankDetails) {
+        user.bankDetails = {
+          bankName: bankDetails.bankName || user.bankDetails?.bankName || "",
+          accountNumber:
+            bankDetails.accountNumber || user.bankDetails?.accountNumber || "",
+          accountName:
+            bankDetails.accountName || user.bankDetails?.accountName || "",
+        };
+      }
     }
 
     await user.save();
@@ -541,6 +561,11 @@ exports.updateProfile = async (req, res) => {
         founded: user.founded,
         vehicles: user.vehicles,
         routes: user.routes,
+        bankDetails: user.bankDetails || {
+          bankName: "",
+          accountNumber: "",
+          accountName: "",
+        },
         verificationStatus: user.verificationStatus,
       },
     });
