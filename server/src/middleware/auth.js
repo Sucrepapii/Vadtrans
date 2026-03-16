@@ -25,7 +25,7 @@ exports.protect = async (req, res, next) => {
     // Verify token
     const decoded = jwt.verify(
       token,
-      process.env.JWT_SECRET || "vadtrans_secret_key"
+      process.env.JWT_SECRET || "vadtrans_secret_key",
     );
 
     // Get user from token

@@ -101,6 +101,10 @@ const User = sequelize.define(
       type: DataTypes.JSON,
       defaultValue: [],
     },
+    bankDetails: {
+      type: DataTypes.JSON,
+      defaultValue: {},
+    },
     role: {
       type: DataTypes.ENUM("traveler", "company", "admin"),
       defaultValue: "traveler",
