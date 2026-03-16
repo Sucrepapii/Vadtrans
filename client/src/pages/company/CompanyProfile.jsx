@@ -158,6 +158,7 @@ const CompanyProfile = () => {
   const handleSave = async () => {
     try {
       setSaving(true);
+      console.log("Sending to Backend:", editData);
       const response = await authAPI.updateProfile(editData);
       setCompanyData(editData);
       setIsEditing(false);

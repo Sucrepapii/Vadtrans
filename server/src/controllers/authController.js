@@ -526,6 +526,7 @@ exports.updateProfile = async (req, res) => {
         accountName:
           bankDetails?.accountName || user.bankDetails?.accountName || "",
       };
+      user.markModified("bankDetails");
     }
 
     await user.save();
