@@ -415,7 +415,7 @@ exports.login = async (req, res) => {
 // @access  Private
 exports.getMe = async (req, res) => {
   try {
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findById(req.user.id);
 
     res.status(200).json({
       success: true,
@@ -487,7 +487,7 @@ exports.updateProfile = async (req, res) => {
       bankDetails,
     } = req.body;
 
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({
         success: false,
@@ -594,7 +594,7 @@ exports.changePassword = async (req, res) => {
     }
 
     // Get user with password
-    const user = await User.findByPk(req.user.id);
+    const user = await User.findById(req.user.id);
     if (!user) {
       return res.status(404).json({
         success: false,
