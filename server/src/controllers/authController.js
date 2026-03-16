@@ -519,15 +519,13 @@ exports.updateProfile = async (req, res) => {
       user.founded = founded || user.founded;
       user.vehicles = vehicles !== undefined ? vehicles : user.vehicles;
       user.routes = routes !== undefined ? routes : user.routes;
-      if (bankDetails) {
-        user.bankDetails = {
-          bankName: bankDetails.bankName || user.bankDetails?.bankName || "",
-          accountNumber:
-            bankDetails.accountNumber || user.bankDetails?.accountNumber || "",
-          accountName:
-            bankDetails.accountName || user.bankDetails?.accountName || "",
-        };
-      }
+      user.bankDetails = {
+        bankName: bankDetails?.bankName || user.bankDetails?.bankName || "",
+        accountNumber:
+          bankDetails?.accountNumber || user.bankDetails?.accountNumber || "",
+        accountName:
+          bankDetails?.accountName || user.bankDetails?.accountName || "",
+      };
     }
 
     await user.save();
