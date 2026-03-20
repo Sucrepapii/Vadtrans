@@ -24,9 +24,19 @@ const Fare = require("./models/Fare");
 const FAQ = require("./models/FAQ");
 const Review = require("./models/Review");
 const Notification = require("./models/Notification");
+const Shipment = require("./models/Shipment");
 
 // Set up model associations
-const models = { User, Trip, Booking, Fare, FAQ, Review, Notification };
+const models = {
+  User,
+  Trip,
+  Booking,
+  Fare,
+  FAQ,
+  Review,
+  Notification,
+  Shipment,
+};
 
 // Call associate methods if they exist
 Object.values(models).forEach((model) => {
@@ -185,9 +195,8 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/faqs", require("./routes/faqRoutes"));
-
-app.use("/api/faqs", require("./routes/faqRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
+app.use("/api/shipments", require("./routes/shipmentRoutes"));
 
 app.get("/api/fix-db-schema", async (req, res) => {
   try {

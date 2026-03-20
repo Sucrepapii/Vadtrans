@@ -20,6 +20,7 @@ import {
   FaUpload,
   FaFileAlt,
   FaBus,
+  FaTruck,
   FaTrash,
   FaUser,
   FaFileInvoice,
@@ -59,6 +60,13 @@ const CompanyProfile = () => {
       bankName: "",
       accountNumber: "",
       accountName: "",
+    },
+    freightCapabilities: {
+      vehicleTypes: "", // stored as comma-separated string for simplicity in frontend
+      cargoCapacity: "",
+      weightLimit: "",
+      crossBorderCapability: false,
+      insuranceStatus: "",
     },
   });
   const [editData, setEditData] = useState(companyData);
@@ -124,6 +132,13 @@ const CompanyProfile = () => {
           bankName: "",
           accountNumber: "",
           accountName: "",
+        },
+        freightCapabilities: userData.freightCapabilities || {
+          vehicleTypes: "",
+          cargoCapacity: "",
+          weightLimit: "",
+          crossBorderCapability: false,
+          insuranceStatus: "",
         },
       };
 
@@ -584,6 +599,173 @@ const CompanyProfile = () => {
                             <p className="font-semibold">
                               {companyData.bankDetails?.accountName ||
                                 "Not provided"}
+                            </p>
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </Card>
+
+                {/* Freight Capabilities */}
+                <Card>
+                  <div className="flex items-center gap-2 mb-4">
+                    <FaTruck className="text-primary" />
+                    <h2 className="text-lg font-semibold">
+                      Freight Capabilities
+                    </h2>
+                  </div>
+                  <div className="space-y-4">
+                    {isEditing ? (
+                      <>
+                        <Input
+                          label="Vehicle Types (e.g. Truck, Van, Pickup)"
+                          value={
+                            editData.freightCapabilities?.vehicleTypes || ""
+                          }
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              freightCapabilities: {
+                                ...editData.freightCapabilities,
+                                vehicleTypes: e.target.value,
+                              },
+                            })
+                          }
+                          disabled={saving}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Input
+                            label="Cargo Capacity (e.g. 10 Tons)"
+                            value={
+                              editData.freightCapabilities?.cargoCapacity || ""
+                            }
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                freightCapabilities: {
+                                  ...editData.freightCapabilities,
+                                  cargoCapacity: e.target.value,
+                                },
+                              })
+                            }
+                            disabled={saving}
+                          />
+                          <Input
+                            label="Weight Limit (e.g. 10000 kg)"
+                            value={
+                              editData.freightCapabilities?.weightLimit || ""
+                            }
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                freightCapabilities: {
+                                  ...editData.freightCapabilities,
+                                  weightLimit: e.target.value,
+                                },
+                              })
+                            }
+                            disabled={saving}
+                          />
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <Input
+                            label="Insurance Status (e.g. Active, Comprehensive)"
+                            value={
+                              editData.freightCapabilities?.insuranceStatus ||
+                              ""
+                            }
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                freightCapabilities: {
+                                  ...editData.freightCapabilities,
+                                  insuranceStatus: e.target.value,
+                                },
+                              })
+                            }
+                            disabled={saving}
+                          />
+                          <div className="flex items-center mt-6">
+                            <input
+                              type="checkbox"
+                              id="crossBorderCheckbox"
+                              checked={
+                                editData.freightCapabilities
+                                  ?.crossBorderCapability || false
+                              }
+                              onChange={(e) =>
+                                setEditData({
+                                  ...editData,
+                                  freightCapabilities: {
+                                    ...editData.freightCapabilities,
+                                    crossBorderCapability: e.target.checked,
+                                  },
+                                })
+                              }
+                              disabled={saving}
+                              className="w-4 h-4 text-primary bg-neutral-100 border-neutral-300 rounded focus:ring-primary focus:ring-2"
+                            />
+                            <label
+                              htmlFor="crossBorderCheckbox"
+                              className="ml-2 text-sm font-medium text-neutral-700">
+                              Cross-Border Capability
+                            </label>
+                          </div>
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <p className="text-sm text-neutral-600">
+                              Vehicle Types
+                            </p>
+                            <p className="font-semibold">
+                              {companyData.freightCapabilities?.vehicleTypes ||
+                                "Not provided"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-neutral-600">
+                              Cargo Capacity
+                            </p>
+                            <p className="font-semibold">
+                              {companyData.freightCapabilities?.cargoCapacity ||
+                                "Not provided"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-neutral-600">
+                              Weight Limit
+                            </p>
+                            <p className="font-semibold">
+                              {companyData.freightCapabilities?.weightLimit ||
+                                "Not provided"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-neutral-600">
+                              Insurance Status
+                            </p>
+                            <p className="font-semibold">
+                              {companyData.freightCapabilities
+                                ?.insuranceStatus || "Not provided"}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-neutral-600">
+                              Cross-Border Capability
+                            </p>
+                            <p className="font-semibold">
+                              {companyData.freightCapabilities
+                                ?.crossBorderCapability ? (
+                                <span className="text-green-600 flex items-center gap-1">
+                                  <FaCheckCircle /> Yes
+                                </span>
+                              ) : (
+                                "No"
+                              )}
                             </p>
                           </div>
                         </div>

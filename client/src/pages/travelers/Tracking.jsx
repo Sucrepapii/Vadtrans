@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { bookingAPI, tripAPI } from "../../services/api";
+import { bookingAPI, tripAPI, shipmentAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
@@ -59,78 +59,46 @@ const Tracking = () => {
     }
   };
 
+  const [isFreight, setIsFreight] = useState(false);
+
   const fetchTrackingData = async (idToTrack) => {
     if (!idToTrack) return;
     setLoading(true);
     setTrackData(null);
     setTripDetails(null);
+    setIsFreight(false);
 
     try {
-      // 1. Get Booking to find the Trip ID
-      // This endpoint needs to support searching by bookingId string "BK-..."
-      // Assuming getUserBookings returns all, or we need a specific 'track' endpoint.
-      // Since we don't have a public "track by ID" endpoint that doesn't require auth...
-      // We will simulate it by assuming the user is logged in OR using a public endpoint if we made one.
-      // For now, let's assume the user is logged in, or we use a public lookup.
-      // Since the requirement is "Tracking Page", it maps to public usually.
-      // I'll assume we can use the `getAllBookings` admin one? No.
-      // I'll try to use a new endpoint or just mock the lookup if the API doesn't support public tracking yet.
-      // But wait, the user asked for tracking. I should probably add a public endpoint for tracking by Booking ID?
-      // Or just assume the user is logged in.
-
-      // Let's rely on the user being logged in for now to get their own bookings.
-      // If not logged in, we might need a different approach.
-      // Current implementation tries to fetch booking.
-
-      // NOTE: For this demo, I will try to fetch the booking. If it fails (401), I'll ask user to login.
-      // But actually, bookingId is unique string.
-
-      // MOCK implementation for DEMO if backend doesn't support public lookup by string ID yet.
-      // I will assume I can find the booking.
-
-      // Actually, I'll assume the user uses the NUMERIC id or there is a lookup.
-      // Let's try to fetch booking by ID.
-
-      // Real implementation:
-      // We need a public endpoint: GET /api/bookings/track/:bookingRef
-      // I didn't add that. I'll add `getTrip` public access.
-      // If the user inputs a valid Booking Ref, we should verify it.
-
-      // WORKAROUND: For now, I will ask the user to enter the TRIP ID or just Login.
-      // Or I can just fetch all public trips and filter? No.
-
-      // Let's implement a "Search Trip" directly if they don't have a booking ID, or just search by Booking ID if I add the endpoint.
-      // To save time, I will fetch using `api.get('/bookings')` if logged in.
-
-      // Let's just USE THE TRIP ID for tracking for now as a fallback?
-      // No, user wants Booking ID.
-
-      // I will implement a "Simulated" lookup that actually just looks for the TRIP associated with the booking.
-      // Since I didn't add a public `getBookingByRef` endpoint, I will just enable tracking by TRIP ID for this specific step
-      // OR I can quickly add the endpoint.
-
-      // Let's just add `getBookingByRef` to the backend?
-      // Or simpler: The user just tracks the TRIP.
-      // But the UI says "Booking Reference".
-
-      // I'll stick to the UI asking for Booking Reference.
-      // I will try to find the booking from the user's list (if logged in).
-      const res = await bookingAPI.getUserBookings();
-      const myBooking = res.data.bookings.find(
-        (b) => b.bookingId === idToTrack
-      );
-
-      if (myBooking) {
-        setTrackData(myBooking);
-        // Now fetch trip
-        const tripRes = await tripAPI.getTrip(myBooking.tripId);
-        setTripDetails(tripRes.data.trip);
+      if (idToTrack.startsWith("FR-")) {
+        // It's a Freight Shipment
+        const res = await shipmentAPI.getShipment(idToTrack);
+        if (res.data.success && res.data.shipment) {
+          setIsFreight(true);
+          setTrackData(res.data.shipment);
+          setTripDetails(res.data.shipment.trip);
+        } else {
+          toast.error("Shipment not found.");
+        }
       } else {
-        toast.error("Booking not found or you are not logged in.");
+        // Passenger Booking (existing logic)
+        const res = await bookingAPI.getUserBookings();
+        const myBooking = res.data.bookings.find(
+          (b) => b.bookingId === idToTrack,
+        );
+
+        if (myBooking) {
+          setTrackData(myBooking);
+          const tripRes = await tripAPI.getTrip(myBooking.tripId);
+          setTripDetails(tripRes.data.trip);
+        } else {
+          toast.error("Booking not found or you are not logged in.");
+        }
       }
     } catch (error) {
       console.error("Tracking error:", error);
-      toast.error("Unable to track booking. Please ensure you are logged in.");
+      toast.error(
+        "Unable to track. Please verify your ID or ensure you are logged in if tracking a passenger ticket.",
+      );
     } finally {
       setLoading(false);
     }
@@ -157,7 +125,7 @@ const Tracking = () => {
               <Input
                 label="Booking Reference"
                 name="bookingId"
-                placeholder="Enter your booking ID (e.g., BK-XXXXXX)"
+                placeholder="Enter your tracking ID (e.g., FR-XXXXXX or BK-XXXXX)"
                 value={bookingId}
                 onChange={(e) => setBookingId(e.target.value)}
                 icon={FaSearch}
@@ -181,7 +149,9 @@ const Tracking = () => {
                 <div className="text-center">
                   <p className="text-sm opacity-90 mb-2">Current Status</p>
                   <h2 className="text-3xl font-bold mb-4">
-                    {tripDetails.status.toUpperCase()}
+                    {isFreight
+                      ? trackData.trackingStatus.replace("_", " ").toUpperCase()
+                      : tripDetails.status.toUpperCase()}
                   </h2>
                   <div className="flex items-center justify-center gap-2 mb-4">
                     <FaMapMarkerAlt />
@@ -221,28 +191,90 @@ const Tracking = () => {
                 )}
               </Card>
 
-              {/* Trip Details */}
-              <Card className="mb-6">
-                <h3 className="font-semibold mb-4">Trip Details</h3>
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-neutral-600">Booking Ref:</span>
-                    <span className="font-semibold">{trackData.bookingId}</span>
+              {/* Freight Shipment Tracking UI */}
+              {isFreight && (
+                <Card className="mb-6 border-2 border-primary">
+                  <h3 className="font-semibold mb-4 text-primary">
+                    Shipment Details ({trackData.trackingId})
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="bg-neutral-50 p-4 rounded-lg">
+                      <p className="text-xs text-neutral-500 uppercase font-bold mb-2">
+                        Sender
+                      </p>
+                      <p className="font-medium">
+                        {trackData.senderDetails?.name}
+                      </p>
+                      <p className="text-sm text-neutral-600">
+                        {trackData.senderDetails?.address}
+                      </p>
+                    </div>
+                    <div className="bg-neutral-50 p-4 rounded-lg">
+                      <p className="text-xs text-neutral-500 uppercase font-bold mb-2">
+                        Receiver
+                      </p>
+                      <p className="font-medium">
+                        {trackData.receiverDetails?.name}
+                      </p>
+                      <p className="text-sm text-neutral-600">
+                        {trackData.receiverDetails?.address}
+                      </p>
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2">
+                      <p className="text-xs text-neutral-500 uppercase font-bold mb-2">
+                        Cargo
+                      </p>
+                      <p className="text-sm font-medium">
+                        {trackData.cargoDetails?.description}
+                      </p>
+                      <p className="text-sm text-neutral-600">
+                        Weight: {trackData.cargoDetails?.weight} kg
+                      </p>
+                    </div>
+
+                    <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t">
+                      <p className="text-sm">
+                        Payment Status:{" "}
+                        <strong
+                          className={`uppercase ${trackData.paymentStatus === "paid" ? "text-green-600" : "text-yellow-600"}`}>
+                          {trackData.paymentStatus}
+                        </strong>
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-1">
+                        Status Note: {trackData.statusMessage || "N/A"}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-600">Route:</span>
-                    <span className="font-semibold">
-                      {tripDetails.from} → {tripDetails.to}
-                    </span>
+                </Card>
+              )}
+
+              {/* Passenger Trip Details (Existing) */}
+              {!isFreight && (
+                <Card className="mb-6">
+                  <h3 className="font-semibold mb-4">Trip Details</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-neutral-600">Booking Ref:</span>
+                      <span className="font-semibold">
+                        {trackData.bookingId}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-600">Route:</span>
+                      <span className="font-semibold">
+                        {tripDetails.from} → {tripDetails.to}
+                      </span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-600">Departure:</span>
+                      <span className="font-semibold">
+                        {tripDetails.departureTime}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-neutral-600">Departure:</span>
-                    <span className="font-semibold">
-                      {tripDetails.departureTime}
-                    </span>
-                  </div>
-                </div>
-              </Card>
+                </Card>
+              )}
             </>
           )}
 

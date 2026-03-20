@@ -17,6 +17,13 @@ const Trip = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    serviceCategory: {
+      type: DataTypes.ENUM("passenger", "freight"),
+      allowNull: false,
+      defaultValue: "passenger",
+      comment:
+        "Distinguishes between passenger travel and freight/cargo logistics",
+    },
     transportType: {
       type: DataTypes.ENUM("inter-state", "international", "intra-state"),
       allowNull: false,
@@ -27,6 +34,11 @@ const Trip = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
       defaultValue: "Bus",
+    },
+    freightType: {
+      type: DataTypes.ENUM("Small Parcel", "Medium Cargo", "Large/Bulk Cargo"),
+      allowNull: true,
+      comment: "Only applicable if serviceCategory is freight",
     },
     terminal: {
       type: DataTypes.STRING,

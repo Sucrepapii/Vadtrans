@@ -12,6 +12,9 @@ import VerifyEmail from "./pages/auth/VerifyEmail";
 import Services from "./pages/travelers/Services";
 import SearchResults from "./pages/travelers/SearchResults";
 import PassengerInfo from "./pages/travelers/PassengerInfo";
+import FreightInfo from "./pages/travelers/FreightInfo";
+import FreightCheckout from "./pages/travelers/FreightCheckout";
+import FreightConfirmation from "./pages/travelers/FreightConfirmation";
 import SeatSelection from "./pages/travelers/SeatSelection";
 import ReviewConfirm from "./pages/travelers/ReviewConfirm";
 import BookingConfirmation from "./pages/travelers/BookingConfirmation";
@@ -76,6 +79,22 @@ const App = () => {
           }
         />
         <Route
+          path="/booking/freight-info"
+          element={
+            <ProtectedRoute>
+              <FreightInfo />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking/freight-checkout"
+          element={
+            <ProtectedRoute>
+              <FreightCheckout />
+            </ProtectedRoute>
+          }
+        />
+        <Route
           path="/booking/review"
           element={
             <ProtectedRoute>
@@ -88,6 +107,14 @@ const App = () => {
           element={
             <ProtectedRoute>
               <BookingConfirmation />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/booking/freight-confirmation"
+          element={
+            <ProtectedRoute>
+              <FreightConfirmation />
             </ProtectedRoute>
           }
         />

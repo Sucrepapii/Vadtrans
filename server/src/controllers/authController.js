@@ -446,6 +446,7 @@ exports.getMe = async (req, res) => {
           accountNumber: "",
           accountName: "",
         },
+        freightCapabilities: user.freightCapabilities || {},
         verificationStatus: user.verificationStatus,
         documents: user.documents || [],
       },
@@ -485,6 +486,7 @@ exports.updateProfile = async (req, res) => {
       vehicles,
       routes,
       bankDetails,
+      freightCapabilities,
     } = req.body;
 
     const user = await User.findByPk(req.user.id);
@@ -519,6 +521,8 @@ exports.updateProfile = async (req, res) => {
       user.founded = founded || user.founded;
       user.vehicles = vehicles !== undefined ? vehicles : user.vehicles;
       user.routes = routes !== undefined ? routes : user.routes;
+      if (freightCapabilities !== undefined)
+        user.freightCapabilities = freightCapabilities;
       user.bankDetails = {
         bankName: bankDetails?.bankName || user.bankDetails?.bankName || "",
         accountNumber:
@@ -564,6 +568,7 @@ exports.updateProfile = async (req, res) => {
           accountNumber: "",
           accountName: "",
         },
+        freightCapabilities: user.freightCapabilities || {},
         verificationStatus: user.verificationStatus,
       },
     });

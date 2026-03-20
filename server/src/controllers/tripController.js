@@ -6,9 +6,13 @@ const User = require("../models/User");
 // @access  Public
 exports.getAllTrips = async (req, res) => {
   try {
-    const { from, to, transportType, status } = req.query;
+    const { from, to, transportType, status, serviceCategory, freightType } =
+      req.query;
 
     const where = {};
+
+    if (serviceCategory) where.serviceCategory = serviceCategory;
+    if (freightType) where.freightType = freightType;
 
     // Filter by from location (exact match)
     if (from) where.from = from;
@@ -139,6 +143,8 @@ exports.createTrip = async (req, res) => {
       city,
       state,
       documentPrices,
+      serviceCategory,
+      freightType,
     } = req.body;
 
     // Validate required fields
@@ -165,6 +171,8 @@ exports.createTrip = async (req, res) => {
       city: city || null,
       state: state || null,
       documentPrices: documentPrices || null,
+      serviceCategory: serviceCategory || "passenger",
+      freightType: freightType || null,
       companyId: req.user.id,
       status: "active",
     });
@@ -222,6 +230,8 @@ exports.updateTrip = async (req, res) => {
       city,
       state,
       documentPrices,
+      serviceCategory,
+      freightType,
     } = req.body;
 
     if (from) trip.from = from;
@@ -237,6 +247,8 @@ exports.updateTrip = async (req, res) => {
     if (city !== undefined) trip.city = city;
     if (state !== undefined) trip.state = state;
     if (documentPrices !== undefined) trip.documentPrices = documentPrices;
+    if (serviceCategory !== undefined) trip.serviceCategory = serviceCategory;
+    if (freightType !== undefined) trip.freightType = freightType;
     if (seats) {
       // Calculate booked seats BEFORE overwriting trip.seats
       const bookedSeats = trip.seats - trip.availableSeats;

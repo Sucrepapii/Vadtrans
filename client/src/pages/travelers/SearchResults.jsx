@@ -14,6 +14,7 @@ import {
   FaMapMarkerAlt,
   FaSpinner,
   FaArrowLeft,
+  FaTruck,
 } from "react-icons/fa";
 
 const SearchResults = () => {
@@ -24,6 +25,8 @@ const SearchResults = () => {
     to: "",
     date: "",
     transportType: "all",
+    serviceCategory: "passenger",
+    freightType: "",
   });
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -61,6 +64,10 @@ const SearchResults = () => {
       if (searchParams.from) params.from = searchParams.from;
       if (searchParams.to) params.to = searchParams.to;
       if (searchParams.date) params.date = searchParams.date;
+      if (searchParams.serviceCategory)
+        params.serviceCategory = searchParams.serviceCategory;
+      if (searchParams.freightType)
+        params.freightType = searchParams.freightType;
 
       // Handle transport type filter
       if (searchParams.transportType !== "all") {
@@ -90,8 +97,8 @@ const SearchResults = () => {
     }
   };
 
-  const getTransportIcon = (type) => {
-    // All transport types use bus icon
+  const getTransportIcon = (trip) => {
+    if (trip?.serviceCategory === "freight") return FaTruck;
     return FaBus;
   };
 
@@ -105,9 +112,15 @@ const SearchResults = () => {
   };
 
   const handleSelectTrip = (trip) => {
-    navigate("/booking/passenger-info", {
-      state: { tripData: trip, searchDate: searchParams.date },
-    });
+    if (trip.serviceCategory === "freight") {
+      navigate("/booking/freight-info", {
+        state: { tripData: trip, searchDate: searchParams.date },
+      });
+    } else {
+      navigate("/booking/passenger-info", {
+        state: { tripData: trip, searchDate: searchParams.date },
+      });
+    }
   };
 
   return (
@@ -201,7 +214,7 @@ const SearchResults = () => {
 
               <div className="space-y-4">
                 {trips.map((trip) => {
-                  const Icon = getTransportIcon(trip.transportType);
+                  const Icon = getTransportIcon(trip);
                   return (
                     <Card
                       key={trip.id}
@@ -304,11 +317,17 @@ const SearchResults = () => {
                               <Button
                                 variant="primary"
                                 onClick={() => handleSelectTrip(trip)}
-                                disabled={trip.availableSeats === 0}
+                                disabled={
+                                  trip.availableSeats === 0 &&
+                                  trip.serviceCategory !== "freight"
+                                }
                                 className="whitespace-nowrap text-sm sm:text-base px-4 sm:px-6">
-                                {trip.availableSeats === 0
+                                {trip.availableSeats === 0 &&
+                                trip.serviceCategory !== "freight"
                                   ? "Sold Out"
-                                  : "Select Trip"}
+                                  : trip.serviceCategory === "freight"
+                                    ? "Book Transport"
+                                    : "Select Trip"}
                               </Button>
                               {trip.availableSeats === 0 && (
                                 <p className="text-[10px] sm:text-xs text-red-600 font-medium max-w-[150px] text-right">

@@ -105,6 +105,12 @@ const User = sequelize.define(
       type: DataTypes.JSON,
       defaultValue: {},
     },
+    freightCapabilities: {
+      type: DataTypes.JSON,
+      defaultValue: {},
+      comment:
+        "Stores vehicleTypes, cargoCapacity, weightLimit, crossBorderCapability, insuranceStatus",
+    },
     role: {
       type: DataTypes.ENUM("traveler", "company", "admin"),
       defaultValue: "traveler",

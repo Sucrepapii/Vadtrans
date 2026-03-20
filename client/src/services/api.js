@@ -140,4 +140,14 @@ export const reviewAPI = {
   likeReview: (id) => api.put(`/reviews/${id}/like`),
 };
 
+// Shipment API
+export const shipmentAPI = {
+  createShipment: (data) => api.post("/shipments", data),
+  getShipment: (trackingId) => api.get(`/shipments/track/${trackingId}`),
+  getMyShipments: () => api.get("/shipments/me"),
+  getCompanyShipments: () => api.get("/shipments/company"),
+  updateShipmentStatus: (id, data) => api.put(`/shipments/${id}/status`, data),
+  verifyPayment: (data) => api.post("/shipments/verify-payment", data),
+};
+
 export default api;
