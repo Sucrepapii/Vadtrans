@@ -209,6 +209,48 @@ exports.getCompanyShipments = async (req, res) => {
   }
 };
 
+// @desc    Get all shipments (Admin)
+// @route   GET /api/shipments/admin
+// @access  Private (Admin only)
+exports.getAllShipments = async (req, res) => {
+  try {
+    const shipments = await Shipment.findAll({
+      order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: Trip,
+          as: "trip",
+          include: [
+            {
+              model: User,
+              as: "company",
+              attributes: ["name", "phone"],
+            },
+          ],
+        },
+        {
+          model: User,
+          as: "sender",
+          attributes: ["name", "email", "phone"],
+        },
+      ],
+    });
+
+    res.status(200).json({
+      success: true,
+      count: shipments.length,
+      shipments,
+    });
+  } catch (error) {
+    console.error("Get all shipments error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching all shipments",
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Update shipment status
 // @route   PUT /api/shipments/:id/status
 // @access  Private (Company/Admin)

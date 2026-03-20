@@ -13,6 +13,7 @@ import {
   FaBars,
   FaTimes,
   FaSignOutAlt,
+  FaBox,
 } from "react-icons/fa";
 import NotificationBell from "./NotificationBell";
 
@@ -29,6 +30,7 @@ const Sidebar = () => {
     { icon: FaBuilding, label: "Companies", path: "/admin/companies" },
     { icon: FaTicketAlt, label: "Tickets", path: "/admin/tickets" },
     { icon: FaCalendarCheck, label: "Bookings", path: "/admin/bookings" },
+    { icon: FaBox, label: "Shipments", path: "/admin/shipments" },
     { icon: FaQuestionCircle, label: "FAQs", path: "/admin/faqs" },
   ];
 

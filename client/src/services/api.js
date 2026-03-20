@@ -146,6 +146,7 @@ export const shipmentAPI = {
   getShipment: (trackingId) => api.get(`/shipments/track/${trackingId}`),
   getMyShipments: () => api.get("/shipments/me"),
   getCompanyShipments: () => api.get("/shipments/company"),
+  getAllShipments: (params) => api.get("/shipments/admin", { params }),
   updateShipmentStatus: (id, data) => api.put(`/shipments/${id}/status`, data),
   verifyPayment: (data) => api.post("/shipments/verify-payment", data),
 };

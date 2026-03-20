@@ -1,6 +1,7 @@
 const User = require("../models/User");
 const Trip = require("../models/Trip");
 const Booking = require("../models/Booking");
+const Shipment = require("../models/Shipment");
 const Fare = require("../models/Fare");
 const { Op } = require("sequelize");
 const { sequelize } = require("../config/database");
@@ -15,6 +16,7 @@ exports.getDashboardStats = async (req, res) => {
     const totalCompanies = await User.count({ where: { role: "company" } });
     const totalTrips = await Trip.count();
     const totalBookings = await Booking.count();
+    const totalShipments = await Shipment.count();
 
     // Calculate revenue (sum of paid or manually completed bookings)
     const revenueData = await Booking.findAll({
@@ -69,6 +71,7 @@ exports.getDashboardStats = async (req, res) => {
         totalCompanies,
         totalTrips,
         totalBookings,
+        totalShipments,
         totalRevenue: totalRevenueNaira,
         totalRevenueUSD: totalRevenueUSD,
         recentBookings,

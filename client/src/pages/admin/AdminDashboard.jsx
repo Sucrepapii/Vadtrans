@@ -9,6 +9,7 @@ import {
   FaChartLine,
   FaArrowUp,
   FaArrowDown,
+  FaBox,
 } from "react-icons/fa";
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
@@ -20,6 +21,7 @@ const AdminDashboard = () => {
     totalCompanies: 0,
     totalTrips: 0,
     totalBookings: 0,
+    totalShipments: 0,
     totalRevenue: 0,
     recentBookings: [],
   });
@@ -75,6 +77,12 @@ const AdminDashboard = () => {
       label: "Total Bookings",
       value: loading ? "..." : stats.totalBookings.toLocaleString(),
       color: "bg-purple-500",
+    },
+    {
+      icon: FaBox,
+      label: "Total Shipments",
+      value: loading ? "..." : (stats.totalShipments || 0).toLocaleString(),
+      color: "bg-indigo-500",
     },
     {
       icon: FaDollarSign,

@@ -5,6 +5,7 @@ const {
   getShipmentByTrackingId,
   getMyShipments,
   getCompanyShipments,
+  getAllShipments,
   updateShipmentStatus,
   verifyPayment,
 } = require("../controllers/shipmentController");
@@ -27,6 +28,9 @@ router.get(
   authorize("company", "admin"),
   getCompanyShipments,
 );
+
+// Admin route
+router.get("/admin", protect, authorize("admin"), getAllShipments);
 
 // Status updates
 router.put(
