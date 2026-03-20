@@ -14,6 +14,9 @@ import {
   FaFileAlt,
   FaSpinner,
   FaFilter,
+  FaEdit,
+  FaCheck,
+  FaTimes,
 } from "react-icons/fa";
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
@@ -33,6 +36,9 @@ const CompanyManagement = () => {
     companyId: null,
     companyName: "",
   });
+  const [editingEmailId, setEditingEmailId] = useState(null);
+  const [newEmailValue, setNewEmailValue] = useState("");
+  const [isSavingEmail, setIsSavingEmail] = useState(false);
 
   useEffect(() => {
     fetchCompanies();
@@ -54,6 +60,30 @@ const CompanyManagement = () => {
       toast.error("Failed to load companies");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEmailUpdate = async (companyId) => {
+    if (!newEmailValue.trim()) return;
+    try {
+      setIsSavingEmail(true);
+      const response = await adminAPI.updateUser(companyId, {
+        email: newEmailValue,
+      });
+      if (response.data.success) {
+        toast.success("Email updated successfully");
+        setCompanies(
+          companies.map((c) =>
+            c.id === companyId ? { ...c, email: newEmailValue } : c,
+          ),
+        );
+        setEditingEmailId(null);
+      }
+    } catch (error) {
+      console.error("Error updating email:", error);
+      toast.error(error.response?.data?.message || "Failed to update email");
+    } finally {
+      setIsSavingEmail(false);
     }
   };
 
@@ -217,11 +247,55 @@ const CompanyManagement = () => {
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                        <div className="flex items-center gap-2 text-sm">
+                        <div className="flex items-center gap-2 text-sm h-8">
                           <FaEnvelope className="text-neutral-500" />
-                          <span className="text-neutral-700">
-                            {company.email}
-                          </span>
+                          {editingEmailId === company.id ? (
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="email"
+                                value={newEmailValue}
+                                onChange={(e) =>
+                                  setNewEmailValue(e.target.value)
+                                }
+                                className="border border-neutral-300 rounded px-2 py-1 text-sm w-48 focus:outline-none focus:border-primary"
+                                disabled={isSavingEmail}
+                                autoFocus
+                              />
+                              <button
+                                onClick={() => handleEmailUpdate(company.id)}
+                                disabled={isSavingEmail}
+                                className="text-green-600 hover:text-green-700 p-1"
+                                title="Save">
+                                {isSavingEmail ? (
+                                  <FaSpinner className="animate-spin" />
+                                ) : (
+                                  <FaCheck />
+                                )}
+                              </button>
+                              <button
+                                onClick={() => setEditingEmailId(null)}
+                                disabled={isSavingEmail}
+                                className="text-red-600 hover:text-red-700 p-1"
+                                title="Cancel">
+                                <FaTimes />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 group">
+                              <span className="text-neutral-700">
+                                {company.email}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setEditingEmailId(company.id);
+                                  setNewEmailValue(company.email);
+                                }}
+                                className="text-neutral-400 hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                title="Edit Email">
+                                <FaEdit />
+                              </button>
+                            </div>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 text-sm">
                           <FaPhone className="text-neutral-500" />
