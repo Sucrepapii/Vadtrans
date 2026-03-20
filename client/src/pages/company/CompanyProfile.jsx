@@ -25,6 +25,7 @@ import {
   FaUser,
   FaFileInvoice,
   FaTicketAlt,
+  FaBox,
 } from "react-icons/fa";
 import {
   nigerianStates,
@@ -34,6 +35,7 @@ import {
 import { nigerianBanks } from "../../data/banks";
 import DocumentsTab from "../../components/company/DocumentsTab";
 import PassengersTab from "../../components/company/PassengersTab";
+import ShipmentsTab from "../../components/company/ShipmentsTab";
 import { FaUsers } from "react-icons/fa";
 
 const CompanyProfile = () => {
@@ -99,6 +101,7 @@ const CompanyProfile = () => {
     { id: "profile", label: "Profile", icon: FaUser },
     { id: "tickets", label: "Tickets", icon: FaTicketAlt },
     { id: "passengers", label: "Passengers", icon: FaUsers },
+    { id: "shipments", label: "Shipments", icon: FaBox },
     { id: "documents", label: "Documents", icon: FaFileInvoice },
   ];
 
@@ -1072,6 +1075,9 @@ const CompanyProfile = () => {
 
             {/* Passengers Tab */}
             {activeTab === "passengers" && <PassengersTab />}
+
+            {/* Shipments Tab */}
+            {activeTab === "shipments" && <ShipmentsTab />}
           </div>
         </div>
       </div>
