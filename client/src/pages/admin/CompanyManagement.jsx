@@ -290,7 +290,7 @@ const CompanyManagement = () => {
                                   setEditingEmailId(company.id);
                                   setNewEmailValue(company.email);
                                 }}
-                                className="text-neutral-400 hover:text-primary opacity-0 group-hover:opacity-100 transition-opacity"
+                                className="text-neutral-400 hover:text-primary transition-colors"
                                 title="Edit Email">
                                 <FaEdit />
                               </button>
