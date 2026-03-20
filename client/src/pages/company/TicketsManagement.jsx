@@ -26,6 +26,7 @@ import {
   FaClock,
   FaMapMarkerAlt,
   FaSpinner,
+  FaTruck,
 } from "react-icons/fa";
 import { MaterialTimePicker } from "../../components/MaterialDatePicker";
 import MaterialDatePicker from "../../components/MaterialDatePicker";
@@ -55,6 +56,8 @@ const TicketsManagement = () => {
     duration: "",
     price: "",
     seats: 18,
+    serviceCategory: "passenger",
+    freightType: "",
 
     state: "", // For intra-state: the selected state for city-to-city trips
     vehicleType: "Hiace Bus (18 seater)",
@@ -112,6 +115,8 @@ const TicketsManagement = () => {
         availableSeats: trip.availableSeats,
         status: trip.status,
         duration: trip.duration || "",
+        serviceCategory: trip.serviceCategory || "passenger",
+        freightType: trip.freightType || "",
         vehicleType: trip.vehicleType || "Hiace Bus (18 seater)",
         terminal: trip.terminal || "",
         city: trip.city || "",
@@ -152,6 +157,8 @@ const TicketsManagement = () => {
       duration: "",
       price: "",
       seats: 18,
+      serviceCategory: "passenger",
+      freightType: "",
 
       state: "",
       vehicleType: "Hiace Bus (18 seater)",
@@ -183,6 +190,8 @@ const TicketsManagement = () => {
       duration: ticket.duration || "",
       price: ticket.price,
       seats: ticket.seats,
+      serviceCategory: ticket.serviceCategory || "passenger",
+      freightType: ticket.freightType || "",
       vehicleType: ticket.vehicleType || "Hiace Bus (18 seater)",
       terminal: ticket.terminal || "",
       city: ticket.city || "",
@@ -233,6 +242,9 @@ const TicketsManagement = () => {
             : null,
         duration: formData.duration || null,
         price: Number(formData.price),
+        serviceCategory: formData.serviceCategory,
+        freightType:
+          formData.serviceCategory === "freight" ? formData.freightType : null,
 
         seats: Number(formData.seats),
         vehicleType: formData.vehicleType,
@@ -261,9 +273,12 @@ const TicketsManagement = () => {
     }
   };
 
-  const getTransportIcon = (type) => {
-    // All transport types use bus icon
-    return <FaBus className="text-primary" />;
+  const getTransportIcon = (serviceCategory) => {
+    return serviceCategory === "freight" ? (
+      <FaTruck className="text-primary" />
+    ) : (
+      <FaBus className="text-primary" />
+    );
   };
 
   const columns = [
@@ -273,7 +288,7 @@ const TicketsManagement = () => {
       sortable: true,
       render: (value, row) => (
         <div className="flex items-center gap-2">
-          {getTransportIcon(row.transportType)}
+          {getTransportIcon(row.serviceCategory)}
           <span className="font-medium">{value}</span>
         </div>
       ),
@@ -450,6 +465,52 @@ const TicketsManagement = () => {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Service Category
+            </label>
+            <div className="flex gap-4 mb-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="serviceCategory"
+                  value="passenger"
+                  checked={formData.serviceCategory === "passenger"}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      serviceCategory: e.target.value,
+                    })
+                  }
+                  disabled={saving}
+                  className="text-primary focus:ring-primary h-4 w-4"
+                />
+                <span className="text-sm font-medium text-neutral-700">
+                  Passenger Transport
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="serviceCategory"
+                  value="freight"
+                  checked={formData.serviceCategory === "freight"}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      serviceCategory: e.target.value,
+                    })
+                  }
+                  disabled={saving}
+                  className="text-primary focus:ring-primary h-4 w-4"
+                />
+                <span className="text-sm font-medium text-neutral-700">
+                  Freight Transport
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
               Transport Type
             </label>
             <select
@@ -478,44 +539,67 @@ const TicketsManagement = () => {
             </select>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Vehicle Type
-            </label>
-            <select
-              value={formData.vehicleType}
-              onChange={(e) => {
-                const vehicleType = e.target.value;
-                let seats = formData.seats;
+          {formData.serviceCategory === "freight" ? (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Freight Type
+              </label>
+              <select
+                value={formData.freightType}
+                onChange={(e) =>
+                  setFormData({ ...formData, freightType: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={saving}
+                required>
+                <option value="">Select Freight Type</option>
+                <option value="Small Parcel">Small Parcel</option>
+                <option value="Medium Cargo">Medium Cargo</option>
+                <option value="Large/Bulk Cargo">Large/Bulk Cargo</option>
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Vehicle Type
+              </label>
+              <select
+                value={formData.vehicleType}
+                onChange={(e) => {
+                  const vehicleType = e.target.value;
+                  let seats = formData.seats;
 
-                // Auto-set seats based on vehicle type
-                if (vehicleType.includes("18 seater")) seats = 18;
-                else if (vehicleType.includes("32 seater")) seats = 32;
-                else if (vehicleType.includes("52 seater")) seats = 52;
-                else if (vehicleType === "Mini Buses (7 seater)") seats = 7;
-                else if (vehicleType === "Sienna car (7 seats)") seats = 7;
-                else if (vehicleType === "Sedan (small car)") seats = 4;
+                  // Auto-set seats based on vehicle type
+                  if (vehicleType.includes("18 seater")) seats = 18;
+                  else if (vehicleType.includes("32 seater")) seats = 32;
+                  else if (vehicleType.includes("52 seater")) seats = 52;
+                  else if (vehicleType === "Mini Buses (7 seater)") seats = 7;
+                  else if (vehicleType === "Sienna car (7 seats)") seats = 7;
+                  else if (vehicleType === "Sedan (small car)") seats = 4;
 
-                setFormData({ ...formData, vehicleType, seats });
-              }}
-              className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              disabled={saving}>
-              <option value="Hiace Bus (18 seater)">
-                Hiace Bus (18 seater)
-              </option>
-              <option value="Coaster Bus (32 seater)">
-                Coaster Bus (32 seater)
-              </option>
-              <option value="Luxirious Bus (52 seater)">
-                Luxirious Bus (52 seater)
-              </option>
-              <option value="Mini Buses (7 seater)">
-                Mini Buses (7 seater)
-              </option>
-              <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
-              <option value="Sedan (small car)">Sedan (small car)</option>
-            </select>
-          </div>
+                  setFormData({ ...formData, vehicleType, seats });
+                }}
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={saving}>
+                <option value="Hiace Bus (18 seater)">
+                  Hiace Bus (18 seater)
+                </option>
+                <option value="Coaster Bus (32 seater)">
+                  Coaster Bus (32 seater)
+                </option>
+                <option value="Luxirious Bus (52 seater)">
+                  Luxirious Bus (52 seater)
+                </option>
+                <option value="Mini Buses (7 seater)">
+                  Mini Buses (7 seater)
+                </option>
+                <option value="Sienna car (7 seats)">
+                  Sienna car (7 seats)
+                </option>
+                <option value="Sedan (small car)">Sedan (small car)</option>
+              </select>
+            </div>
+          )}
 
           {/* FROM/TO LOCATION */}
           {formData.transportType === "intra-state" ? (
