@@ -1568,6 +1568,27 @@ const CompanyProfile = () => {
               </p>
             </div>
           )}
+        
+          <div className="flex justify-end gap-3 pt-4 border-t mt-6">
+            <Button
+              variant="secondary"
+              type="button"
+              onClick={() => setShowModal(false)}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
+            <Button variant="primary" type="submit" disabled={saving}>
+              {saving ? (
+                <div className="flex items-center gap-2">
+                  <FaSpinner className="animate-spin" />
+                  <span>Saving...</span>
+                </div>
+              ) : (
+                editingTrip ? "Save Changes" : "Create Trip"
+              )}
+            </Button>
+          </div>
         </form>
                     </div>
                   </div>

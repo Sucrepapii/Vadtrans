@@ -1,5 +1,6 @@
 const Trip = require("../models/Trip");
 const User = require("../models/User");
+const { Op } = require("sequelize");
 
 // @desc    Get all trips
 // @route   GET /api/trips
