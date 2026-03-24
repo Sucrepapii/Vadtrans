@@ -11,28 +11,32 @@ const { sequelize } = require("../config/database");
 // @access  Private/Admin
 exports.getDashboardStats = async (req, res) => {
   try {
-    // Get counts
-    const totalUsers = await User.count({ where: { role: "traveler" } });
-    const totalCompanies = await User.count({ where: { role: "company" } });
-    const totalTrips = await Trip.count();
-    const totalBookings = await Booking.count();
-    const totalShipments = await Shipment.count();
+    // Get counts with individual try-catch to prevent complete failure
+    let totalUsers = 0, totalCompanies = 0, totalTrips = 0, totalBookings = 0, totalShipments = 0;
+    try { totalUsers = await User.count({ where: { role: "traveler" } }); } catch (e) { console.error("totalUsers err:", e.message); }
+    try { totalCompanies = await User.count({ where: { role: "company" } }); } catch (e) { console.error("totalCompanies err:", e.message); }
+    try { totalTrips = await Trip.count(); } catch (e) { console.error("totalTrips err:", e.message); }
+    try { totalBookings = await Booking.count(); } catch (e) { console.error("totalBookings err:", e.message); }
+    try { totalShipments = await Shipment.count(); } catch (e) { console.error("totalShipments err:", e.message); }
 
     // Calculate revenue (sum of paid or manually completed bookings)
-    const revenueData = await Booking.findAll({
-      where: {
-        [Op.or]: [{ paymentStatus: "paid" }, { bookingStatus: "completed" }],
-      },
-      attributes: [
-        [sequelize.fn("SUM", sequelize.col("totalAmount")), "total"],
-      ],
-    });
+    let totalRevenueNaira = 0;
+    try {
+      const revenueData = await Booking.findAll({
+        where: {
+          [Op.or]: [{ paymentStatus: "paid" }, { bookingStatus: "completed" }],
+        },
+        attributes: [
+          [sequelize.fn("SUM", sequelize.col("totalAmount")), "total"],
+        ],
+      });
+      totalRevenueNaira = revenueData[0]?.dataValues?.total
+        ? parseFloat(revenueData[0].dataValues.total)
+        : 0;
+    } catch (e) {
+      console.error("Revenue sum err:", e.message);
+    }
 
-    const totalRevenueNaira = revenueData[0]?.dataValues?.total
-      ? parseFloat(revenueData[0].dataValues.total)
-      : 0;
-
-    console.log("📊 [STATS] Raw Revenue Data:", JSON.stringify(revenueData));
     console.log("📊 [STATS] Parsed Naira Revenue:", totalRevenueNaira);
 
     // Exchange rate (approximate, should ideally come from an API or config)
@@ -40,29 +44,34 @@ exports.getDashboardStats = async (req, res) => {
     const totalRevenueUSD = totalRevenueNaira / NGN_USD_RATE;
 
     // Recent bookings
-    const recentBookings = await Booking.findAll({
-      limit: 10,
-      order: [["createdAt", "DESC"]],
-      include: [
-        {
-          model: User,
-          as: "user",
-          attributes: ["id", "name", "email"],
-        },
-        {
-          model: Trip,
-          as: "trip",
-          attributes: ["id", "from", "to", "departureTime"],
-          include: [
-            {
-              model: User,
-              as: "company",
-              attributes: ["name"],
-            },
-          ],
-        },
-      ],
-    });
+    let recentBookings = [];
+    try {
+      recentBookings = await Booking.findAll({
+        limit: 10,
+        order: [["createdAt", "DESC"]],
+        include: [
+          {
+            model: User,
+            as: "user",
+            attributes: ["id", "name", "email"],
+          },
+          {
+            model: Trip,
+            as: "trip",
+            attributes: ["id", "from", "to", "departureTime"],
+            include: [
+              {
+                model: User,
+                as: "company",
+                attributes: ["name"],
+              },
+            ],
+          },
+        ],
+      });
+    } catch (e) {
+      console.error("recentBookings err:", e.message);
+    }
 
     res.status(200).json({
       success: true,
@@ -481,8 +490,8 @@ exports.getTopCompanies = async (req, res) => {
           ],
         },
       ],
-      group: ["User.id"],
-      order: [[sequelize.literal("bookingCount"), "DESC"]],
+      group: ["User.id", "User.name", "User.email"], // Postgres requires all non-aggregated SELECT columns in GROUP BY
+      order: [[sequelize.literal('"bookingCount"'), "DESC"]],
       limit: limit,
       subQuery: false,
     });
