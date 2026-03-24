@@ -203,7 +203,11 @@ const CompanyProfile = () => {
       await fetchProfile();
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error(error.response?.data?.message || "Failed to update profile");
+      if (error.response?.status === 413) {
+        toast.error("Logo image is too large. Please upload an image smaller than 10MB.");
+      } else {
+        toast.error(error.response?.data?.message || "Failed to update profile");
+      }
     } finally {
       setSaving(false);
     }

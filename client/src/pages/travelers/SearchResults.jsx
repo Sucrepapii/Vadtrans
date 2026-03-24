@@ -53,7 +53,7 @@ const SearchResults = () => {
     }
   }, [searchParams]);
 
-    const fetchTrips = async () => {
+  const fetchTrips = async () => {
     try {
       setLoading(true);
       setExactMatch(true);
@@ -63,9 +63,12 @@ const SearchResults = () => {
       if (searchParams.from) params.from = searchParams.from;
       if (searchParams.to) params.to = searchParams.to;
       if (searchParams.date) params.date = searchParams.date;
-      if (searchParams.serviceCategory) params.serviceCategory = searchParams.serviceCategory;
-      if (searchParams.freightType) params.freightType = searchParams.freightType;
-      if (searchParams.transportType !== "all") params.transportType = searchParams.transportType;
+      if (searchParams.serviceCategory)
+        params.serviceCategory = searchParams.serviceCategory;
+      if (searchParams.freightType)
+        params.freightType = searchParams.freightType;
+      if (searchParams.transportType !== "all")
+        params.transportType = searchParams.transportType;
 
       let response = await tripAPI.getAllTrips(params);
       let foundTrips = response.data.trips;
@@ -80,14 +83,20 @@ const SearchResults = () => {
       if (foundTrips.length === 0 && (searchParams.from || searchParams.to)) {
         setExactMatch(false);
         const fallbackParams = { status: "active" };
-        if (searchParams.serviceCategory) fallbackParams.serviceCategory = searchParams.serviceCategory;
-        if (searchParams.freightType) fallbackParams.freightType = searchParams.freightType;
-        if (searchParams.transportType !== "all") fallbackParams.transportType = searchParams.transportType;
+        if (searchParams.serviceCategory)
+          fallbackParams.serviceCategory = searchParams.serviceCategory;
+        if (searchParams.freightType)
+          fallbackParams.freightType = searchParams.freightType;
+        if (searchParams.transportType !== "all")
+          fallbackParams.transportType = searchParams.transportType;
 
         const fallbackResponse = await tripAPI.getAllTrips(fallbackParams);
         let fallbackTrips = fallbackResponse.data.trips;
-        
-        if (searchParams.transportType && searchParams.transportType !== "all") {
+
+        if (
+          searchParams.transportType &&
+          searchParams.transportType !== "all"
+        ) {
           fallbackTrips = fallbackTrips.filter((trip) =>
             trip.transportType.includes(searchParams.transportType),
           );
@@ -131,11 +140,12 @@ const SearchResults = () => {
     }
   };
 
-
   const groupedTrips = {
-    "Inter-State Trips": trips.filter(t => t.transportType === 'inter-state'),
-    "Intra-State Trips": trips.filter(t => t.transportType === 'intra-state'),
-    "International Trips": trips.filter(t => t.transportType === 'international'),
+    "Inter-State Trips": trips.filter((t) => t.transportType === "inter-state"),
+    "Intra-State Trips": trips.filter((t) => t.transportType === "intra-state"),
+    "International Trips": trips.filter(
+      (t) => t.transportType === "international",
+    ),
   };
 
   const renderTripCard = (trip) => {
@@ -153,13 +163,19 @@ const SearchResults = () => {
                   </h3>
                   <div className="flex items-center gap-2 mt-1">
                     {trip.company?.avatar ? (
-                      <img src={trip.company.avatar} alt="Company Logo" className="w-5 h-5 rounded-full object-cover" />
+                      <img
+                        src={trip.company.avatar}
+                        alt="Company Logo"
+                        className="w-5 h-5 rounded-full object-cover"
+                      />
                     ) : (
                       <div className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-[10px] text-neutral-600 font-bold">
                         {trip.company?.name?.charAt(0) || "C"}
                       </div>
                     )}
-                    <p className="text-sm font-medium text-neutral-700">{trip.company?.name || "VadTrans Company"}</p>
+                    <p className="text-sm font-medium text-neutral-700">
+                      {trip.company?.name || "VadTrans Company"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -169,34 +185,50 @@ const SearchResults = () => {
                   <p className="text-xs text-neutral-500">Departure</p>
                   <div className="flex items-center gap-1 mt-1">
                     <FaClock className="text-neutral-400" />
-                    <span className="font-medium text-charcoal">{trip.departureTime}</span>
+                    <span className="font-medium text-charcoal">
+                      {trip.departureTime}
+                    </span>
                   </div>
                   {trip.operatingDays && (
-                    <div className="text-[10px] text-primary font-medium mt-0.5 max-w-[120px] truncate" title={trip.operatingDays}>
+                    <div
+                      className="text-[10px] text-primary font-medium mt-0.5 max-w-[120px] truncate"
+                      title={trip.operatingDays}>
                       Runs: {trip.operatingDays}
                     </div>
                   )}
                 </div>
                 <div>
                   <p className="text-xs text-neutral-500">Seats Available</p>
-                  <p className="font-medium text-charcoal mt-1">{trip.availableSeats} / {trip.seats}</p>
+                  <p className="font-medium text-charcoal mt-1">
+                    {trip.availableSeats} / {trip.seats}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs text-neutral-500">Status</p>
-                  <span className={"inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium " + (trip.status === "active" ? "bg-green-100 text-green-800" : "bg-neutral-100 text-neutral-800")}>
+                  <span
+                    className={
+                      "inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium " +
+                      (trip.status === "active"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-neutral-100 text-neutral-800")
+                    }>
                     {trip.status}
                   </span>
                 </div>
                 <div>
                   <p className="text-xs text-neutral-500">Vehicle</p>
-                  <p className="font-medium text-charcoal mt-1 capitalize">{trip.vehicleType || "Bus"}</p>
+                  <p className="font-medium text-charcoal mt-1 capitalize">
+                    {trip.vehicleType || "Bus"}
+                  </p>
                 </div>
                 {trip.terminal && (
                   <div>
                     <p className="text-xs text-neutral-500">Terminal</p>
                     <div className="flex items-center gap-1 mt-1">
                       <FaMapMarkerAlt className="text-neutral-400 flex-shrink-0" />
-                      <p className="font-medium text-charcoal">{trip.terminal}</p>
+                      <p className="font-medium text-charcoal">
+                        {trip.terminal}
+                      </p>
                     </div>
                   </div>
                 )}
@@ -206,15 +238,30 @@ const SearchResults = () => {
             <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-3 md:gap-4 pt-3 md:pt-0 border-t md:border-t-0 md:ml-6">
               <div className="text-left md:text-right">
                 <p className="text-xs sm:text-sm text-neutral-500">From</p>
-                <p className="text-2xl sm:text-3xl font-bold text-primary">₦{Number(trip.price).toLocaleString()}</p>
+                <p className="text-2xl sm:text-3xl font-bold text-primary">
+                  ₦{Number(trip.price).toLocaleString()}
+                </p>
               </div>
               <div className="flex flex-col items-end gap-2">
-                <Button variant="primary" onClick={() => handleSelectTrip(trip)} disabled={trip.availableSeats === 0 && trip.serviceCategory !== "freight"} className="whitespace-nowrap text-sm sm:text-base px-4 sm:px-6">
-                  {trip.availableSeats === 0 && trip.serviceCategory !== "freight" ? "Sold Out" : trip.serviceCategory === "freight" ? "Book Transport" : "Select Trip"}
+                <Button
+                  variant="primary"
+                  onClick={() => handleSelectTrip(trip)}
+                  disabled={
+                    trip.availableSeats === 0 &&
+                    trip.serviceCategory !== "freight"
+                  }
+                  className="whitespace-nowrap text-sm sm:text-base px-4 sm:px-6">
+                  {trip.availableSeats === 0 &&
+                  trip.serviceCategory !== "freight"
+                    ? "Sold Out"
+                    : trip.serviceCategory === "freight"
+                      ? "Book Transport"
+                      : "Select Trip"}
                 </Button>
                 {trip.availableSeats === 0 && (
                   <p className="text-[10px] sm:text-xs text-red-600 font-medium max-w-[150px] text-right">
-                    Fully booked for today! This vehicle will be available tomorrow.
+                    Fully booked for today! This vehicle will be available
+                    tomorrow.
                   </p>
                 )}
               </div>
@@ -281,42 +328,53 @@ const SearchResults = () => {
               <div className="text-center py-16">
                 <p className="text-neutral-600 mb-4 text-lg">No trips found</p>
                 <div className="flex justify-center">
-                  <Button variant="primary" onClick={() => navigate("/")}>Search Other Routes</Button>
+                  <Button variant="primary" onClick={() => navigate("/")}>
+                    Search Other Routes
+                  </Button>
                 </div>
               </div>
             </Card>
           ) : (
             <>
               {!exactMatch && (
-                 <div className="bg-orange-50 border-l-4 border-orange-400 p-4 mb-6 rounded-r-lg">
-                   <div className="flex">
-                     <div className="ml-3">
-                       <h3 className="text-sm font-medium text-orange-800">No exact matches found</h3>
-                       <p className="text-sm text-orange-700 mt-1">We couldn't find exact routes for your search. Here are all available {searchParams.serviceCategory} trips.</p>
-                     </div>
-                   </div>
-                 </div>
+                <div className="bg-orange-50 border-l-4 border-orange-400 p-4 mb-6 rounded-r-lg">
+                  <div className="flex">
+                    <div className="ml-3">
+                      <h3 className="text-sm font-medium text-orange-800">
+                        No exact matches found
+                      </h3>
+                      <p className="text-sm text-orange-700 mt-1">
+                        We couldn't find exact routes for your search. Here are
+                        all available {searchParams.serviceCategory} trips.
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
-              
+
               <p className="text-neutral-600 mb-6">
-                Found {trips.length} available trip{trips.length !== 1 ? "s" : ""}
+                Found {trips.length} available trip
+                {trips.length !== 1 ? "s" : ""}
               </p>
 
               <div className="space-y-8">
-                {Object.entries(groupedTrips).map(([categoryName, categoryTrips]) => {
-                  if (categoryTrips.length === 0) return null;
-                  return (
-                    <div key={categoryName}>
-                      <h2 className="text-xl font-bold text-charcoal mb-4 pb-2 border-b border-neutral-200">{categoryName}</h2>
-                      <div className="space-y-4">
-                        {categoryTrips.map(trip => renderTripCard(trip))}
+                {Object.entries(groupedTrips).map(
+                  ([categoryName, categoryTrips]) => {
+                    if (categoryTrips.length === 0) return null;
+                    return (
+                      <div key={categoryName}>
+                        <h2 className="text-xl font-bold text-charcoal mb-4 pb-2 border-b border-neutral-200">
+                          {categoryName}
+                        </h2>
+                        <div className="space-y-4">
+                          {categoryTrips.map((trip) => renderTripCard(trip))}
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
+                    );
+                  },
+                )}
               </div>
             </>
-          )}
           )}
         </div>
       </div>

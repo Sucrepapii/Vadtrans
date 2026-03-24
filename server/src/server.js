@@ -49,8 +49,8 @@ Object.values(models).forEach((model) => {
 const app = express();
 
 // Body parser middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(express.json({ limit: "15mb" }));
+app.use(express.urlencoded({ extended: true, limit: "15mb" }));
 
 // Serve static files from uploads directory
 // Serve static files from uploads directory
