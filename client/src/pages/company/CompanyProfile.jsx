@@ -31,7 +31,10 @@ import {
   nigerianStates,
   westAfricanCountries,
   nigerianStatesWithCities,
+  westAfricanCities,
 } from "../../data/locations";
+import { MaterialTimePicker } from "../../components/MaterialDatePicker";
+import MaterialDatePicker from "../../components/MaterialDatePicker";
 import { nigerianBanks } from "../../data/banks";
 import DocumentsTab from "../../components/company/DocumentsTab";
 import PassengersTab from "../../components/company/PassengersTab";
@@ -90,11 +93,24 @@ const CompanyProfile = () => {
     to: "",
     transportType: "inter-state",
     departureTime: "",
+    departureDate: "",
+    operatingDays: [],
     duration: "",
     price: "",
-    seats: "",
-    fromState: "", // For intra-state trips
-    toState: "", // For intra-state trips
+    seats: 18,
+    serviceCategory: "passenger",
+    freightType: "",
+
+    state: "",
+    vehicleType: "Hiace Bus (18 seater)",
+    terminal: "",
+    city: "",
+    documentPrices: {
+      "Regular Passport": "",
+      "Virgin Passport": "",
+      NIN: "",
+      "No Document": "",
+    },
   });
 
   const tabs = [
@@ -203,19 +219,26 @@ const CompanyProfile = () => {
     try {
       setSaving(true);
       const tripData = {
-        from:
-          formData.transportType === "intra-state"
-            ? formData.fromState
-            : formData.from,
-        to:
-          formData.transportType === "intra-state"
-            ? formData.toState
-            : formData.to,
+        from: formData.from,
+        to: formData.to,
         transportType: formData.transportType,
         departureTime: formData.departureTime,
+        departureDate: formData.departureDate || null,
+        operatingDays:
+          formData.operatingDays && formData.operatingDays.length > 0
+            ? formData.operatingDays.join(",")
+            : null,
         duration: formData.duration || null,
         price: Number(formData.price),
+        serviceCategory: formData.serviceCategory,
+        freightType:
+          formData.serviceCategory === "freight" ? formData.freightType : null,
+
         seats: Number(formData.seats),
+        vehicleType: formData.vehicleType,
+        terminal: formData.terminal,
+        city: formData.city,
+        documentPrices: formData.documentPrices,
       };
 
       if (editingTrip) {
@@ -231,11 +254,24 @@ const CompanyProfile = () => {
         to: "",
         transportType: "inter-state",
         departureTime: "",
+        departureDate: "",
+        operatingDays: [],
         duration: "",
         price: "",
-        seats: "",
-        fromState: "",
-        toState: "",
+        seats: 18,
+        serviceCategory: "passenger",
+        freightType: "",
+
+        state: "",
+        vehicleType: "Hiace Bus (18 seater)",
+        terminal: "",
+        city: "",
+        documentPrices: {
+          "Regular Passport": "",
+          "Virgin Passport": "",
+          NIN: "",
+          "No Document": "",
+        },
       });
       setShowModal(false);
       setEditingTrip(null);
@@ -272,19 +308,12 @@ const CompanyProfile = () => {
     return nigerianStates;
   }, [formData.transportType]);
 
-  const fromCities = useMemo(() => {
-    if (formData.transportType === "intra-state" && formData.fromState) {
-      return nigerianStatesWithCities[formData.fromState] || [];
+  const stateCities = useMemo(() => {
+    if (formData.transportType === "intra-state" && formData.state) {
+      return nigerianStatesWithCities[formData.state] || [];
     }
     return [];
-  }, [formData.transportType, formData.fromState]);
-
-  const toCities = useMemo(() => {
-    if (formData.transportType === "intra-state" && formData.toState) {
-      return nigerianStatesWithCities[formData.toState] || [];
-    }
-    return [];
-  }, [formData.transportType, formData.toState]);
+  }, [formData.transportType, formData.state]);
 
   if (loading) {
     return (
@@ -388,6 +417,70 @@ const CompanyProfile = () => {
                           "Please contact support for more information"}
                       </p>
                     </div>
+                  </div>
+                </Card>
+
+                
+                {/* Company Logo */}
+                <Card className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg font-semibold">Company Logo</h2>
+                    {!isEditing && (
+                      <Button variant="secondary" onClick={handleEdit} className="text-sm py-1 px-3">
+                        <FaEdit className="inline mr-1" /> Edit
+                      </Button>
+                    )}
+                  </div>
+                  <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
+                    <div className="relative flex-shrink-0">
+                      {(isEditing ? editData.avatar : companyData.avatar) ? (
+                        <img 
+                          src={isEditing ? editData.avatar : companyData.avatar} 
+                          alt="Company Logo" 
+                          className="w-24 h-24 sm:w-32 sm:h-32 rounded-full object-cover border-4 border-white shadow-md bg-white" 
+                        />
+                      ) : (
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full bg-neutral-200 flex items-center justify-center text-4xl text-neutral-500 font-bold border-4 border-white shadow-md">
+                          {(companyData.name || "C").charAt(0).toUpperCase()}
+                        </div>
+                      )}
+                    </div>
+                    {isEditing && (
+                      <div className="flex-1 w-full bg-neutral-50 p-4 rounded-lg border border-neutral-200">
+                        <label className="block text-sm font-medium text-neutral-700 mb-2">Upload New Logo</label>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={(e) => {
+                            const file = e.target.files[0];
+                            if (file) {
+                              // Optional: check size <= 2MB
+                              if (file.size > 2 * 1024 * 1024) {
+                                toast.error("Image must be smaller than 2MB");
+                                return;
+                              }
+                              const reader = new FileReader();
+                              reader.onloadend = () => {
+                                setEditData({ ...editData, avatar: reader.result });
+                              };
+                              reader.readAsDataURL(file);
+                            }
+                          }}
+                          disabled={saving}
+                          className="w-full text-sm text-neutral-600 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-medium file:bg-primary file:text-white hover:file:bg-primary-dark cursor-pointer mb-2"
+                        />
+                        <p className="text-xs text-neutral-500 mt-1">Recommended: Square image, max 2MB (JPEG/PNG).</p>
+                        {editData.avatar && (
+                           <button 
+                             type="button" 
+                             onClick={() => setEditData({ ...editData, avatar: "" })}
+                             className="text-xs text-red-600 mt-3 font-medium hover:underline"
+                           >
+                             Remove Logo
+                           </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </Card>
 
@@ -837,16 +930,27 @@ const CompanyProfile = () => {
                     onClick={() => {
                       setShowModal(true);
                       setFormData({
-                        // Reset form data when opening for new trip
                         from: "",
                         to: "",
                         transportType: "inter-state",
                         departureTime: "",
+                        departureDate: "",
+                        operatingDays: [],
                         duration: "",
                         price: "",
-                        seats: "",
-                        fromState: "",
-                        toState: "",
+                        seats: 18,
+                        serviceCategory: "passenger",
+                        freightType: "",
+                        state: "",
+                        vehicleType: "Hiace Bus (18 seater)",
+                        city: "",
+                        terminal: "",
+                        documentPrices: {
+                          "Regular Passport": "",
+                          "Virgin Passport": "",
+                          NIN: "",
+                          "No Document": "",
+                        },
                       });
                       setEditingTrip(null);
                     }}>
@@ -893,13 +997,31 @@ const CompanyProfile = () => {
                               onClick={() => {
                                 setEditingTrip(trip);
                                 setFormData({
-                                  from: trip.from,
-                                  to: trip.to,
-                                  transportType: trip.transportType,
-                                  departureTime: trip.departureTime,
+                                  from: trip.from || "",
+                                  to: trip.to || "",
+                                  transportType: trip.transportType || "inter-state",
+                                  departureTime: trip.departureTime || "",
+                                  departureDate: trip.departureDate || "",
+                                  operatingDays: Array.isArray(trip.operatingDays)
+                                    ? trip.operatingDays
+                                    : trip.operatingDays
+                                      ? trip.operatingDays.split(",")
+                                      : [],
                                   duration: trip.duration || "",
                                   price: trip.price,
-                                  seats: trip.seats,
+                                  seats: trip.seats || 18,
+                                  serviceCategory: trip.serviceCategory || "passenger",
+                                  freightType: trip.freightType || "",
+                                  vehicleType: trip.vehicleType || "Hiace Bus (18 seater)",
+                                  terminal: trip.terminal || "",
+                                  city: trip.city || "",
+                                  state: trip.state || "",
+                                  documentPrices: trip.documentPrices || {
+                                    "Regular Passport": "",
+                                    "Virgin Passport": "",
+                                    NIN: "",
+                                    "No Document": "",
+                                  },
                                 });
                                 setShowModal(true);
                               }}>
@@ -926,142 +1048,527 @@ const CompanyProfile = () => {
                         {editingTrip ? "Edit Trip" : "Add New Trip"}
                       </h3>
                       <form onSubmit={handleSubmit} className="space-y-4">
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            Transport Type
-                          </label>
-                          <select
-                            value={formData.transportType}
-                            onChange={(e) =>
-                              setFormData({
-                                ...formData,
-                                transportType: e.target.value,
-                              })
-                            }
-                            className="w-full px-4 py-2 border border-neutral-300 rounded-lg">
-                            <option value="inter-state">
-                              Inter-State (Nigeria)
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Service Category
+            </label>
+            <div className="flex gap-4 mb-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="serviceCategory"
+                  value="passenger"
+                  checked={formData.serviceCategory === "passenger"}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      serviceCategory: e.target.value,
+                    })
+                  }
+                  disabled={saving}
+                  className="text-primary focus:ring-primary h-4 w-4"
+                />
+                <span className="text-sm font-medium text-neutral-700">
+                  Passenger Transport
+                </span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="serviceCategory"
+                  value="freight"
+                  checked={formData.serviceCategory === "freight"}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      serviceCategory: e.target.value,
+                    })
+                  }
+                  disabled={saving}
+                  className="text-primary focus:ring-primary h-4 w-4"
+                />
+                <span className="text-sm font-medium text-neutral-700">
+                  Freight Transport
+                </span>
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-neutral-700 mb-2">
+              Transport Type
+            </label>
+            <select
+              value={formData.transportType}
+              onChange={(e) => {
+                setFormData({
+                  ...formData,
+                  transportType: e.target.value,
+                  from: "",
+                  to: "",
+                  state: "",
+                });
+              }}
+              className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              required
+              disabled={saving}>
+              <option value="inter-state">
+                Inter-State Trips Across Nigeria
+              </option>
+              <option value="international">
+                International Trips Within West Africa
+              </option>
+              <option value="intra-state">
+                Intra-State City-to-City Trips
+              </option>
+            </select>
+          </div>
+
+          {formData.serviceCategory === "freight" ? (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Freight Type
+              </label>
+              <select
+                value={formData.freightType}
+                onChange={(e) =>
+                  setFormData({ ...formData, freightType: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={saving}
+                required>
+                <option value="">Select Freight Type</option>
+                <option value="Small Parcel">Small Parcel</option>
+                <option value="Medium Cargo">Medium Cargo</option>
+                <option value="Large/Bulk Cargo">Large/Bulk Cargo</option>
+              </select>
+            </div>
+          ) : (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Vehicle Type
+              </label>
+              <select
+                value={formData.vehicleType}
+                onChange={(e) => {
+                  const vehicleType = e.target.value;
+                  let seats = formData.seats;
+
+                  // Auto-set seats based on vehicle type
+                  if (vehicleType.includes("18 seater")) seats = 18;
+                  else if (vehicleType.includes("32 seater")) seats = 32;
+                  else if (vehicleType.includes("52 seater")) seats = 52;
+                  else if (vehicleType === "Mini Buses (7 seater)") seats = 7;
+                  else if (vehicleType === "Sienna car (7 seats)") seats = 7;
+                  else if (vehicleType === "Sedan (small car)") seats = 4;
+
+                  setFormData({ ...formData, vehicleType, seats });
+                }}
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={saving}>
+                <option value="Hiace Bus (18 seater)">
+                  Hiace Bus (18 seater)
+                </option>
+                <option value="Coaster Bus (32 seater)">
+                  Coaster Bus (32 seater)
+                </option>
+                <option value="Luxirious Bus (52 seater)">
+                  Luxirious Bus (52 seater)
+                </option>
+                <option value="Mini Buses (7 seater)">
+                  Mini Buses (7 seater)
+                </option>
+                <option value="Sienna car (7 seats)">
+                  Sienna car (7 seats)
+                </option>
+                <option value="Sedan (small car)">Sedan (small car)</option>
+              </select>
+            </div>
+          )}
+
+          {/* FROM/TO LOCATION */}
+          {formData.transportType === "intra-state" ? (
+            <>
+              {/* Single State Selection for city-to-city trips */}
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  State (for city-to-city trip)
+                </label>
+                <select
+                  value={formData.state}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      state: e.target.value,
+                      from: "",
+                      to: "",
+                    })
+                  }
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                  disabled={saving}>
+                  <option value="">Select state</option>
+                  {locationOptions.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* From City - within selected state */}
+              {formData.state && (
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    From City
+                  </label>
+                  <select
+                    value={formData.from}
+                    onChange={(e) =>
+                      setFormData({ ...formData, from: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={saving}>
+                    <option value="">Select departure city</option>
+                    {stateCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* To City - within same state */}
+              {formData.state && (
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    To City
+                  </label>
+                  <select
+                    value={formData.to}
+                    onChange={(e) =>
+                      setFormData({ ...formData, to: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={saving}>
+                    <option value="">Select destination city</option>
+                    {stateCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </>
+          ) : (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  From
+                </label>
+                <select
+                  value={formData.from}
+                  onChange={(e) =>
+                    setFormData({ ...formData, from: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                  disabled={saving}>
+                  <option value="">
+                    Select departure{" "}
+                    {formData.transportType === "international"
+                      ? "country"
+                      : "state"}
+                  </option>
+                  {locationOptions.map((location) => (
+                    <option key={location} value={location}>
+                      {location}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  To
+                </label>
+                <select
+                  value={formData.to}
+                  onChange={(e) =>
+                    setFormData({ ...formData, to: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                  disabled={saving}>
+                  <option value="">
+                    Select destination{" "}
+                    {formData.transportType === "international"
+                      ? "country"
+                      : "state"}
+                  </option>
+                  {locationOptions.map((location) => (
+                    <option key={location} value={location}>
+                      {location}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
+
+          {(formData.transportType === "inter-state" ||
+            formData.transportType === "international" ||
+            formData.transportType === "intra-state") && (
+            <>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Terminal
+                  </label>
+                  <Input
+                    type="text"
+                    placeholder="e.g. Jibowu Terminal"
+                    value={formData.terminal}
+                    onChange={(e) =>
+                      setFormData({ ...formData, terminal: e.target.value })
+                    }
+                    disabled={saving}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    City
+                  </label>
+                  <select
+                    value={formData.city}
+                    onChange={(e) =>
+                      setFormData({ ...formData, city: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    disabled={saving}>
+                    <option value="">Select City</option>
+                    {formData.transportType === "inter-state" &&
+                    formData.from &&
+                    nigerianStatesWithCities[formData.from]
+                      ? nigerianStatesWithCities[formData.from].map((city) => (
+                          <option key={city} value={city}>
+                            {city}
+                          </option>
+                        ))
+                      : formData.transportType === "international" &&
+                          formData.from &&
+                          westAfricanCities[formData.from]
+                        ? westAfricanCities[formData.from].map((city) => (
+                            <option key={city} value={city}>
+                              {city}
                             </option>
-                            <option value="international">
-                              International (West Africa)
-                            </option>
-                            <option value="intra-state">
-                              Intra-State (City-to-City)
-                            </option>
-                          </select>
-                        </div>
+                          ))
+                        : null}
+                  </select>
+                </div>
+              </div>
+            </>
+          )}
 
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            From
-                          </label>
-                          <select
-                            value={formData.from}
-                            onChange={(e) =>
-                              setFormData({ ...formData, from: e.target.value })
-                            }
-                            className="w-full px-4 py-2 border border-neutral-300 rounded-lg"
-                            required>
-                            <option value="">Select departure</option>
-                            {locationOptions.map((location) => (
-                              <option key={location} value={location}>
-                                {location}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+          <MaterialTimePicker
+            label="Departure Time"
+            value={formData.departureTime}
+            onChange={(timeStr) =>
+              setFormData({ ...formData, departureTime: timeStr })
+            }
+            className="w-full"
+          />
 
-                        <div>
-                          <label className="block text-sm font-medium mb-2">
-                            To
-                          </label>
-                          <select
-                            value={formData.to}
-                            onChange={(e) =>
-                              setFormData({ ...formData, to: e.target.value })
-                            }
-                            className="w-full px-4 py-2 border border-neutral-300 rounded-lg"
-                            required>
-                            <option value="">Select destination</option>
-                            {locationOptions.map((location) => (
-                              <option key={location} value={location}>
-                                {location}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
+          <div className="space-y-4">
+            <h3 className="text-sm font-medium text-neutral-700 border-b pb-2 pt-2">
+              Schedule & Dates
+            </h3>
 
-                        <Input
-                          label="Departure Time"
-                          type="time"
-                          value={formData.departureTime}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              departureTime: e.target.value,
-                            })
-                          }
-                          required
-                        />
+            <MaterialDatePicker
+              label="Specific Departure Date (Optional)"
+              value={formData.departureDate}
+              onChange={(date) => {
+                if (date) {
+                  const year = date.getFullYear();
+                  const month = String(date.getMonth() + 1).padStart(2, "0");
+                  const day = String(date.getDate()).padStart(2, "0");
+                  const dateStr = `${year}-${month}-${day}`;
+                  setFormData({
+                    ...formData,
+                    departureDate: dateStr,
+                    operatingDays: [],
+                  });
+                } else {
+                  setFormData({ ...formData, departureDate: "" });
+                }
+              }}
+              minDate={new Date()}
+              className="w-full"
+            />
 
-                        <Input
-                          label="Duration (hours)"
-                          type="number"
-                          step="0.5"
-                          placeholder="12"
-                          value={formData.duration}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              duration: e.target.value,
-                            })
-                          }
-                        />
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Or Operating Days (Recurring Trip)
+              </label>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  "Monday",
+                  "Tuesday",
+                  "Wednesday",
+                  "Thursday",
+                  "Friday",
+                  "Saturday",
+                  "Sunday",
+                ].map((day) => (
+                  <label
+                    key={day}
+                    className="flex items-center gap-1.5 bg-neutral-100 px-3 py-1.5 rounded-full cursor-pointer hover:bg-neutral-200 transition-colors">
+                    <input
+                      type="checkbox"
+                      className="rounded text-primary focus:ring-primary w-4 h-4"
+                      checked={formData.operatingDays.includes(day)}
+                      disabled={saving || formData.departureDate}
+                      onChange={(e) => {
+                        const newDays = e.target.checked
+                          ? [...formData.operatingDays, day]
+                          : formData.operatingDays.filter((d) => d !== day);
+                        setFormData({
+                          ...formData,
+                          operatingDays: newDays,
+                          departureDate: "",
+                        });
+                      }}
+                    />
+                    <span className="text-sm">{day.substring(0, 3)}</span>
+                  </label>
+                ))}
+              </div>
+              {formData.departureDate && (
+                <p className="text-xs text-amber-600 mt-2">
+                  Clear specific date to use recurring days.
+                </p>
+              )}
+            </div>
+          </div>
 
-                        <Input
-                          label="Price (₦)"
-                          type="number"
-                          value={formData.price}
-                          onChange={(e) =>
-                            setFormData({ ...formData, price: e.target.value })
-                          }
-                          required
-                        />
+          <Input
+            label="Duration (hours)"
+            type="number"
+            step="0.5"
+            placeholder="12"
+            value={formData.duration}
+            onChange={(e) =>
+              setFormData({ ...formData, duration: e.target.value })
+            }
+            disabled={saving}
+          />
 
-                        <Input
-                          label="Total Seats"
-                          type="number"
-                          value={formData.seats}
-                          onChange={(e) =>
-                            setFormData({ ...formData, seats: e.target.value })
-                          }
-                          required
-                        />
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Standard Price (₦)"
+              type="number"
+              placeholder="25000"
+              value={formData.price}
+              onChange={(e) =>
+                setFormData({ ...formData, price: e.target.value })
+              }
+              required
+              disabled={saving}
+            />
+            <Input
+              label="Total Seats"
+              type="number"
+              placeholder="40"
+              value={formData.seats}
+              onChange={(e) =>
+                setFormData({ ...formData, seats: e.target.value })
+              }
+              required
+              disabled={saving}
+            />
+          </div>
 
-                        <div className="flex gap-3">
-                          <Button
-                            type="button"
-                            variant="secondary"
-                            fullWidth
-                            onClick={() => {
-                              setShowModal(false);
-                              setEditingTrip(null);
-                            }}>
-                            Cancel
-                          </Button>
-                          <Button
-                            type="submit"
-                            variant="primary"
-                            fullWidth
-                            disabled={saving}>
-                            {saving
-                              ? "Saving..."
-                              : editingTrip
-                                ? "Update"
-                                : "Create"}
-                          </Button>
-                        </div>
-                      </form>
+          {formData.transportType === "international" && (
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-sm font-medium text-neutral-700">
+                Document-Based Pricing (₦)
+              </h3>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Regular Passport"
+                  type="number"
+                  placeholder="25000"
+                  value={formData.documentPrices["Regular Passport"]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      documentPrices: {
+                        ...formData.documentPrices,
+                        "Regular Passport": e.target.value,
+                      },
+                    })
+                  }
+                  disabled={saving}
+                />
+                <Input
+                  label="Virgin Passport"
+                  type="number"
+                  placeholder="25000"
+                  value={formData.documentPrices["Virgin Passport"]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      documentPrices: {
+                        ...formData.documentPrices,
+                        "Virgin Passport": e.target.value,
+                      },
+                    })
+                  }
+                  disabled={saving}
+                />
+                <Input
+                  label="NIN"
+                  type="number"
+                  placeholder="25000"
+                  value={formData.documentPrices["NIN"]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      documentPrices: {
+                        ...formData.documentPrices,
+                        NIN: e.target.value,
+                      },
+                    })
+                  }
+                  disabled={saving}
+                />
+                <Input
+                  label="No Document"
+                  type="number"
+                  placeholder="25000"
+                  value={formData.documentPrices["No Document"]}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      documentPrices: {
+                        ...formData.documentPrices,
+                        "No Document": e.target.value,
+                      },
+                    })
+                  }
+                  disabled={saving}
+                />
+              </div>
+              <p className="text-xs text-neutral-500 italic">
+                * If left empty, the Standard Price will be used.
+              </p>
+            </div>
+          )}
+        </form>
                     </div>
                   </div>
                 )}

@@ -55,7 +55,7 @@ exports.getAllTrips = async (req, res) => {
         {
           model: User,
           as: "company",
-          attributes: ["id", "name", "email"],
+          attributes: ["id", "name", "email", "avatar"],
         },
       ],
     });
@@ -97,7 +97,7 @@ exports.getTripById = async (req, res) => {
         {
           model: User,
           as: "company",
-          attributes: ["id", "name", "email"],
+          attributes: ["id", "name", "email", "avatar"],
         },
       ],
     });
