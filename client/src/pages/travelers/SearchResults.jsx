@@ -32,6 +32,7 @@ const SearchResults = () => {
   const [loading, setLoading] = useState(true);
   const [exactMatch, setExactMatch] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const tripsPerPage = 10;
 
   useEffect(() => {
@@ -143,11 +144,24 @@ const SearchResults = () => {
     }
   };
 
+  // Search filtering logic
+  const filteredTrips = trips.filter((trip) => {
+    if (!searchTerm.trim()) return true;
+    const term = searchTerm.toLowerCase().trim();
+    return (
+      (trip.from && trip.from.toLowerCase().includes(term)) ||
+      (trip.to && trip.to.toLowerCase().includes(term)) ||
+      (trip.company?.name && trip.company.name.toLowerCase().includes(term)) ||
+      (trip.terminal && trip.terminal.toLowerCase().includes(term)) ||
+      (trip.vehicleType && trip.vehicleType.toLowerCase().includes(term))
+    );
+  });
+
   // Pagination logic
   const indexOfLastTrip = currentPage * tripsPerPage;
   const indexOfFirstTrip = indexOfLastTrip - tripsPerPage;
-  const currentTrips = trips.slice(indexOfFirstTrip, indexOfLastTrip);
-  const totalPages = Math.ceil(trips.length / tripsPerPage);
+  const currentTrips = filteredTrips.slice(indexOfFirstTrip, indexOfLastTrip);
+  const totalPages = Math.ceil(filteredTrips.length / tripsPerPage);
 
   const groupedTrips = {
     "Inter-State Trips": currentTrips.filter((t) => t.transportType === "inter-state"),
@@ -361,10 +375,36 @@ const SearchResults = () => {
                 </div>
               )}
 
-              <p className="text-neutral-600 mb-6">
-                Found {trips.length} available trip
-                {trips.length !== 1 ? "s" : ""}
-              </p>
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <p className="text-neutral-600">
+                  Found {filteredTrips.length} available trip
+                  {filteredTrips.length !== 1 ? "s" : ""}
+                </p>
+                <div className="w-full sm:w-80 relative">
+                  <input
+                    type="text"
+                    placeholder="Search routes, terminals, companies..."
+                    value={searchTerm}
+                    onChange={(e) => {
+                      setSearchTerm(e.target.value);
+                      setCurrentPage(1); // Reset to first page when searching
+                    }}
+                    className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                  />
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                    <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"></path></svg>
+                  </div>
+                </div>
+              </div>
+
+              {filteredTrips.length === 0 && searchTerm && (
+                <div className="text-center py-12 bg-white rounded-xl border border-neutral-200 shadow-sm mb-6">
+                  <p className="text-neutral-500 text-lg mb-2">No results matched your search: "{searchTerm}"</p>
+                  <Button variant="secondary" onClick={() => { setSearchTerm(""); setCurrentPage(1); }}>
+                    Clear Search
+                  </Button>
+                </div>
+              )}
 
               <div className="space-y-8">
                 {Object.entries(groupedTrips).map(
