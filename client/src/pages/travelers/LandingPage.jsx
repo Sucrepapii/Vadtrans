@@ -7,11 +7,8 @@ import Button from "../../components/Button";
 import Input from "../../components/Input";
 import MaterialDatePicker from "../../components/MaterialDatePicker";
 import ReviewSection from "../../components/ReviewSection";
-import {
-  nigerianStates,
-  westAfricanCountries,
-  nigerianStatesWithCities,
-} from "../../data/locations";
+import { westAfricanCountries } from "../../data/locations";
+import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 import {
   FaMapMarkerAlt,
   FaCalendar,
@@ -46,23 +43,35 @@ const LandingPage = () => {
     freightType: "",
   });
 
+  const { states, getCitiesForState } = useLocationsAPI();
+  const [apiCities, setApiCities] = useState([]);
+
+  // Fetch cities when fromState is selected for intra-state
+  useEffect(() => {
+    let isMounted = true;
+    if (searchData.transportType === "intra-state" && searchData.fromState) {
+      getCitiesForState(searchData.fromState).then(fetchedCities => {
+        if (isMounted) setApiCities(fetchedCities || []);
+      });
+    } else {
+      setApiCities([]);
+    }
+    return () => { isMounted = false; };
+  }, [searchData.transportType, searchData.fromState, getCitiesForState]);
+
   // Determine location options based on transport type
   const locationOptions = useMemo(() => {
     if (searchData.transportType === "international") {
       return westAfricanCountries;
-    } else if (searchData.transportType === "intra-state") {
-      return Object.keys(nigerianStatesWithCities);
     }
-    return nigerianStates;
-  }, [searchData.transportType]);
+    // For both inter-state and intra-state, return the API states
+    return states.map(s => s.name);
+  }, [searchData.transportType, states]);
 
   // Get cities for selected state (intra-state only)
   const fromCities = useMemo(() => {
-    if (searchData.transportType === "intra-state" && searchData.fromState) {
-      return nigerianStatesWithCities[searchData.fromState] || [];
-    }
-    return [];
-  }, [searchData.transportType, searchData.fromState]);
+    return apiCities;
+  }, [apiCities]);
 
   const handleSearch = (e) => {
     e.preventDefault();

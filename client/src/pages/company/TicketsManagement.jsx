@@ -11,11 +11,10 @@ import Table from "../../components/Table";
 import Pagination from "../../components/Pagination";
 import Input from "../../components/Input";
 import {
-  nigerianStates,
   westAfricanCountries,
-  nigerianStatesWithCities,
   westAfricanCities,
 } from "../../data/locations";
+import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 import { tripAPI } from "../../services/api";
 import {
   FaPlus,
@@ -71,26 +70,39 @@ const TicketsManagement = () => {
     },
   });
 
+  const { states, getCitiesForState } = useLocationsAPI();
+  const [apiCities, setApiCities] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const stateToFetch = formData.transportType === "intra-state" 
+      ? formData.state 
+      : formData.transportType === "inter-state" 
+        ? formData.from 
+        : null;
+
+    if (stateToFetch) {
+      getCitiesForState(stateToFetch).then(fetchedCities => {
+        if (isMounted) setApiCities(fetchedCities || []);
+      });
+    } else {
+      setApiCities([]);
+    }
+    return () => { isMounted = false; };
+  }, [formData.transportType, formData.state, formData.from, getCitiesForState]);
+
   // Determine location options based on transport type
   const locationOptions = useMemo(() => {
     if (formData.transportType === "international") {
       return westAfricanCountries;
-    } else if (formData.transportType === "inter-state") {
-      return nigerianStates;
-    } else if (formData.transportType === "intra-state") {
-      // For intra-state, return states for the state selection
-      return Object.keys(nigerianStatesWithCities);
     }
-    return nigerianStates;
-  }, [formData.transportType]);
+    return states.map(s => s.name);
+  }, [formData.transportType, states]);
 
   // Get cities for selected state (intra-state only)
   const stateCities = useMemo(() => {
-    if (formData.transportType === "intra-state" && formData.state) {
-      return nigerianStatesWithCities[formData.state] || [];
-    }
-    return [];
-  }, [formData.transportType, formData.state]);
+    return apiCities;
+  }, [apiCities]);
 
   // Fetch trips on component mount
   useEffect(() => {
@@ -768,8 +780,8 @@ const TicketsManagement = () => {
                     <option value="">Select City</option>
                     {formData.transportType === "inter-state" &&
                     formData.from &&
-                    nigerianStatesWithCities[formData.from]
-                      ? nigerianStatesWithCities[formData.from].map((city) => (
+                    apiCities.length > 0
+                      ? apiCities.map((city) => (
                           <option key={city} value={city}>
                             {city}
                           </option>

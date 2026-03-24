@@ -28,11 +28,10 @@ import {
   FaBox,
 } from "react-icons/fa";
 import {
-  nigerianStates,
   westAfricanCountries,
-  nigerianStatesWithCities,
   westAfricanCities,
 } from "../../data/locations";
+import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 import { MaterialTimePicker } from "../../components/MaterialDatePicker";
 import MaterialDatePicker from "../../components/MaterialDatePicker";
 import { nigerianBanks } from "../../data/banks";
@@ -301,23 +300,37 @@ const CompanyProfile = () => {
     }
   };
 
+  const { states, getCitiesForState } = useLocationsAPI();
+  const [apiCities, setApiCities] = useState([]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const stateToFetch = formData.transportType === "intra-state" 
+      ? formData.state 
+      : formData.transportType === "inter-state" 
+        ? formData.from 
+        : null;
+
+    if (stateToFetch) {
+      getCitiesForState(stateToFetch).then(fetchedCities => {
+        if (isMounted) setApiCities(fetchedCities || []);
+      });
+    } else {
+      setApiCities([]);
+    }
+    return () => { isMounted = false; };
+  }, [formData.transportType, formData.state, formData.from, getCitiesForState]);
+
   const locationOptions = useMemo(() => {
     if (formData.transportType === "international") {
       return westAfricanCountries;
-    } else if (formData.transportType === "inter-state") {
-      return nigerianStates;
-    } else if (formData.transportType === "intra-state") {
-      return Object.keys(nigerianStatesWithCities);
     }
-    return nigerianStates;
-  }, [formData.transportType]);
+    return states.map(s => s.name);
+  }, [formData.transportType, states]);
 
   const stateCities = useMemo(() => {
-    if (formData.transportType === "intra-state" && formData.state) {
-      return nigerianStatesWithCities[formData.state] || [];
-    }
-    return [];
-  }, [formData.transportType, formData.state]);
+    return apiCities;
+  }, [apiCities]);
 
   if (loading) {
     return (
@@ -1357,8 +1370,8 @@ const CompanyProfile = () => {
                     <option value="">Select City</option>
                     {formData.transportType === "inter-state" &&
                     formData.from &&
-                    nigerianStatesWithCities[formData.from]
-                      ? nigerianStatesWithCities[formData.from].map((city) => (
+                    apiCities.length > 0
+                      ? apiCities.map((city) => (
                           <option key={city} value={city}>
                             {city}
                           </option>
