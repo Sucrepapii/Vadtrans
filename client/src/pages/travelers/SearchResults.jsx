@@ -31,6 +31,8 @@ const SearchResults = () => {
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [exactMatch, setExactMatch] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const tripsPerPage = 10;
 
   useEffect(() => {
     // Get search params from location state
@@ -105,6 +107,7 @@ const SearchResults = () => {
       }
 
       setTrips(foundTrips);
+      setCurrentPage(1);
     } catch (error) {
       console.error("Error fetching trips:", error);
       toast.error(error.response?.data?.message || "Failed to load trips");
@@ -140,10 +143,16 @@ const SearchResults = () => {
     }
   };
 
+  // Pagination logic
+  const indexOfLastTrip = currentPage * tripsPerPage;
+  const indexOfFirstTrip = indexOfLastTrip - tripsPerPage;
+  const currentTrips = trips.slice(indexOfFirstTrip, indexOfLastTrip);
+  const totalPages = Math.ceil(trips.length / tripsPerPage);
+
   const groupedTrips = {
-    "Inter-State Trips": trips.filter((t) => t.transportType === "inter-state"),
-    "Intra-State Trips": trips.filter((t) => t.transportType === "intra-state"),
-    "International Trips": trips.filter(
+    "Inter-State Trips": currentTrips.filter((t) => t.transportType === "inter-state"),
+    "Intra-State Trips": currentTrips.filter((t) => t.transportType === "intra-state"),
+    "International Trips": currentTrips.filter(
       (t) => t.transportType === "international",
     ),
   };
@@ -374,6 +383,33 @@ const SearchResults = () => {
                   },
                 )}
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex justify-center items-center gap-4 mt-8 pt-4 border-t border-neutral-200">
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.max(prev - 1, 1));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    disabled={currentPage === 1}>
+                    Previous
+                  </Button>
+                  <span className="text-neutral-600 font-medium">
+                    Page {currentPage} of {totalPages}
+                  </span>
+                  <Button
+                    variant="secondary"
+                    onClick={() => {
+                      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    disabled={currentPage === totalPages}>
+                    Next
+                  </Button>
+                </div>
+              )}
             </>
           )}
         </div>
