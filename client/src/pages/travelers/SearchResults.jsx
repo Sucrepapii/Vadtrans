@@ -105,42 +105,6 @@ const SearchResults = () => {
     }
   };
 
-      if (searchParams.from) params.from = searchParams.from;
-      if (searchParams.to) params.to = searchParams.to;
-      if (searchParams.date) params.date = searchParams.date;
-      if (searchParams.serviceCategory)
-        params.serviceCategory = searchParams.serviceCategory;
-      if (searchParams.freightType)
-        params.freightType = searchParams.freightType;
-
-      // Handle transport type filter
-      if (searchParams.transportType !== "all") {
-        // If specific type selected (bus, car, domestic, international)
-        // We need to match partial transport type strings
-        params.transportType = searchParams.transportType;
-      }
-
-      const response = await tripAPI.getAllTrips(params);
-
-      // Filter trips based on transportType if not "all"
-      let filteredTrips = response.data.trips;
-
-      if (searchParams.transportType && searchParams.transportType !== "all") {
-        filteredTrips = filteredTrips.filter((trip) =>
-          trip.transportType.includes(searchParams.transportType),
-        );
-      }
-
-      setTrips(filteredTrips);
-    } catch (error) {
-      console.error("Error fetching trips:", error);
-      toast.error(error.response?.data?.message || "Failed to load trips");
-      setTrips([]);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const getTransportIcon = (trip) => {
     if (trip?.serviceCategory === "freight") return FaTruck;
     return FaBus;
