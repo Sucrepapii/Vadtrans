@@ -292,7 +292,8 @@
       "Odukpani",
       "Ogoja",
       "Yakuur",
-      "Yala"
+      "Yala",
+      "Calabar"
     ]
   },
   {
@@ -323,7 +324,8 @@
       "Uvwie",
       "Warri North",
       "Warri South",
-      "Warri South West"
+      "Warri South West",
+      "Asaba"
     ]
   },
   {
@@ -366,7 +368,8 @@
       "Ovia South-West",
       "Owan East",
       "Owan West",
-      "Uhunmwonde"
+      "Uhunmwonde",
+      "Benin City"
     ]
   },
   {
@@ -411,7 +414,8 @@
       "Udenu",
       "Oji River",
       "Uzo Uwani",
-      "Udi"
+      "Udi",
+      "Enugu"
     ]
   },
   {
@@ -423,7 +427,8 @@
       "Gwagwalada",
       "Kuje",
       "Kwali",
-      "Municipal Area Council"
+      "Municipal Area Council",
+      "Abuja"
     ]
   },
   {
@@ -512,7 +517,8 @@
       "Oyo East",
       "Saki East",
       "Saki West",
-      "Surulere Oyo State"
+      "Surulere Oyo State",
+      "Ibadan"
     ]
   },
   {
@@ -545,7 +551,8 @@
       "Owerri Municipal",
       "Owerri North",
       "Unuimo",
-      "Owerri West"
+      "Owerri West",
+      "Owerri"
     ]
   },
   {
@@ -574,7 +581,8 @@
       "Sanga",
       "Soba",
       "Zangon Kataf",
-      "Zaria"
+      "Zaria",
+      "Kaduna"
     ]
   },
   {
@@ -651,7 +659,8 @@
       "Tudun Wada",
       "Ungogo",
       "Warawa",
-      "Wudil"
+      "Wudil",
+      "Kano"
     ]
   },
   {
@@ -766,7 +775,8 @@
       "Qua'an Pan",
       "Riyom",
       "Shendam",
-      "Wase"
+      "Wase",
+      "Jos"
     ]
   },
   {
@@ -919,7 +929,8 @@
       "Offa",
       "Oke Ero",
       "Oyun",
-      "Pategi"
+      "Pategi",
+      "Ilorin"
     ]
   },
   {
@@ -969,7 +980,8 @@
       "Shiroro",
       "Suleja",
       "Tafa",
-      "Wushishi"
+      "Wushishi",
+      "Minna"
     ]
   },
   {
@@ -992,7 +1004,8 @@
       "Ukwa West",
       "Umuahia North",
       "Umuahia South",
-      "Umu Nneochi"
+      "Umu Nneochi",
+      "Umuahia"
     ]
   }
 ]
