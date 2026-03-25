@@ -1437,7 +1437,7 @@ const CompanyProfile = () => {
             </>
           )}
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-neutral-700 mb-2">
                 Terminal Name
@@ -1452,39 +1452,42 @@ const CompanyProfile = () => {
                 disabled={saving}
               />
             </div>
-            {(formData.transportType === "international") && (
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  Terminal City
-                </label>
-                <select
-                  value={formData.city}
-                  onChange={(e) =>
-                    setFormData({ ...formData, city: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  disabled={saving}>
-                  <option value="">Select City</option>
-                  {formData.from && westAfricanCities[formData.from]
-                    ? westAfricanCities[formData.from].map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))
-                    : null}
-                </select>
-              </div>
-            )}
+            
+            <div className="flex flex-col justify-end">
+              <MaterialTimePicker
+                label="Departure Time"
+                value={formData.departureTime}
+                onChange={(timeStr) =>
+                  setFormData({ ...formData, departureTime: timeStr })
+                }
+                className="w-full"
+              />
+            </div>
           </div>
 
-          <MaterialTimePicker
-            label="Departure Time"
-            value={formData.departureTime}
-            onChange={(timeStr) =>
-              setFormData({ ...formData, departureTime: timeStr })
-            }
-            className="w-full"
-          />
+          {(formData.transportType === "international") && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Terminal City
+              </label>
+              <select
+                value={formData.city}
+                onChange={(e) =>
+                  setFormData({ ...formData, city: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={saving}>
+                <option value="">Select City</option>
+                {formData.from && westAfricanCities[formData.from]
+                  ? westAfricanCities[formData.from].map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))
+                  : null}
+              </select>
+            </div>
+          )}
 
           <div className="space-y-4">
             <h3 className="text-sm font-medium text-neutral-700 border-b pb-2 pt-2">
