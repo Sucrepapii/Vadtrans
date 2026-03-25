@@ -101,6 +101,7 @@ const CompanyProfile = () => {
     freightType: "",
 
     state: "",
+    toState: "",
     vehicleType: "Hiace Bus (18 seater)",
     terminal: "",
     city: "",
@@ -266,6 +267,7 @@ const CompanyProfile = () => {
         freightType: "",
 
         state: "",
+        toState: "",
         vehicleType: "Hiace Bus (18 seater)",
         terminal: "",
         city: "",
@@ -301,25 +303,40 @@ const CompanyProfile = () => {
   };
 
   const { states, getCitiesForState } = useLocationsAPI();
-  const [apiCities, setApiCities] = useState([]);
+  const [apiFromCities, setApiFromCities] = useState([]);
+  const [apiToCities, setApiToCities] = useState([]);
 
   useEffect(() => {
     let isMounted = true;
-    const stateToFetch = formData.transportType === "intra-state" 
+    const stateToFetch = formData.transportType === "intra-state" || formData.transportType === "inter-state" 
       ? formData.state 
-      : formData.transportType === "inter-state" 
-        ? formData.from 
-        : null;
+      : null;
 
     if (stateToFetch) {
       getCitiesForState(stateToFetch).then(fetchedCities => {
-        if (isMounted) setApiCities(fetchedCities || []);
+        if (isMounted) setApiFromCities(fetchedCities || []);
       });
     } else {
-      setApiCities([]);
+      setApiFromCities([]);
     }
     return () => { isMounted = false; };
-  }, [formData.transportType, formData.state, formData.from, getCitiesForState]);
+  }, [formData.transportType, formData.state, getCitiesForState]);
+
+  useEffect(() => {
+    let isMounted = true;
+    const stateToFetch = formData.transportType === "inter-state" 
+      ? formData.toState 
+      : null;
+
+    if (stateToFetch) {
+      getCitiesForState(stateToFetch).then(fetchedCities => {
+        if (isMounted) setApiToCities(fetchedCities || []);
+      });
+    } else {
+      setApiToCities([]);
+    }
+    return () => { isMounted = false; };
+  }, [formData.transportType, formData.toState, getCitiesForState]);
 
   const locationOptions = useMemo(() => {
     if (formData.transportType === "international") {
@@ -328,9 +345,8 @@ const CompanyProfile = () => {
     return states.map(s => s.name);
   }, [formData.transportType, states]);
 
-  const stateCities = useMemo(() => {
-    return apiCities;
-  }, [apiCities]);
+  const fromCities = useMemo(() => apiFromCities, [apiFromCities]);
+  const toCities = useMemo(() => apiToCities, [apiToCities]);
 
   if (loading) {
     return (
@@ -1248,7 +1264,7 @@ const CompanyProfile = () => {
                     required
                     disabled={saving}>
                     <option value="">Select departure city</option>
-                    {stateCities.map((city) => (
+                    {fromCities.map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
@@ -1272,7 +1288,97 @@ const CompanyProfile = () => {
                     required
                     disabled={saving}>
                     <option value="">Select destination city</option>
-                    {stateCities.map((city) => (
+                    {fromCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+            </>
+          ) : formData.transportType === "inter-state" ? (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Departure State
+                </label>
+                <select
+                  value={formData.state}
+                  onChange={(e) =>
+                    setFormData({ ...formData, state: e.target.value, from: "" })
+                  }
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                  disabled={saving}>
+                  <option value="">Select departure state</option>
+                  {locationOptions.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {formData.state && (
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    From City
+                  </label>
+                  <select
+                    value={formData.from}
+                    onChange={(e) =>
+                      setFormData({ ...formData, from: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={saving}>
+                    <option value="">Select departure city</option>
+                    {fromCities.map((city) => (
+                      <option key={city} value={city}>
+                        {city}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Destination State
+                </label>
+                <select
+                  value={formData.toState}
+                  onChange={(e) =>
+                    setFormData({ ...formData, toState: e.target.value, to: "" })
+                  }
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  required
+                  disabled={saving}>
+                  <option value="">Select destination state</option>
+                  {locationOptions.map((state) => (
+                    <option key={state} value={state}>
+                      {state}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {formData.toState && (
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    To City
+                  </label>
+                  <select
+                    value={formData.to}
+                    onChange={(e) =>
+                      setFormData({ ...formData, to: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={saving}>
+                    <option value="">Select destination city</option>
+                    {toCities.map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
@@ -1296,10 +1402,7 @@ const CompanyProfile = () => {
                   required
                   disabled={saving}>
                   <option value="">
-                    Select departure{" "}
-                    {formData.transportType === "international"
-                      ? "country"
-                      : "state"}
+                    Select departure country
                   </option>
                   {locationOptions.map((location) => (
                     <option key={location} value={location}>
@@ -1322,10 +1425,7 @@ const CompanyProfile = () => {
                   required
                   disabled={saving}>
                   <option value="">
-                    Select destination{" "}
-                    {formData.transportType === "international"
-                      ? "country"
-                      : "state"}
+                    Select destination country
                   </option>
                   {locationOptions.map((location) => (
                     <option key={location} value={location}>
@@ -1337,59 +1437,45 @@ const CompanyProfile = () => {
             </>
           )}
 
-          {(formData.transportType === "inter-state" ||
-            formData.transportType === "international" ||
-            formData.transportType === "intra-state") && (
-            <>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    Terminal
-                  </label>
-                  <Input
-                    type="text"
-                    placeholder="e.g. Jibowu Terminal"
-                    value={formData.terminal}
-                    onChange={(e) =>
-                      setFormData({ ...formData, terminal: e.target.value })
-                    }
-                    disabled={saving}
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    City
-                  </label>
-                  <select
-                    value={formData.city}
-                    onChange={(e) =>
-                      setFormData({ ...formData, city: e.target.value })
-                    }
-                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                    disabled={saving}>
-                    <option value="">Select City</option>
-                    {formData.transportType === "inter-state" &&
-                    formData.from &&
-                    apiCities.length > 0
-                      ? apiCities.map((city) => (
-                          <option key={city} value={city}>
-                            {city}
-                          </option>
-                        ))
-                      : formData.transportType === "international" &&
-                          formData.from &&
-                          westAfricanCities[formData.from]
-                        ? westAfricanCities[formData.from].map((city) => (
-                            <option key={city} value={city}>
-                              {city}
-                            </option>
-                          ))
-                        : null}
-                  </select>
-                </div>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Terminal Name
+              </label>
+              <Input
+                type="text"
+                placeholder="e.g. Jibowu Terminal"
+                value={formData.terminal}
+                onChange={(e) =>
+                  setFormData({ ...formData, terminal: e.target.value })
+                }
+                disabled={saving}
+              />
+            </div>
+            {(formData.transportType === "international") && (
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Terminal City
+                </label>
+                <select
+                  value={formData.city}
+                  onChange={(e) =>
+                    setFormData({ ...formData, city: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  disabled={saving}>
+                  <option value="">Select City</option>
+                  {formData.from && westAfricanCities[formData.from]
+                    ? westAfricanCities[formData.from].map((city) => (
+                        <option key={city} value={city}>
+                          {city}
+                        </option>
+                      ))
+                    : null}
+                </select>
               </div>
-            </>
-          )}
+            )}
+          </div>
 
           <MaterialTimePicker
             label="Departure Time"
