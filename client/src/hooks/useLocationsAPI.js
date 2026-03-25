@@ -1,73 +1,43 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
-import axios from 'axios';
+import { useCallback, useMemo } from 'react';
+import nigeriaLocations from '../data/nigeria-locations.json';
 
+/**
+ * useLocationsAPI Hook
+ * Now using a static local dataset for 100% reliable Nigerian States and Cities (LGAs).
+ * This eliminates the "missing cities" issues from the previous third-party API.
+ */
 export const useLocationsAPI = () => {
-  const [states, setStates] = useState([]);
-  const [loadingStates, setLoadingStates] = useState(false);
-  const [citiesCache, setCitiesCache] = useState({});
-  const [loadingCities, setLoadingCities] = useState(false);
+  // Extract states list from static data
+  const states = useMemo(() => nigeriaLocations.map(item => ({
+    name: item.state,
+    alias: item.alias || item.state.toLowerCase().replace(/ /g, '_')
+  })), []);
 
-  // Fetch all Nigeria states on mount
-  useEffect(() => {
-    const fetchStates = async () => {
-      setLoadingStates(true);
-      try {
-        const response = await axios.post("https://countriesnow.space/api/v0.1/countries/states", {
-          country: "Nigeria"
-        });
-        if (!response.data.error) {
-          setStates(response.data.data.states);
-        }
-      } catch (error) {
-        console.error("Error fetching states from API:", error);
-      } finally {
-        setLoadingStates(false);
-      }
-    };
-
-    fetchStates();
-  }, []);
-
-  // Function to fetch cities for a specific state
+  // Function to fetch cities (LGAs) for a specific state
+  // Kept as async to maintain backward compatibility with existing components
   const getCitiesForState = useCallback(async (stateName) => {
     if (!stateName) return [];
     
-    // FCT hardcoded fallback because CountriesNow API lacks FCT cities
-    if (stateName === "Federal Capital Territory") {
-      return ["Abuja", "Gwagwalada", "Bwari", "Kuje", "Abaji", "Kwali"];
+    // Find the state in our static data
+    const stateData = nigeriaLocations.find(
+      s => s.state.toLowerCase() === stateName.toLowerCase() || 
+           s.alias === stateName.toLowerCase() ||
+           s.state === stateName
+    );
+
+    if (stateData) {
+      // Sort cities alphabetically for better UX
+      return [...stateData.lgas].sort();
     }
 
-    // Return from cache if already fetched
-    if (citiesCache[stateName]) {
-      return citiesCache[stateName];
-    }
-
-    setLoadingCities(true);
-    try {
-      const response = await axios.post("https://countriesnow.space/api/v0.1/countries/state/cities", {
-        country: "Nigeria",
-        state: stateName
-      });
-      
-      if (!response.data.error) {
-        const cities = response.data.data;
-        // Update cache
-        setCitiesCache(prev => ({ ...prev, [stateName]: cities }));
-        return cities;
-      }
-    } catch (error) {
-      console.error(`Error fetching cities for ${stateName}:`, error);
-      return [];
-    } finally {
-      setLoadingCities(false);
-    }
     return [];
-  }, [citiesCache]);
+  }, []);
 
+  // Return values - memoized to prevent infinite re-render loops in components
   return useMemo(() => ({
     states,
-    loadingStates,
+    loadingStates: false, // Static data is always ready
     getCitiesForState,
-    loadingCities
-  }), [states, loadingStates, getCitiesForState, loadingCities]);
+    loadingCities: false  // Static data is instant
+  }), [states, getCitiesForState]);
 };
