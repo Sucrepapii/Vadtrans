@@ -34,6 +34,11 @@ export const useLocationsAPI = () => {
   const getCitiesForState = async (stateName) => {
     if (!stateName) return [];
     
+    // FCT hardcoded fallback because CountriesNow API lacks FCT cities
+    if (stateName === "Federal Capital Territory") {
+      return ["Abuja", "Gwagwalada", "Bwari", "Kuje", "Abaji", "Kwali"];
+    }
+
     // Return from cache if already fetched
     if (citiesCache[stateName]) {
       return citiesCache[stateName];
