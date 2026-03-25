@@ -220,6 +220,19 @@ const SearchResults = () => {
                     </div>
                   )}
                 </div>
+                {trip.terminal ? (
+                  <div>
+                    <p className="text-xs text-neutral-500">Terminal</p>
+                    <div className="flex items-center gap-1 mt-1">
+                      <FaMapMarkerAlt className="text-neutral-400 flex-shrink-0" />
+                      <p className="font-medium text-charcoal">
+                        {trip.terminal}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="hidden sm:block"></div>
+                )}
                 <div>
                   <p className="text-xs text-neutral-500">Seats Available</p>
                   <p className="font-medium text-charcoal mt-1">
@@ -244,17 +257,6 @@ const SearchResults = () => {
                     {trip.vehicleType || "Bus"}
                   </p>
                 </div>
-                {trip.terminal && (
-                  <div>
-                    <p className="text-xs text-neutral-500">Terminal</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <FaMapMarkerAlt className="text-neutral-400 flex-shrink-0" />
-                      <p className="font-medium text-charcoal">
-                        {trip.terminal}
-                      </p>
-                    </div>
-                  </div>
-                )}
               </div>
             </div>
 
