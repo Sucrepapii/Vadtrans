@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import axios from 'axios';
 
 export const useLocationsAPI = () => {
@@ -16,8 +16,6 @@ export const useLocationsAPI = () => {
           country: "Nigeria"
         });
         if (!response.data.error) {
-          // The API returns names like "Abia State", we can strip " State" for cleaner UI if desired, 
-          // but we MUST use the exact name when fetching cities.
           setStates(response.data.data.states);
         }
       } catch (error) {
@@ -31,7 +29,7 @@ export const useLocationsAPI = () => {
   }, []);
 
   // Function to fetch cities for a specific state
-  const getCitiesForState = async (stateName) => {
+  const getCitiesForState = useCallback(async (stateName) => {
     if (!stateName) return [];
     
     // FCT hardcoded fallback because CountriesNow API lacks FCT cities
@@ -64,12 +62,12 @@ export const useLocationsAPI = () => {
       setLoadingCities(false);
     }
     return [];
-  };
+  }, [citiesCache]);
 
-  return {
+  return useMemo(() => ({
     states,
     loadingStates,
     getCitiesForState,
     loadingCities
-  };
+  }), [states, loadingStates, getCitiesForState, loadingCities]);
 };
