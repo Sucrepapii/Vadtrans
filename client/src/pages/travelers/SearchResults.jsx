@@ -40,9 +40,12 @@ const SearchResults = () => {
   const tripsPerPage = 10;
 
   useEffect(() => {
-    // Get search params from location state
+    // Get search params from location state or URL
     if (location.state) {
       setSearchParams({ ...location.state, companyId: companyId || "" });
+    } else if (companyId) {
+      // If no location state but companyId is in URL, update only that
+      setSearchParams(prev => ({ ...prev, companyId }));
     }
   }, [location, companyId]);
 
@@ -450,6 +453,29 @@ const SearchResults = () => {
               )}
 
               <div className="space-y-8">
+                {filteredTrips.length === 0 && !searchTerm && (
+                  <div className="text-center py-16 bg-white rounded-xl border border-neutral-200 shadow-sm flex flex-col items-center justify-center">
+                    <div className="w-20 h-20 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-400 mb-4">
+                      <FaBus size={40} />
+                    </div>
+                    <h3 className="text-xl font-bold text-charcoal mb-2">
+                      No Trips Available
+                    </h3>
+                    <p className="text-neutral-500 max-w-md mx-auto">
+                      {searchParams.companyId 
+                        ? "This provider currently has no scheduled trips. Please check back later or search for other providers."
+                        : "No trips found matching your route and date. Try adjusting your search criteria."}
+                    </p>
+                    <Button 
+                      variant="primary" 
+                      className="mt-6"
+                      onClick={() => navigate("/")}
+                    >
+                      Back to Search
+                    </Button>
+                  </div>
+                )}
+
                 {Object.entries(groupedTrips).map(
                   ([categoryName, categoryTrips]) => {
                     if (categoryTrips.length === 0) return null;
