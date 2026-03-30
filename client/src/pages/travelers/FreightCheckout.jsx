@@ -27,13 +27,29 @@ const FreightCheckout = () => {
   // Freight specific location state
   const { tripData, freightInfo, searchDate } = location.state || {};
   const { senderDetails, receiverDetails, cargoDetails } = freightInfo || {};
+  const items = cargoDetails?.items || [];
 
   const [paymentMethod, setPaymentMethod] = useState("paystack");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // For shipments, standard price is defined by the transport company.
-  // In a robust system, price would scale by weight/distance, but we use the base trip price for now.
-  const subtotal = Number(tripData?.price || 0);
+  // New Pricing Formula: Total = max(minCharge, baseFare + totalWeight * pricePerKg)
+  const calculateSubtotal = () => {
+    if (!tripData) return 0;
+    
+    const baseFare = Number(tripData.baseFare || 0);
+    const pricePerKg = Number(tripData.pricePerKg || 0);
+    const minCharge = Number(tripData.minCharge || 0);
+    
+    const totalWeight = items.reduce(
+      (acc, item) => acc + parseFloat(item.weight || 0) * (item.quantity || 1),
+      0
+    );
+    
+    const calculatedPrice = baseFare + (totalWeight * pricePerKg);
+    return Math.max(minCharge, calculatedPrice);
+  };
+
+  const subtotal = calculateSubtotal();
   const serviceFee = calculateServiceFee(subtotal);
   const vat = calculateVAT(serviceFee);
   const total = subtotal + serviceFee + vat;
@@ -279,39 +295,31 @@ const FreightCheckout = () => {
               <Card>
                 <div className="flex items-center gap-2 mb-4">
                   <FaBox className="text-primary" />
-                  <h3 className="font-semibold">Cargo Summary</h3>
+                  <h3 className="font-semibold">Cargo Itemized Summary</h3>
                 </div>
-                <div className="bg-neutral-50 p-4 rounded border border-neutral-100">
-                  <p className="font-medium mb-2">
-                    {cargoDetails?.description}
-                  </p>
-                  <div className="grid grid-cols-2 gap-y-2 mt-4 text-sm">
-                    <div>
-                      <span className="text-neutral-500 block text-xs">
-                        Weight
-                      </span>
-                      <span className="font-medium">
-                        {cargoDetails?.weight} kg
-                      </span>
-                    </div>
-                    <div>
-                      <span className="text-neutral-500 block text-xs">
-                        Declared Value
-                      </span>
-                      <span className="font-medium">
-                        ₦{Number(cargoDetails?.value || 0).toLocaleString()}
-                      </span>
-                    </div>
-                    {cargoDetails?.dimensions && (
-                      <div className="col-span-2 mt-2">
-                        <span className="text-neutral-500 block text-xs">
-                          Dimensions
-                        </span>
-                        <span className="font-medium">
-                          {cargoDetails.dimensions}
-                        </span>
+                <div className="space-y-4">
+                  {items.map((item, idx) => (
+                    <div key={idx} className="bg-neutral-50 p-3 rounded border border-neutral-100">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-bold text-charcoal">{item.description}</p>
+                          <p className="text-xs text-neutral-500 uppercase tracking-tighter">{item.type}</p>
+                        </div>
+                        {item.isFragile && (
+                          <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Fragile</span>
+                        )}
                       </div>
-                    )}
+                      <div className="flex gap-4 text-sm">
+                        <span className="text-neutral-600"><span className="text-neutral-400">Weight:</span> {item.weight} kg</span>
+                        <span className="text-neutral-600"><span className="text-neutral-400">Qty:</span> {item.quantity}</span>
+                      </div>
+                    </div>
+                  ))}
+                  <div className="pt-2 border-t border-dotted border-neutral-300 flex justify-between items-center text-sm font-bold">
+                    <span className="text-neutral-500 uppercase tracking-widest text-[10px]">Total Weight</span>
+                    <span className="text-charcoal bg-neutral-200 px-3 py-1 rounded">
+                      {items.reduce((acc, item) => acc + parseFloat(item.weight || 0) * (item.quantity || 1), 0)} kg
+                    </span>
                   </div>
                 </div>
               </Card>

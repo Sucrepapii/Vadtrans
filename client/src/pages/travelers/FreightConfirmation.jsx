@@ -202,38 +202,50 @@ const FreightConfirmation = () => {
                 <div className="space-y-6">
                   <div className="bg-neutral-50 p-5 rounded-lg border border-neutral-200">
                     <p className="text-xs text-neutral-500 font-bold uppercase mb-3 flex items-center gap-2">
-                      <FaBox className="text-primary" /> Cargo Specs
+                      <FaBox className="text-primary" /> Cargo Specification (Itemized)
                     </p>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="col-span-2">
-                        <p className="text-sm font-medium">
-                          {cargoDetails?.description}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-neutral-500">Weight</p>
-                        <p className="font-semibold">
-                          {cargoDetails?.weight} kg
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-neutral-500">
-                          Declared Value
-                        </p>
-                        <p className="font-semibold">
-                          ₦{Number(cargoDetails?.value || 0).toLocaleString()}
-                        </p>
-                      </div>
-                      {cargoDetails?.dimensions && (
-                        <div className="col-span-2">
-                          <p className="text-xs text-neutral-500">Dimensions</p>
-                          <p className="font-semibold text-sm">
-                            {cargoDetails.dimensions}
-                          </p>
+                    <div className="space-y-3">
+                      {cargoDetails?.items ? (
+                        cargoDetails.items.map((item, idx) => (
+                          <div key={idx} className="border-b border-neutral-200 pb-2 last:border-0 last:pb-0">
+                            <div className="flex justify-between">
+                              <p className="text-sm font-bold">{item.description}</p>
+                              <span className="text-[10px] bg-neutral-200 px-1.5 py-0.5 rounded uppercase">{item.type}</span>
+                            </div>
+                            <div className="flex gap-4 text-xs text-neutral-600 mt-1">
+                              <span>Qty: {item.quantity}</span>
+                              <span>Weight: {item.weight} kg</span>
+                              {item.isFragile && <span className="text-red-500 font-bold">FRAGILE</span>}
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="col-span-2">
+                            <p className="text-sm font-medium">
+                              {cargoDetails?.description}
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-neutral-500">Weight</p>
+                            <p className="font-semibold">{cargoDetails?.weight} kg</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-neutral-500">Declared Value</p>
+                            <p className="font-semibold">₦{Number(cargoDetails?.value || 0).toLocaleString()}</p>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {cargoDetails?.items && (
+                        <div className="pt-2 mt-2 border-t border-dashed border-neutral-300 flex justify-between items-center">
+                          <span className="text-[10px] font-bold text-neutral-400 uppercase">Total Weight</span>
+                          <span className="text-sm font-bold">{cargoDetails.items.reduce((acc, i) => acc + parseFloat(i.weight || 0) * (i.quantity || 1), 0)} kg</span>
                         </div>
                       )}
                     </div>
                   </div>
+
 
                   {/* Payment Summary */}
                   <div className="bg-neutral-800 text-white p-5 rounded-lg">

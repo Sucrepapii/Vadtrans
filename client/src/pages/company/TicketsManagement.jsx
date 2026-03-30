@@ -54,6 +54,10 @@ const TicketsManagement = () => {
     operatingDays: [],
     duration: "",
     price: "",
+    baseFare: "",
+    pricePerKg: "",
+    minCharge: "",
+    maxWeightCapacity: "",
     seats: 18,
     serviceCategory: "passenger",
     freightType: "",
@@ -137,6 +141,10 @@ const TicketsManagement = () => {
         departureDate: trip.departureDate,
         operatingDays: trip.operatingDays ? trip.operatingDays.split(",") : [],
         price: Number(trip.price),
+        baseFare: trip.baseFare ? Number(trip.baseFare) : "",
+        pricePerKg: trip.pricePerKg ? Number(trip.pricePerKg) : "",
+        minCharge: trip.minCharge ? Number(trip.minCharge) : "",
+        maxWeightCapacity: trip.maxWeightCapacity || "",
         seats: trip.seats,
         availableSeats: trip.availableSeats,
         status: trip.status,
@@ -182,6 +190,10 @@ const TicketsManagement = () => {
       operatingDays: [],
       duration: "",
       price: "",
+      baseFare: "",
+      pricePerKg: "",
+      minCharge: "",
+      maxWeightCapacity: "",
       seats: 18,
       serviceCategory: "passenger",
       freightType: "",
@@ -216,6 +228,10 @@ const TicketsManagement = () => {
           : [],
       duration: ticket.duration || "",
       price: ticket.price,
+      baseFare: ticket.baseFare || "",
+      pricePerKg: ticket.pricePerKg || "",
+      minCharge: ticket.minCharge || "",
+      maxWeightCapacity: ticket.maxWeightCapacity || "",
       seats: ticket.seats,
       serviceCategory: ticket.serviceCategory || "passenger",
       freightType: ticket.freightType || "",
@@ -268,7 +284,23 @@ const TicketsManagement = () => {
             ? formData.operatingDays.join(",")
             : null,
         duration: formData.duration || null,
-        price: Number(formData.price),
+        price: Number(formData.price || 0),
+        baseFare:
+          formData.serviceCategory === "freight"
+            ? Number(formData.baseFare || 0)
+            : null,
+        pricePerKg:
+          formData.serviceCategory === "freight"
+            ? Number(formData.pricePerKg || 0)
+            : null,
+        minCharge:
+          formData.serviceCategory === "freight"
+            ? Number(formData.minCharge || 0)
+            : null,
+        maxWeightCapacity:
+          formData.serviceCategory === "freight"
+            ? Number(formData.maxWeightCapacity || 0)
+            : null,
         serviceCategory: formData.serviceCategory,
         freightType:
           formData.serviceCategory === "freight" ? formData.freightType : null,
@@ -567,23 +599,69 @@ const TicketsManagement = () => {
           </div>
 
           {formData.serviceCategory === "freight" ? (
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Freight Type
-              </label>
-              <select
-                value={formData.freightType}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  Vehicle Type
+                </label>
+                <select
+                  value={formData.vehicleType}
+                  onChange={(e) =>
+                    setFormData({ ...formData, vehicleType: e.target.value })
+                  }
+                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                  disabled={saving}
+                  required>
+                  <option value="Bike">Bike</option>
+                  <option value="Car">Car</option>
+                  <option value="Van">Van</option>
+                  <option value="Truck">Truck</option>
+                </select>
+              </div>
+              <Input
+                label="Base Fare (₦)"
+                type="number"
+                value={formData.baseFare}
                 onChange={(e) =>
-                  setFormData({ ...formData, freightType: e.target.value })
+                  setFormData({ ...formData, baseFare: e.target.value })
                 }
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                placeholder="e.g. 5000"
                 disabled={saving}
-                required>
-                <option value="">Select Freight Type</option>
-                <option value="Small Parcel">Small Parcel</option>
-                <option value="Medium Cargo">Medium Cargo</option>
-                <option value="Large/Bulk Cargo">Large/Bulk Cargo</option>
-              </select>
+                required
+              />
+              <Input
+                label="Price per Kg (₦)"
+                type="number"
+                value={formData.pricePerKg}
+                onChange={(e) =>
+                  setFormData({ ...formData, pricePerKg: e.target.value })
+                }
+                placeholder="e.g. 250"
+                disabled={saving}
+                required
+              />
+              <Input
+                label="Minimum Charge (₦)"
+                type="number"
+                value={formData.minCharge}
+                onChange={(e) =>
+                  setFormData({ ...formData, minCharge: e.target.value })
+                }
+                placeholder="e.g. 3000"
+                disabled={saving}
+                required
+              />
+              <Input
+                label="Max Capacity (kg)"
+                type="number"
+                value={formData.maxWeightCapacity}
+                onChange={(e) =>
+                  setFormData({ ...formData, maxWeightCapacity: e.target.value })
+                }
+                placeholder="e.g. 500"
+                disabled={saving}
+                required
+              />
             </div>
           ) : (
             <div>

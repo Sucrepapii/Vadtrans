@@ -223,14 +223,31 @@ const Tracking = () => {
 
                     <div className="col-span-1 md:col-span-2">
                       <p className="text-xs text-neutral-500 uppercase font-bold mb-2">
-                        Cargo
+                        Cargo Details
                       </p>
-                      <p className="text-sm font-medium">
-                        {trackData.cargoDetails?.description}
-                      </p>
-                      <p className="text-sm text-neutral-600">
-                        Weight: {trackData.cargoDetails?.weight} kg
-                      </p>
+                      <div className="space-y-2">
+                        {trackData.cargoDetails?.items ? (
+                          trackData.cargoDetails.items.map((item, idx) => (
+                            <div key={idx} className="flex justify-between text-sm border-b border-neutral-100 pb-1 last:border-0">
+                              <div>
+                                <span className="font-medium">{item.description}</span>
+                                <span className="text-xs text-neutral-400 ml-2">({item.type})</span>
+                              </div>
+                              <span className="text-neutral-600">{item.quantity} x {item.weight}kg</span>
+                            </div>
+                          ))
+                        ) : (
+                          <p className="text-sm">
+                            {trackData.cargoDetails?.description} ({trackData.cargoDetails?.weight} kg)
+                          </p>
+                        )}
+                        {trackData.cargoDetails?.items && (
+                          <div className="flex justify-between text-xs font-bold pt-1 border-t border-neutral-200">
+                            <span>TOTAL WEIGHT</span>
+                            <span>{trackData.cargoDetails.items.reduce((acc, i) => acc + parseFloat(i.weight || 0) * (i.quantity || 1), 0)} kg</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
 
                     <div className="col-span-1 md:col-span-2 mt-4 pt-4 border-t">

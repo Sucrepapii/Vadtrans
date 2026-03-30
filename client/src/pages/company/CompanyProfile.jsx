@@ -26,6 +26,9 @@ import {
   FaFileInvoice,
   FaTicketAlt,
   FaBox,
+  FaCopy,
+  FaLink,
+  FaExternalLinkAlt,
 } from "react-icons/fa";
 import {
   westAfricanCountries,
@@ -46,6 +49,15 @@ const CompanyProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = () => {
+    const link = `${window.location.origin}/search?companyId=${user.id}`;
+    navigator.clipboard.writeText(link);
+    setCopied(true);
+    toast.success("Booking link copied to clipboard!");
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Profile Data
   const [companyData, setCompanyData] = useState({
@@ -449,6 +461,45 @@ const CompanyProfile = () => {
                         {companyData.verificationStatus === "rejected" &&
                           "Please contact support for more information"}
                       </p>
+                    </div>
+                  </div>
+                </Card>
+
+                {/* Direct Booking Link */}
+                <Card className="bg-neutral-800 text-white border-0 overflow-hidden relative">
+                  <div className="absolute top-0 right-0 p-4 opacity-10">
+                    <FaLink size={80} />
+                  </div>
+                  <div className="relative z-10">
+                    <div className="flex items-center gap-2 mb-4">
+                      <FaLink className="text-primary text-xl" />
+                      <h2 className="text-lg font-bold">Direct Booking Link</h2>
+                    </div>
+                    <p className="text-neutral-300 text-sm mb-6 max-w-2xl">
+                      Share this unique link with your customers to direct them straight to your available trips and services. Perfect for social media bios or WhatsApp status updates.
+                    </p>
+                    
+                    <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
+                      <div className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-sm font-mono truncate">
+                        {window.location.origin}/search?companyId={user.id}
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={handleCopyLink}
+                          className="bg-primary hover:bg-primary-dark text-white border-0 flex items-center gap-2 whitespace-nowrap"
+                        >
+                          {copied ? <FaCheckCircle /> : <FaCopy />}
+                          <span>{copied ? "Copied!" : "Copy Link"}</span>
+                        </Button>
+                        <Button 
+                          variant="secondary"
+                          onClick={() => window.open(`/search?companyId=${user.id}`, "_blank")}
+                          className="bg-white/10 hover:bg-white/20 text-white border-white/20 flex items-center gap-2 whitespace-nowrap"
+                        >
+                          <FaExternalLinkAlt size={14} />
+                          <span>View Page</span>
+                        </Button>
+                      </div>
                     </div>
                   </div>
                 </Card>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
@@ -20,6 +20,9 @@ import {
 const SearchResults = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [urlSearchParams] = useSearchParams();
+  const companyId = urlSearchParams.get("companyId");
+
   const [searchParams, setSearchParams] = useState({
     from: "",
     to: "",
@@ -27,6 +30,7 @@ const SearchResults = () => {
     transportType: "all",
     serviceCategory: "passenger",
     freightType: "",
+    companyId: companyId || "",
   });
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -38,9 +42,9 @@ const SearchResults = () => {
   useEffect(() => {
     // Get search params from location state
     if (location.state) {
-      setSearchParams(location.state);
+      setSearchParams({ ...location.state, companyId: companyId || "" });
     }
-  }, [location]);
+  }, [location, companyId]);
 
   useEffect(() => {
     // Fetch trips when search params change
@@ -70,6 +74,8 @@ const SearchResults = () => {
         params.serviceCategory = searchParams.serviceCategory;
       if (searchParams.freightType)
         params.freightType = searchParams.freightType;
+      if (searchParams.companyId)
+        params.companyId = searchParams.companyId;
       if (searchParams.transportType !== "all")
         params.transportType = searchParams.transportType;
 
@@ -90,6 +96,8 @@ const SearchResults = () => {
           fallbackParams.serviceCategory = searchParams.serviceCategory;
         if (searchParams.freightType)
           fallbackParams.freightType = searchParams.freightType;
+        if (searchParams.companyId)
+          fallbackParams.companyId = searchParams.companyId;
         if (searchParams.transportType !== "all")
           fallbackParams.transportType = searchParams.transportType;
 
@@ -234,9 +242,15 @@ const SearchResults = () => {
                   <div className="hidden sm:block"></div>
                 )}
                 <div>
-                  <p className="text-xs text-neutral-500">Seats Available</p>
+                  <p className="text-xs text-neutral-500">
+                    {trip.serviceCategory === "freight"
+                      ? "Max Capacity"
+                      : "Seats Available"}
+                  </p>
                   <p className="font-medium text-charcoal mt-1">
-                    {trip.availableSeats} / {trip.seats}
+                    {trip.serviceCategory === "freight"
+                      ? `${trip.maxWeightCapacity || 0} kg`
+                      : `${trip.availableSeats} / ${trip.seats}`}
                   </p>
                 </div>
                 <div>
@@ -262,9 +276,11 @@ const SearchResults = () => {
 
             <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-3 md:gap-4 pt-3 md:pt-0 border-t md:border-t-0 md:ml-6">
               <div className="text-left md:text-right">
-                <p className="text-xs sm:text-sm text-neutral-500">From</p>
+                <p className="text-xs sm:text-sm text-neutral-500">
+                  {trip.serviceCategory === "freight" ? "Starts from" : "From"}
+                </p>
                 <p className="text-2xl sm:text-3xl font-bold text-primary">
-                  ₦{Number(trip.price).toLocaleString()}
+                  ₦{Number(trip.serviceCategory === "freight" ? (trip.minCharge || trip.price) : trip.price).toLocaleString()}
                 </p>
               </div>
               <div className="flex flex-col items-end gap-2">
@@ -314,8 +330,33 @@ const SearchResults = () => {
               </Button>
             </div>
             <h1 className="text-2xl font-raleway font-bold text-charcoal mb-2">
-              Search Results
+              {searchParams.companyId ? "Direct Booking Page" : "Search Results"}
             </h1>
+
+            {searchParams.companyId && trips.length > 0 && (
+              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 flex items-center gap-4">
+                {trips[0].company?.avatar ? (
+                  <img
+                    src={trips[0].company.avatar}
+                    alt={trips[0].company.name}
+                    className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm"
+                  />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xl font-bold border-2 border-white shadow-sm">
+                    {trips[0].company?.name?.charAt(0) || "C"}
+                  </div>
+                )}
+                <div>
+                  <h2 className="text-xl font-bold text-charcoal leading-tight">
+                    {trips[0].company?.name}
+                  </h2>
+                  <p className="text-sm text-neutral-600 mt-1 flex items-center gap-1">
+                    <FaCheckCircle className="text-green-500" /> Verified Transport Provider
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-2 text-neutral-600">
               <FaMapMarkerAlt className="text-primary" />
               <span>

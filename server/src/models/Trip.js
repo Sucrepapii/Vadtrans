@@ -78,6 +78,30 @@ const Trip = sequelize.define(
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
+    baseFare: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: 0,
+      comment: "Base fare for freight trips",
+    },
+    pricePerKg: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: 0,
+      comment: "Price per kg for freight trips",
+    },
+    minCharge: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: 0,
+      comment: "Minimum charge for freight trips",
+    },
+    maxWeightCapacity: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+      defaultValue: 0,
+      comment: "Maximum weight capacity in kg for freight trips",
+    },
     documentPrices: {
       type: DataTypes.JSON,
       allowNull: true,
