@@ -153,17 +153,22 @@ exports.createTrip = async (req, res) => {
     } = req.body;
 
     // Validate required fields
-    // For freight, we need baseFare/pricePerKg/minCharge/maxWeightCapacity instead of price/seats
     const isFreight = serviceCategory === "freight";
     const hasRequiredLocations = from && to && transportType && departureTime;
-    const hasPassengerInfo = price && seats;
-    const hasFreightInfo = baseFare !== undefined && pricePerKg !== undefined && minCharge !== undefined && maxWeightCapacity !== undefined;
+    
+    // Check for passenger required fields
+    const hasPassengerInfo = !isFreight && price !== undefined && seats !== undefined;
+    // Check for freight required fields
+    const hasFreightInfo = isFreight && baseFare !== undefined && pricePerKg !== undefined && minCharge !== undefined && maxWeightCapacity !== undefined;
 
-    if (!hasRequiredLocations || (!isFreight && !hasPassengerInfo) || (isFreight && !hasFreightInfo)) {
-      return res.status(400).json({
-        success: false,
-        message: "Please provide all required fields for the selected category",
-      });
+    if (!hasRequiredLocations || (!isFreight && !hasPassengerInfo) && !(isFreight && hasFreightInfo)) {
+      // Allow passing if either passenger or freight info is complete
+      if (!hasRequiredLocations || (!hasPassengerInfo && !hasFreightInfo)) {
+        return res.status(400).json({
+          success: false,
+          message: "Please provide all required fields for the selected category",
+        });
+      }
     }
 
     const trip = await Trip.create({
@@ -260,7 +265,7 @@ exports.updateTrip = async (req, res) => {
     if (departureDate !== undefined) trip.departureDate = departureDate || null;
     if (operatingDays !== undefined) trip.operatingDays = operatingDays;
     if (duration !== undefined) trip.duration = duration;
-    if (price) trip.price = price;
+    if (price !== undefined) trip.price = price;
     if (vehicleType !== undefined) trip.vehicleType = vehicleType;
     if (terminal !== undefined) trip.terminal = terminal;
     if (city !== undefined) trip.city = city;
@@ -272,9 +277,10 @@ exports.updateTrip = async (req, res) => {
     if (pricePerKg !== undefined) trip.pricePerKg = pricePerKg;
     if (minCharge !== undefined) trip.minCharge = minCharge;
     if (maxWeightCapacity !== undefined) trip.maxWeightCapacity = maxWeightCapacity;
-    if (seats) {
+    
+    if (seats !== undefined) {
       // Calculate booked seats BEFORE overwriting trip.seats
-      const bookedSeats = trip.seats - trip.availableSeats;
+      const bookedSeats = (trip.seats || 0) - (trip.availableSeats || 0);
       trip.seats = seats;
       trip.availableSeats = Math.max(0, seats - bookedSeats);
     }
