@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import { useAuth } from "../../context/AuthContext";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
@@ -38,7 +39,21 @@ const SearchResults = () => {
   const [exactMatch, setExactMatch] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const tripsPerPage = 10;
+
+  // Trigger login redirect for company booking links
+  useEffect(() => {
+    if (companyId && !isAuthenticated && !authLoading) {
+      toast.info("Please login to view this company's booking page", {
+        toastId: "company-auth-redirect",
+      });
+      navigate("/signin", {
+        replace: true,
+        state: { from: location.pathname + location.search }
+      });
+    }
+  }, [companyId, isAuthenticated, authLoading, navigate, location]);
 
   useEffect(() => {
     // Get search params from location state or URL

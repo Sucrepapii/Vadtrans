@@ -26,7 +26,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       <Navigate
         to="/signin"
         replace
-        state={{ from: window.location.pathname }}
+        state={{ from: window.location.pathname + window.location.search }}
       />
     );
   }

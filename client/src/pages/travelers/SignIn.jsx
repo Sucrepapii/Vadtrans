@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { authAPI } from "../../services/api";
@@ -11,6 +11,7 @@ import { FaEnvelope, FaLock, FaSpinner } from "react-icons/fa";
 const SignIn = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
   const [loading, setLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
@@ -62,9 +63,13 @@ const SignIn = () => {
         }!`,
       );
 
-      // Redirect based on role or URL param
+      // Redirect based on role or URL param/state
+      const from = location.state?.from;
+
       if (response.data.user.role === "admin") {
         navigate("/admin");
+      } else if (from) {
+        navigate(from);
       } else if (redirectPath) {
         navigate(redirectPath);
       } else if (response.data.user.role === "company") {
