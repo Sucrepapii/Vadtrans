@@ -129,6 +129,19 @@ exports.getTripById = async (req, res) => {
 // @access  Private (Company only)
 exports.createTrip = async (req, res) => {
   try {
+    const {
+      from,
+      to,
+      transportType,
+      departureTime,
+      departureDate,
+      operatingDays,
+      duration,
+      price,
+      seats,
+      vehicleType,
+      terminal,
+      city,
       state,
       documentPrices,
       serviceCategory,
@@ -216,6 +229,21 @@ exports.updateTrip = async (req, res) => {
       });
     }
 
+    const {
+      from,
+      to,
+      transportType,
+      departureTime,
+      departureDate,
+      operatingDays,
+      duration,
+      price,
+      seats,
+      status,
+      vehicleType,
+      terminal,
+      city,
+      state,
       documentPrices,
       serviceCategory,
       freightType,
