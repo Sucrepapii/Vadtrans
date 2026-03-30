@@ -109,11 +109,13 @@ const Trip = sequelize.define(
     },
     seats: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
+      defaultValue: 0,
     },
     availableSeats: {
       type: DataTypes.INTEGER,
-      allowNull: false,
+      allowNull: true,
+      defaultValue: 0,
     },
     bookedSeats: {
       type: DataTypes.JSON,

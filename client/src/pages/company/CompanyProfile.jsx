@@ -481,11 +481,16 @@ const CompanyProfile = () => {
                     
                     <div className="flex flex-col md:flex-row gap-3 items-stretch md:items-center">
                       <div className="flex-1 bg-white/10 border border-white/20 rounded-lg px-4 py-2 text-sm font-mono truncate">
-                        {window.location.origin}/search?companyId={user.id}
+                        {user?.id ? (
+                          `${window.location.origin}/search?companyId=${user.id}`
+                        ) : (
+                          <span className="text-neutral-500 italic">Generating your unique link...</span>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         <Button 
                           onClick={handleCopyLink}
+                          disabled={!user?.id}
                           className="bg-primary hover:bg-primary-dark text-white border-0 flex items-center gap-2 whitespace-nowrap"
                         >
                           {copied ? <FaCheckCircle /> : <FaCopy />}
@@ -493,7 +498,8 @@ const CompanyProfile = () => {
                         </Button>
                         <Button 
                           variant="secondary"
-                          onClick={() => window.open(`/search?companyId=${user.id}`, "_blank")}
+                          onClick={() => user?.id && window.open(`/search?companyId=${user.id}`, "_blank")}
+                          disabled={!user?.id}
                           className="bg-white/10 hover:bg-white/20 text-white border-white/20 flex items-center gap-2 whitespace-nowrap"
                         >
                           <FaExternalLinkAlt size={14} />

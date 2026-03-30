@@ -129,30 +129,27 @@ exports.getTripById = async (req, res) => {
 // @access  Private (Company only)
 exports.createTrip = async (req, res) => {
   try {
-    const {
-      from,
-      to,
-      transportType,
-      departureTime,
-      departureDate,
-      operatingDays,
-      duration,
-      price,
-      seats,
-      vehicleType,
-      terminal,
-      city,
       state,
       documentPrices,
       serviceCategory,
       freightType,
+      baseFare,
+      pricePerKg,
+      minCharge,
+      maxWeightCapacity,
     } = req.body;
 
     // Validate required fields
-    if (!from || !to || !transportType || !departureTime || !price || !seats) {
+    // For freight, we need baseFare/pricePerKg/minCharge/maxWeightCapacity instead of price/seats
+    const isFreight = serviceCategory === "freight";
+    const hasRequiredLocations = from && to && transportType && departureTime;
+    const hasPassengerInfo = price && seats;
+    const hasFreightInfo = baseFare !== undefined && pricePerKg !== undefined && minCharge !== undefined && maxWeightCapacity !== undefined;
+
+    if (!hasRequiredLocations || (!isFreight && !hasPassengerInfo) || (isFreight && !hasFreightInfo)) {
       return res.status(400).json({
         success: false,
-        message: "Please provide all required fields",
+        message: "Please provide all required fields for the selected category",
       });
     }
 
@@ -164,9 +161,9 @@ exports.createTrip = async (req, res) => {
       departureDate: departureDate || null,
       operatingDays: operatingDays || null,
       duration: duration || null,
-      price,
-      seats,
-      availableSeats: seats,
+      price: isFreight ? minCharge : price, // For freight, we can use minCharge as the 'starting' price
+      seats: seats || 0,
+      availableSeats: seats || 0,
       vehicleType: vehicleType || "Bus",
       terminal: terminal || null,
       city: city || null,
@@ -174,6 +171,10 @@ exports.createTrip = async (req, res) => {
       documentPrices: documentPrices || null,
       serviceCategory: serviceCategory || "passenger",
       freightType: freightType || null,
+      baseFare: isFreight ? baseFare : null,
+      pricePerKg: isFreight ? pricePerKg : null,
+      minCharge: isFreight ? minCharge : null,
+      maxWeightCapacity: isFreight ? maxWeightCapacity : null,
       companyId: req.user.id,
       status: "active",
     });
@@ -215,24 +216,13 @@ exports.updateTrip = async (req, res) => {
       });
     }
 
-    const {
-      from,
-      to,
-      transportType,
-      departureTime,
-      departureDate,
-      operatingDays,
-      duration,
-      price,
-      seats,
-      status,
-      vehicleType,
-      terminal,
-      city,
-      state,
       documentPrices,
       serviceCategory,
       freightType,
+      baseFare,
+      pricePerKg,
+      minCharge,
+      maxWeightCapacity,
     } = req.body;
 
     if (from) trip.from = from;
@@ -250,6 +240,10 @@ exports.updateTrip = async (req, res) => {
     if (documentPrices !== undefined) trip.documentPrices = documentPrices;
     if (serviceCategory !== undefined) trip.serviceCategory = serviceCategory;
     if (freightType !== undefined) trip.freightType = freightType;
+    if (baseFare !== undefined) trip.baseFare = baseFare;
+    if (pricePerKg !== undefined) trip.pricePerKg = pricePerKg;
+    if (minCharge !== undefined) trip.minCharge = minCharge;
+    if (maxWeightCapacity !== undefined) trip.maxWeightCapacity = maxWeightCapacity;
     if (seats) {
       // Calculate booked seats BEFORE overwriting trip.seats
       const bookedSeats = trip.seats - trip.availableSeats;
