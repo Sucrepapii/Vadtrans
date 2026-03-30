@@ -7,13 +7,21 @@ const { Op } = require("sequelize");
 // @access  Public
 exports.getAllTrips = async (req, res) => {
   try {
-    const { from, to, transportType, status, serviceCategory, freightType } =
-      req.query;
+    const {
+      from,
+      to,
+      transportType,
+      status,
+      serviceCategory,
+      freightType,
+      companyId,
+    } = req.query;
 
     const where = {};
 
     if (serviceCategory) where.serviceCategory = serviceCategory;
     if (freightType) where.freightType = freightType;
+    if (companyId) where.companyId = companyId;
 
     // Filter by from location (exact match)
     if (from) where.from = from;
