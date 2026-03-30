@@ -15,6 +15,7 @@ import {
   FaSpinner,
   FaArrowLeft,
   FaTruck,
+  FaCheckCircle,
 } from "react-icons/fa";
 
 const SearchResults = () => {
