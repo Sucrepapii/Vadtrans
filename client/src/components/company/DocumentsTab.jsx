@@ -5,15 +5,12 @@ import { authAPI } from "../../services/api";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import {
-  FaUser,
-  FaTicketAlt,
-  FaFileInvoice,
-  FaUpload,
-  FaCheckCircle,
-  FaSpinner,
   FaTrash,
   FaFileAlt,
+  FaCheckCircle,
+  FaUpload,
 } from "react-icons/fa";
+import Loading from "../../components/Loading";
 
 const DocumentsTab = ({ user, onRefresh }) => {
   const [uploading, setUploading] = useState(null);
@@ -197,7 +194,7 @@ const DocumentsTab = ({ user, onRefresh }) => {
                         }`}>
                         {isUploading ? (
                           <>
-                            <FaSpinner className="animate-spin" />
+                            <Loading size="xs" />
                             <span>Updating...</span>
                           </>
                         ) : (
@@ -235,7 +232,7 @@ const DocumentsTab = ({ user, onRefresh }) => {
                         }`}>
                         {isUploading ? (
                           <>
-                            <FaSpinner className="animate-spin" />
+                            <Loading size="xs" />
                             <span>Uploading...</span>
                           </>
                         ) : (

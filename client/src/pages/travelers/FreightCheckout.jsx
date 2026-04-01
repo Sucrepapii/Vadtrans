@@ -8,6 +8,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
+import Loading from "../../components/Loading";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 import {
   FaUser,
@@ -15,7 +16,6 @@ import {
   FaCreditCard,
   FaCheckCircle,
   FaArrowLeft,
-  FaSpinner,
   FaMapMarkerAlt,
 } from "react-icons/fa";
 
@@ -421,7 +421,7 @@ const FreightCheckout = () => {
                   disabled={isProcessing}>
                   {isProcessing ? (
                     <div className="flex items-center justify-center gap-2">
-                      <FaSpinner className="animate-spin" />
+                      <Loading size="xs" />
                       <span>Processing...</span>
                     </div>
                   ) : (

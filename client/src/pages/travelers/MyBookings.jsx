@@ -5,10 +5,10 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Modal from "../../components/Modal";
 import Button from "../../components/Button";
+import Loading from "../../components/Loading";
 import { bookingAPI } from "../../services/api";
 import {
   FaEye,
-  FaSpinner,
   FaArrowLeft,
   FaArrowRight,
   FaSearch,
@@ -175,12 +175,7 @@ const MyBookings = () => {
 
           {/* Loading State */}
           {loading ? (
-            <div className="flex items-center justify-center py-16 bg-white rounded-lg">
-              <div className="text-center">
-                <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
-                <p className="text-neutral-600">Loading bookings...</p>
-              </div>
-            </div>
+            <Loading size="md" />
           ) : paginatedBookings.length === 0 ? (
             <div className="bg-white rounded-lg border border-neutral-200 p-16 text-center">
               <p className="text-neutral-600 text-lg mb-2">No bookings found</p>
@@ -399,13 +394,13 @@ const MyBookings = () => {
               Close
             </Button>
             <Button
-              variant="danger" // Assuming Button supports 'danger' or just use custom style
+              variant="danger"
               onClick={confirmCancel}
               disabled={cancelling}
               className="bg-red-600 text-white hover:bg-red-700">
               {cancelling ? (
                 <div className="flex items-center gap-2">
-                  <FaSpinner className="animate-spin" />
+                  <Loading size="xs" />
                   <span>Cancelling...</span>
                 </div>
               ) : (

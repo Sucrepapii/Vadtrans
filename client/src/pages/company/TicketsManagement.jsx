@@ -12,21 +12,18 @@ import Pagination from "../../components/Pagination";
 import Input from "../../components/Input";
 import {
   westAfricanCountries,
+  westAfricanStates,
   westAfricanCities,
 } from "../../data/locations";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 import { tripAPI } from "../../services/api";
 import {
-  FaPlus,
-  FaEdit,
-  FaTrash,
-  FaBus,
-  FaCar,
   FaClock,
   FaMapMarkerAlt,
-  FaSpinner,
   FaTruck,
+  FaSearch,
 } from "react-icons/fa";
+import Loading from "../../components/Loading";
 import { MaterialTimePicker } from "../../components/MaterialDatePicker";
 import MaterialDatePicker from "../../components/MaterialDatePicker";
 
@@ -64,6 +61,8 @@ const TicketsManagement = () => {
 
     state: "", // For intra-state: the selected state for city-to-city trips
     toState: "",
+    fromCountry: "Nigeria",
+    toCountry: "",
     vehicleType: "Hiace Bus (18 seater)",
     terminal: "",
     city: "",
@@ -155,6 +154,10 @@ const TicketsManagement = () => {
         terminal: trip.terminal || "",
         city: trip.city || "",
         state: trip.state || "",
+        fromState: trip.fromState || "",
+        toState: trip.toState || "",
+        fromCountry: trip.fromCountry || "Nigeria",
+        toCountry: trip.toCountry || "",
         documentPrices: trip.documentPrices || {
           "Regular Passport": "",
           "Virgin Passport": "",
@@ -309,6 +312,11 @@ const TicketsManagement = () => {
         vehicleType: formData.vehicleType,
         terminal: formData.terminal,
         city: formData.city,
+        // Save new cascading fields if international
+        fromCountry: formData.transportType === "international" ? formData.fromCountry : "Nigeria",
+        toCountry: formData.transportType === "international" ? formData.toCountry : "Nigeria",
+        fromState: formData.transportType === "international" ? formData.fromState : (formData.transportType === "inter-state" ? formData.state : null),
+        toState: formData.transportType === "international" ? formData.toState : (formData.transportType === "inter-state" ? formData.toState : null),
         documentPrices: formData.documentPrices,
       };
 
@@ -467,10 +475,7 @@ const TicketsManagement = () => {
           <Card>
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <div className="text-center">
-                  <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
-                  <p className="text-neutral-600">Loading trips...</p>
-                </div>
+                <Loading size="md" />
               </div>
             ) : tickets.length === 0 ? (
               <div className="text-center py-12">
@@ -513,10 +518,14 @@ const TicketsManagement = () => {
             </Button>
             <Button variant="primary" onClick={handleSubmit} disabled={saving}>
               <div className="flex items-center gap-2">
-                {saving && <FaSpinner className="animate-spin" />}
-                <span>
-                  {saving ? "Saving..." : editingTicket ? "Update" : "Create"}
-                </span>
+                {saving ? (
+                  <>
+                    <Loading size="xs" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <span>{editingTicket ? "Update" : "Create"}</span>
+                )}
               </div>
             </Button>
           </>
@@ -728,11 +737,11 @@ const TicketsManagement = () => {
                   required
                   disabled={saving}>
                   <option value="">Select state</option>
-                  {locationOptions.map((state) => (
+                  {westAfricanCities && Object.keys(westAfricanCities).includes("Nigeria") ? Object.keys(westAfricanCities["Nigeria"]).map((state) => (
                     <option key={state} value={state}>
                       {state}
                     </option>
-                  ))}
+                  )) : null}
                 </select>
               </div>
 
@@ -751,11 +760,11 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}>
                     <option value="">Select departure city</option>
-                    {fromCities.map((city) => (
+                    {westAfricanCities && formData.state && westAfricanCities[formData.state] ? westAfricanCities[formData.state].map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
-                    ))}
+                    )) : null}
                   </select>
                 </div>
               )}
@@ -775,11 +784,11 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}>
                     <option value="">Select destination city</option>
-                    {fromCities.map((city) => (
+                    {westAfricanCities && formData.state && westAfricanCities[formData.state] ? westAfricanCities[formData.state].map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
-                    ))}
+                    )) : null}
                   </select>
                 </div>
               )}
@@ -799,11 +808,11 @@ const TicketsManagement = () => {
                   required
                   disabled={saving}>
                   <option value="">Select departure state</option>
-                  {locationOptions.map((state) => (
+                  {westAfricanCities && Object.keys(westAfricanCities).includes("Nigeria") ? Object.keys(westAfricanCities["Nigeria"]).map((state) => (
                     <option key={state} value={state}>
                       {state}
                     </option>
-                  ))}
+                  )) : null}
                 </select>
               </div>
 
@@ -821,11 +830,11 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}>
                     <option value="">Select departure city</option>
-                    {fromCities.map((city) => (
+                    {westAfricanCities && formData.state && westAfricanCities[formData.state] ? westAfricanCities[formData.state].map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
-                    ))}
+                    )) : null}
                   </select>
                 </div>
               )}
@@ -843,11 +852,11 @@ const TicketsManagement = () => {
                   required
                   disabled={saving}>
                   <option value="">Select destination state</option>
-                  {locationOptions.map((state) => (
+                  {westAfricanCities && Object.keys(westAfricanCities).includes("Nigeria") ? Object.keys(westAfricanCities["Nigeria"]).map((state) => (
                     <option key={state} value={state}>
                       {state}
                     </option>
-                  ))}
+                  )) : null}
                 </select>
               </div>
 
@@ -865,63 +874,105 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}>
                     <option value="">Select destination city</option>
-                    {toCities.map((city) => (
+                    {westAfricanCities && formData.toState && westAfricanCities[formData.toState] ? westAfricanCities[formData.toState].map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
-                    ))}
+                    )) : null}
                   </select>
                 </div>
               )}
             </>
           ) : (
-            <>
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  From
-                </label>
-                <select
-                  value={formData.from}
-                  onChange={(e) =>
-                    setFormData({ ...formData, from: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  required
-                  disabled={saving}>
-                  <option value="">
-                    Select departure country
-                  </option>
-                  {locationOptions.map((location) => (
-                    <option key={location} value={location}>
-                      {location}
-                    </option>
-                  ))}
-                </select>
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Departure Country
+                  </label>
+                  <select
+                    value={formData.fromCountry}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fromCountry: e.target.value, fromState: "", city: "" })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={saving}>
+                    <option value="">Select country</option>
+                    {westAfricanCountries.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Departure State/Region
+                  </label>
+                  <select
+                    value={formData.fromState}
+                    onChange={(e) =>
+                      setFormData({ ...formData, fromState: e.target.value, from: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={saving || !formData.fromCountry}>
+                    <option value="">Select state/region</option>
+                    {westAfricanStates[formData.fromCountry]?.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  To
-                </label>
-                <select
-                  value={formData.to}
-                  onChange={(e) =>
-                    setFormData({ ...formData, to: e.target.value })
-                  }
-                  className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                  required
-                  disabled={saving}>
-                  <option value="">
-                    Select destination country
-                  </option>
-                  {locationOptions.map((location) => (
-                    <option key={location} value={location}>
-                      {location}
-                    </option>
-                  ))}
-                </select>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Destination Country
+                  </label>
+                  <select
+                    value={formData.toCountry}
+                    onChange={(e) =>
+                      setFormData({ ...formData, toCountry: e.target.value, toState: "", to: "" })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={saving}>
+                    <option value="">Select country</option>
+                    {westAfricanCountries.map((country) => (
+                      <option key={country} value={country}>
+                        {country}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-neutral-700 mb-2">
+                    Destination State/Region
+                  </label>
+                  <select
+                    value={formData.toState}
+                    onChange={(e) =>
+                      setFormData({ ...formData, toState: e.target.value, to: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    required
+                    disabled={saving || !formData.toCountry}>
+                    <option value="">Select state/region</option>
+                    {westAfricanStates[formData.toCountry]?.map((state) => (
+                      <option key={state} value={state}>
+                        {state}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
-            </>
+            </div>
           )}
 
           <div className="grid grid-cols-2 gap-4 mb-4">

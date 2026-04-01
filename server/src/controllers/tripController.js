@@ -15,6 +15,10 @@ exports.getAllTrips = async (req, res) => {
       serviceCategory,
       freightType,
       companyId,
+      fromCountry,
+      toCountry,
+      fromState,
+      toState,
     } = req.query;
 
     const where = {};
@@ -23,10 +27,14 @@ exports.getAllTrips = async (req, res) => {
     if (freightType) where.freightType = freightType;
     if (companyId) where.companyId = companyId;
 
-    // Filter by from location (exact match)
+    // Filter by from location
+    if (fromCountry) where.fromCountry = fromCountry;
+    if (fromState) where.fromState = fromState;
     if (from) where.from = from;
 
-    // Filter by to location (exact match)
+    // Filter by to location
+    if (toCountry) where.toCountry = toCountry;
+    if (toState) where.toState = toState;
     if (to) where.to = to;
 
     // Filter by departureDate if provided (handles both specific dates and recurring trips)
@@ -158,6 +166,10 @@ exports.createTrip = async (req, res) => {
       pricePerKg,
       minCharge,
       maxWeightCapacity,
+      fromCountry,
+      toCountry,
+      fromState,
+      toState,
     } = req.body;
 
     // Validate required fields
@@ -201,6 +213,10 @@ exports.createTrip = async (req, res) => {
       pricePerKg: isFreight ? pricePerKg : null,
       minCharge: isFreight ? minCharge : null,
       maxWeightCapacity: isFreight ? maxWeightCapacity : null,
+      fromCountry: fromCountry || "Nigeria",
+      toCountry: toCountry || null,
+      fromState: fromState || null,
+      toState: toState || null,
       companyId: req.user.id,
       status: "active",
     });
@@ -264,6 +280,10 @@ exports.updateTrip = async (req, res) => {
       pricePerKg,
       minCharge,
       maxWeightCapacity,
+      fromCountry,
+      toCountry,
+      fromState,
+      toState,
     } = req.body;
 
     if (from) trip.from = from;
@@ -285,6 +305,10 @@ exports.updateTrip = async (req, res) => {
     if (pricePerKg !== undefined) trip.pricePerKg = pricePerKg;
     if (minCharge !== undefined) trip.minCharge = minCharge;
     if (maxWeightCapacity !== undefined) trip.maxWeightCapacity = maxWeightCapacity;
+    if (fromCountry !== undefined) trip.fromCountry = fromCountry;
+    if (toCountry !== undefined) trip.toCountry = toCountry;
+    if (fromState !== undefined) trip.fromState = fromState;
+    if (toState !== undefined) trip.toState = toState;
     
     if (seats !== undefined) {
       // Calculate booked seats BEFORE overwriting trip.seats

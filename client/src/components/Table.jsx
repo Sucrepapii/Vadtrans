@@ -3,9 +3,9 @@ import {
   FaSort,
   FaSortUp,
   FaSortDown,
-  FaSpinner,
   FaInbox,
 } from "react-icons/fa";
+import Loading from "./Loading";
 
 const Table = ({
   columns,
@@ -32,7 +32,7 @@ const Table = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <FaSpinner className="text-4xl text-primary animate-spin" />
+        <Loading size="md" />
       </div>
     );
   }

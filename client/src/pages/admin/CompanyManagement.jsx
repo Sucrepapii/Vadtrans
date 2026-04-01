@@ -12,7 +12,6 @@ import {
   FaTimesCircle,
   FaEye,
   FaFileAlt,
-  FaSpinner,
   FaFilter,
   FaEdit,
   FaCheck,
@@ -136,7 +135,7 @@ const CompanyManagement = () => {
       pending: {
         bg: "bg-yellow-100",
         text: "text-yellow-800",
-        icon: FaSpinner,
+        icon: FaCheckCircle,
         label: "Pending",
       },
       verified: {
@@ -159,7 +158,7 @@ const CompanyManagement = () => {
     return (
       <span
         className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-        <Icon className={status === "pending" ? "animate-spin" : ""} />
+        <Icon />
         {config.label}
       </span>
     );
@@ -214,7 +213,7 @@ const CompanyManagement = () => {
           {/* Companies List */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <FaSpinner className="animate-spin text-4xl text-primary" />
+              <Loading size="md" />
             </div>
           ) : companies.length === 0 ? (
             <Card>
@@ -267,7 +266,7 @@ const CompanyManagement = () => {
                                 className="text-green-600 hover:text-green-700 p-1"
                                 title="Save">
                                 {isSavingEmail ? (
-                                  <FaSpinner className="animate-spin" />
+                                  <Loading size="xs" />
                                 ) : (
                                   <FaCheck />
                                 )}
@@ -391,7 +390,7 @@ const CompanyManagement = () => {
                             className="w-full">
                             <div className="flex items-center justify-center gap-2">
                               {processingId === company.id ? (
-                                <FaSpinner className="animate-spin" />
+                                <Loading size="xs" />
                               ) : (
                                 <FaCheckCircle />
                               )}
@@ -412,7 +411,7 @@ const CompanyManagement = () => {
                             className="w-full text-red-600 hover:bg-red-50">
                             <div className="flex items-center justify-center gap-2">
                               {processingId === company.id ? (
-                                <FaSpinner className="animate-spin" />
+                                <Loading size="xs" />
                               ) : (
                                 <FaTimesCircle />
                               )}

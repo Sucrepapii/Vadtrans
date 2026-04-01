@@ -3,14 +3,12 @@ import { toast } from "react-toastify";
 import { shipmentAPI } from "../../services/api";
 import Card from "../Card";
 import {
-  FaBox,
-  FaSpinner,
-  FaCalendarAlt,
   FaCheckCircle,
   FaTruck,
   FaUser,
   FaInfoCircle,
 } from "react-icons/fa";
+import Loading from "../Loading";
 
 const ShipmentsTab = () => {
   const [shipments, setShipments] = useState([]);
@@ -87,9 +85,9 @@ const ShipmentsTab = () => {
 
   if (loading) {
     return (
-      <Card className="flex flex-col items-center justify-center py-12">
-        <FaSpinner className="animate-spin text-3xl text-primary mb-4" />
-        <p className="text-neutral-500">Loading company shipments...</p>
+      <Card className="flex flex-col items-center justify-center py-12 text-center">
+        <Loading size="md" />
+        <p className="text-neutral-500 mt-4">Loading company shipments...</p>
       </Card>
     );
   }

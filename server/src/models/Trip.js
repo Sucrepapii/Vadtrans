@@ -17,6 +17,23 @@ const Trip = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    fromCountry: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      defaultValue: "Nigeria",
+    },
+    toCountry: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    fromState: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    toState: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     serviceCategory: {
       type: DataTypes.ENUM("passenger", "freight"),
       allowNull: false,

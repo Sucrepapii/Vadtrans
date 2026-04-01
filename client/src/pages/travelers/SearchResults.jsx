@@ -13,11 +13,11 @@ import {
   FaStar,
   FaClock,
   FaMapMarkerAlt,
-  FaSpinner,
   FaArrowLeft,
   FaTruck,
   FaCheckCircle,
 } from "react-icons/fa";
+import Loading from "../../components/Loading";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -376,38 +376,41 @@ const SearchResults = () => {
               </div>
             )}
 
-            <div className="flex items-center gap-2 text-neutral-600">
-              <FaMapMarkerAlt className="text-primary" />
-              <span>
-                {searchParams.from || "Any"} → {searchParams.to || "Any"}
-              </span>
+            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-neutral-600">
+              <div className="flex items-center gap-2">
+                <FaMapMarkerAlt className="text-primary" />
+                <span className="font-medium">
+                  {searchParams.transportType === "international" && searchParams.fromCountry ? (
+                    `${searchParams.fromState ? searchParams.fromState + ", " : ""}${searchParams.fromCountry}`
+                  ) : searchParams.from || "Any"}
+                  {" → "}
+                  {searchParams.transportType === "international" && searchParams.toCountry ? (
+                    `${searchParams.toState ? searchParams.toState + ", " : ""}${searchParams.toCountry}`
+                  ) : searchParams.to || "Any"}
+                </span>
+              </div>
               {searchParams.date && (
-                <>
-                  <span className="mx-2">•</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-neutral-300 hidden sm:inline">|</span>
                   <FaClock className="text-primary" />
                   <span>
                     {new Date(searchParams.date).toLocaleDateString()}
                   </span>
-                </>
+                </div>
               )}
               {searchParams.transportType !== "all" && (
-                <>
-                  <span className="mx-2">•</span>
-                  <span className="capitalize">
-                    {searchParams.transportType}
+                <div className="flex items-center gap-2">
+                  <span className="text-neutral-300 hidden sm:inline">|</span>
+                  <span className="bg-primary/10 text-primary px-3 py-0.5 rounded-full text-xs font-semibold capitalize">
+                    {getTransportLabel(searchParams.transportType)}
                   </span>
-                </>
+                </div>
               )}
             </div>
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="text-center">
-                <FaSpinner className="animate-spin text-5xl text-primary mx-auto mb-4" />
-                <p className="text-neutral-600">Searching for trips...</p>
-              </div>
-            </div>
+            <Loading />
           ) : trips.length === 0 ? (
             <Card>
               <div className="text-center py-16">

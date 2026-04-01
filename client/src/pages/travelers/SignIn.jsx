@@ -1,12 +1,5 @@
-import React, { useState } from "react";
-import { Link, useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { toast } from "react-toastify";
-import { useAuth } from "../../context/AuthContext";
-import { authAPI } from "../../services/api";
-import Navbar from "../../components/Navbar";
-import Footer from "../../components/Footer";
-import Input from "../../components/Input";
-import { FaEnvelope, FaLock, FaSpinner } from "react-icons/fa";
+import { FaEnvelope, FaLock } from "react-icons/fa";
+import Loading from "../../components/Loading";
 
 const SignIn = () => {
   const [searchParams] = useSearchParams();
@@ -166,7 +159,7 @@ const SignIn = () => {
                 className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {loading ? (
                   <>
-                    <FaSpinner className="animate-spin" />
+                    <Loading size="xs" />
                     Signing in...
                   </>
                 ) : (
@@ -182,7 +175,7 @@ const SignIn = () => {
                   className="w-full bg-blue-100 text-blue-700 py-3 rounded-lg font-medium hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4">
                   {resendLoading ? (
                     <>
-                      <FaSpinner className="animate-spin" />
+                      <Loading size="xs" />
                       Sending...
                     </>
                   ) : (

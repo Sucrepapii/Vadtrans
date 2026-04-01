@@ -16,20 +16,9 @@ import {
   FaSave,
   FaTimes,
   FaCheckCircle,
-  FaSpinner,
-  FaUpload,
-  FaFileAlt,
-  FaBus,
-  FaTruck,
-  FaTrash,
-  FaUser,
-  FaFileInvoice,
-  FaTicketAlt,
-  FaBox,
-  FaCopy,
-  FaLink,
   FaExternalLinkAlt,
 } from "react-icons/fa";
+import Loading from "../../components/Loading";
 import {
   westAfricanCountries,
   westAfricanCities,
@@ -361,14 +350,7 @@ const CompanyProfile = () => {
   const toCities = useMemo(() => apiToCities, [apiToCities]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-        <div className="text-center">
-          <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
-          <p className="text-neutral-600">Loading company profile...</p>
-        </div>
-      </div>
-    );
+    return <Loading size="md" />;
   }
 
   return (
@@ -602,11 +584,16 @@ const CompanyProfile = () => {
                           disabled={saving}>
                           <div className="flex items-center gap-2">
                             {saving ? (
-                              <FaSpinner className="animate-spin" />
+                              <>
+                                <Loading size="xs" />
+                                Saving...
+                              </>
                             ) : (
-                              <FaSave />
+                              <>
+                                <FaSave />
+                                <span>Save</span>
+                              </>
                             )}
-                            <span>{saving ? "Saving..." : "Save"}</span>
                           </div>
                         </Button>
                       </div>
@@ -1065,7 +1052,11 @@ const CompanyProfile = () => {
                         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                           <div className="flex-1">
                             <div className="flex items-center gap-2 mb-2">
-                              <FaBus className="text-primary" />
+                              {actionLoading === trip.id ? (
+                                <Loading size="xs" />
+                              ) : (
+                                <FaBus className="text-primary" />
+                              )}
                               <h3 className="font-semibold">
                                 {trip.from} → {trip.to}
                               </h3>
@@ -1744,7 +1735,7 @@ const CompanyProfile = () => {
             <Button variant="primary" type="submit" disabled={saving}>
               {saving ? (
                 <div className="flex items-center gap-2">
-                  <FaSpinner className="animate-spin" />
+                  <Loading size="xs" />
                   <span>Saving...</span>
                 </div>
               ) : (

@@ -4,7 +4,8 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import { contactAPI } from "../../services/api";
-import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaSpinner } from "react-icons/fa";
+import { FaPhone, FaEnvelope, FaMapMarkerAlt } from "react-icons/fa";
+import Loading from "../../components/Loading";
 
 const ContactUs = () => {
   const [formData, setFormData] = useState({
@@ -161,8 +162,14 @@ const ContactUs = () => {
                   type="submit"
                   disabled={loading}
                   className="px-8 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors flex items-center gap-2">
-                  {loading && <FaSpinner className="animate-spin" />}
-                  {loading ? "Sending..." : "Submit"}
+                  {loading ? (
+                    <>
+                      <Loading size="xs" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Submit"
+                  )}
                 </button>
               </form>
             </div>
