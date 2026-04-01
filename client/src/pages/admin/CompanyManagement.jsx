@@ -19,6 +19,7 @@ import {
 } from "react-icons/fa";
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
+import Loading from "../../components/Loading";
 
 const CompanyManagement = () => {
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";

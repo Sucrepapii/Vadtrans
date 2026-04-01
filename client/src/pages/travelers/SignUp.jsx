@@ -6,6 +6,7 @@ import { authAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Input from "../../components/Input";
+import Button from "../../components/Button";
 import Loading from "../../components/Loading";
 
 const SignUp = () => {
