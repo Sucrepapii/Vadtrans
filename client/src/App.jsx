@@ -11,6 +11,7 @@ import ResetPassword from "./pages/auth/ResetPassword";
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import Services from "./pages/travelers/Services";
 import SearchResults from "./pages/travelers/SearchResults";
+import Login from "./pages/travelers/SignIn"; // Alias for SignIn
 import PassengerInfo from "./pages/travelers/PassengerInfo";
 import FreightInfo from "./pages/travelers/FreightInfo";
 import FreightCheckout from "./pages/travelers/FreightCheckout";
@@ -58,6 +59,7 @@ const App = () => {
         <Route path="/about" element={<AboutUs />} />
         <Route path="/services" element={<Services />} />
         <Route path="/signin" element={<SignIn />} />
+        <Route path="/login" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password/:token" element={<ResetPassword />} />

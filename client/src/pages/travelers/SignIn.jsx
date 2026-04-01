@@ -59,11 +59,8 @@ const SignIn = () => {
       login(response.data.user);
 
       // Show success message
-      toast.success(
-        `Welcome back, ${
-          response.data.user.name || response.data.user.email.split("@")[0]
-        }!`,
-      );
+      const userName = response.data.user?.name || response.data.user?.email?.split("@")[0] || "User";
+      toast.success(`Welcome back, ${userName}!`);
 
       // Redirect based on role or URL param/state
       const from = location.state?.from;
