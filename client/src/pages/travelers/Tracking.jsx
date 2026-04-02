@@ -15,8 +15,8 @@ import {
   FaCheckCircle,
   FaCircle,
   FaBus,
+  FaSpinner,
 } from "react-icons/fa";
-import Loading from "../../components/Loading";
 
 const Tracking = () => {
   const location = useLocation();
@@ -136,14 +136,13 @@ const Tracking = () => {
                 variant="primary"
                 fullWidth
                 disabled={loading}>
-                {loading ? <Loading size="xs" /> : "Track Booking"}
+                {loading ? "Searching..." : "Track Booking"}
               </Button>
             </form>
           </Card>
 
           {/* Tracking Results */}
-          {loading && <Loading size="md" />}
-          {!loading && trackData && tripDetails && (
+          {trackData && tripDetails && (
             <>
               {/* Status Card */}
               <Card className="mb-6 bg-gradient-to-r from-primary to-primary-dark text-white">

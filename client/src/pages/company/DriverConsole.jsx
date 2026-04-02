@@ -7,8 +7,7 @@ import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import TrackingMap from "../../components/TrackingMap";
-import Loading from "../../components/Loading";
-import { FaMapMarkerAlt, FaStop, FaPlay } from "react-icons/fa";
+import { FaMapMarkerAlt, FaStop, FaPlay, FaSpinner } from "react-icons/fa";
 
 const DriverConsole = () => {
   const { id } = useParams();
@@ -17,8 +16,6 @@ const DriverConsole = () => {
   const [isTracking, setIsTracking] = useState(false);
   const [location, setLocation] = useState({ lat: null, lng: null });
   const [lastUpdated, setLastUpdated] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [actionLoading, setActionLoading] = useState(false);
   const watchIdRef = useRef(null);
 
   useEffect(() => {
@@ -28,7 +25,6 @@ const DriverConsole = () => {
 
   const fetchTrip = async () => {
     try {
-      setLoading(true);
       const response = await tripAPI.getTrip(id);
       setTrip(response.data.trip);
       if (response.data.trip.currentLat && response.data.trip.currentLng) {
@@ -40,8 +36,6 @@ const DriverConsole = () => {
     } catch (error) {
       console.error("Error fetching trip:", error);
       toast.error("Failed to load trip details");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -98,10 +92,10 @@ const DriverConsole = () => {
     }
   };
 
-  if (loading) {
+  if (!trip) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loading size="md" />
+        <FaSpinner className="animate-spin text-4xl text-primary" />
       </div>
     );
   }
@@ -141,7 +135,7 @@ const DriverConsole = () => {
                   fullWidth
                   onClick={startTracking}
                   className="flex justify-center items-center gap-2">
-                  {actionLoading ? <Loading size="xs" /> : <><FaPlay /> Start Trip Broadcast</>}
+                  <FaPlay /> Start Trip Broadcast
                 </Button>
               ) : (
                 <Button

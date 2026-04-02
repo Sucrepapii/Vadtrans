@@ -4,8 +4,7 @@ import { toast } from "react-toastify";
 import { authAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import { FaCheckCircle, FaTimesCircle } from "react-icons/fa";
-import Loading from "../../components/Loading";
+import { FaCheckCircle, FaTimesCircle, FaSpinner } from "react-icons/fa";
 
 const VerifyEmail = () => {
   const [searchParams] = useSearchParams();
@@ -44,7 +43,7 @@ const VerifyEmail = () => {
         <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full text-center">
           {status === "verifying" && (
             <div className="flex flex-col items-center">
-              <Loading size="md" />
+              <FaSpinner className="text-4xl text-primary animate-spin mb-4" />
               <h2 className="text-xl font-semibold text-charcoal mb-2">
                 Verifying Email...
               </h2>

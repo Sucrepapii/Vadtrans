@@ -12,8 +12,8 @@ import {
   FaChevronRight,
   FaCamera,
   FaEllipsisV,
+  FaSpinner,
 } from "react-icons/fa";
-import Loading from "../../components/Loading";
 import { useAuth } from "../../context/AuthContext";
 import { authAPI } from "../../services/api";
 import CompanyProfile from "../company/CompanyProfile";
@@ -151,7 +151,10 @@ const UserProfile = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-neutral-50">
-        <Loading />
+        <div className="text-center">
+          <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
+          <p className="text-neutral-600">Loading profile...</p>
+        </div>
       </div>
     );
   }
@@ -412,7 +415,7 @@ const UserProfile = () => {
                       className="px-12 py-3 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2">
                       {saving ? (
                         <>
-                          <Loading size="xs" />
+                          <FaSpinner className="animate-spin" />
                           Saving...
                         </>
                       ) : (

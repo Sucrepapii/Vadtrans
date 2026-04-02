@@ -3,12 +3,13 @@ import { toast } from "react-toastify";
 import { bookingAPI } from "../../services/api";
 import Card from "../Card";
 import {
+  FaUsers,
+  FaSpinner,
   FaCalendarAlt,
   FaCheckCircle,
   FaTimesCircle,
   FaBus,
 } from "react-icons/fa";
-import Loading from "../Loading";
 
 const PassengersTab = () => {
   const [bookings, setBookings] = useState([]);
@@ -75,9 +76,9 @@ const PassengersTab = () => {
 
   if (loading) {
     return (
-      <Card className="flex flex-col items-center justify-center py-12 text-center">
-        <Loading size="md" />
-        <p className="text-neutral-500 mt-4">Loading passenger bookings...</p>
+      <Card className="flex flex-col items-center justify-center py-12">
+        <FaSpinner className="animate-spin text-3xl text-primary mb-4" />
+        <p className="text-neutral-500">Loading passenger bookings...</p>
       </Card>
     );
   }

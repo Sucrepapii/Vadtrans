@@ -18,12 +18,16 @@ import {
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 import { tripAPI } from "../../services/api";
 import {
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaBus,
+  FaCar,
   FaClock,
   FaMapMarkerAlt,
+  FaSpinner,
   FaTruck,
-  FaSearch,
 } from "react-icons/fa";
-import Loading from "../../components/Loading";
 import { MaterialTimePicker } from "../../components/MaterialDatePicker";
 import MaterialDatePicker from "../../components/MaterialDatePicker";
 
@@ -475,7 +479,10 @@ const TicketsManagement = () => {
           <Card>
             {loading ? (
               <div className="flex items-center justify-center py-12">
-                <Loading size="md" />
+                <div className="text-center">
+                  <FaSpinner className="animate-spin text-4xl text-primary mx-auto mb-4" />
+                  <p className="text-neutral-600">Loading trips...</p>
+                </div>
               </div>
             ) : tickets.length === 0 ? (
               <div className="text-center py-12">
@@ -518,14 +525,10 @@ const TicketsManagement = () => {
             </Button>
             <Button variant="primary" onClick={handleSubmit} disabled={saving}>
               <div className="flex items-center gap-2">
-                {saving ? (
-                  <>
-                    <Loading size="xs" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <span>{editingTicket ? "Update" : "Create"}</span>
-                )}
+                {saving && <FaSpinner className="animate-spin" />}
+                <span>
+                  {saving ? "Saving..." : editingTicket ? "Update" : "Create"}
+                </span>
               </div>
             </Button>
           </>
@@ -737,11 +740,11 @@ const TicketsManagement = () => {
                   required
                   disabled={saving}>
                   <option value="">Select state</option>
-                  {westAfricanCities && Object.keys(westAfricanCities).includes("Nigeria") ? Object.keys(westAfricanCities["Nigeria"]).map((state) => (
+                  {locationOptions.map((state) => (
                     <option key={state} value={state}>
                       {state}
                     </option>
-                  )) : null}
+                  ))}
                 </select>
               </div>
 
@@ -760,11 +763,11 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}>
                     <option value="">Select departure city</option>
-                    {westAfricanCities && formData.state && westAfricanCities[formData.state] ? westAfricanCities[formData.state].map((city) => (
+                    {fromCities.map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
-                    )) : null}
+                    ))}
                   </select>
                 </div>
               )}
@@ -784,11 +787,11 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}>
                     <option value="">Select destination city</option>
-                    {westAfricanCities && formData.state && westAfricanCities[formData.state] ? westAfricanCities[formData.state].map((city) => (
+                    {fromCities.map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
-                    )) : null}
+                    ))}
                   </select>
                 </div>
               )}
@@ -808,11 +811,11 @@ const TicketsManagement = () => {
                   required
                   disabled={saving}>
                   <option value="">Select departure state</option>
-                  {westAfricanCities && Object.keys(westAfricanCities).includes("Nigeria") ? Object.keys(westAfricanCities["Nigeria"]).map((state) => (
+                  {locationOptions.map((state) => (
                     <option key={state} value={state}>
                       {state}
                     </option>
-                  )) : null}
+                  ))}
                 </select>
               </div>
 
@@ -830,11 +833,11 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}>
                     <option value="">Select departure city</option>
-                    {westAfricanCities && formData.state && westAfricanCities[formData.state] ? westAfricanCities[formData.state].map((city) => (
+                    {fromCities.map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
-                    )) : null}
+                    ))}
                   </select>
                 </div>
               )}
@@ -852,11 +855,11 @@ const TicketsManagement = () => {
                   required
                   disabled={saving}>
                   <option value="">Select destination state</option>
-                  {westAfricanCities && Object.keys(westAfricanCities).includes("Nigeria") ? Object.keys(westAfricanCities["Nigeria"]).map((state) => (
+                  {locationOptions.map((state) => (
                     <option key={state} value={state}>
                       {state}
                     </option>
-                  )) : null}
+                  ))}
                 </select>
               </div>
 
@@ -874,11 +877,11 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}>
                     <option value="">Select destination city</option>
-                    {westAfricanCities && formData.toState && westAfricanCities[formData.toState] ? westAfricanCities[formData.toState].map((city) => (
+                    {toCities.map((city) => (
                       <option key={city} value={city}>
                         {city}
                       </option>
-                    )) : null}
+                    ))}
                   </select>
                 </div>
               )}

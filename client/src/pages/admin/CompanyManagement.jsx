@@ -12,6 +12,7 @@ import {
   FaTimesCircle,
   FaEye,
   FaFileAlt,
+  FaSpinner,
   FaFilter,
   FaEdit,
   FaCheck,
@@ -19,7 +20,6 @@ import {
 } from "react-icons/fa";
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
-import Loading from "../../components/Loading";
 
 const CompanyManagement = () => {
   const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
@@ -136,7 +136,7 @@ const CompanyManagement = () => {
       pending: {
         bg: "bg-yellow-100",
         text: "text-yellow-800",
-        icon: FaCheckCircle,
+        icon: FaSpinner,
         label: "Pending",
       },
       verified: {
@@ -159,7 +159,7 @@ const CompanyManagement = () => {
     return (
       <span
         className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium ${config.bg} ${config.text}`}>
-        <Icon />
+        <Icon className={status === "pending" ? "animate-spin" : ""} />
         {config.label}
       </span>
     );
@@ -214,7 +214,7 @@ const CompanyManagement = () => {
           {/* Companies List */}
           {loading ? (
             <div className="flex items-center justify-center py-12">
-              <Loading size="md" />
+              <FaSpinner className="animate-spin text-4xl text-primary" />
             </div>
           ) : companies.length === 0 ? (
             <Card>
@@ -267,7 +267,7 @@ const CompanyManagement = () => {
                                 className="text-green-600 hover:text-green-700 p-1"
                                 title="Save">
                                 {isSavingEmail ? (
-                                  <Loading size="xs" />
+                                  <FaSpinner className="animate-spin" />
                                 ) : (
                                   <FaCheck />
                                 )}
@@ -391,7 +391,7 @@ const CompanyManagement = () => {
                             className="w-full">
                             <div className="flex items-center justify-center gap-2">
                               {processingId === company.id ? (
-                                <Loading size="xs" />
+                                <FaSpinner className="animate-spin" />
                               ) : (
                                 <FaCheckCircle />
                               )}
@@ -412,7 +412,7 @@ const CompanyManagement = () => {
                             className="w-full text-red-600 hover:bg-red-50">
                             <div className="flex items-center justify-center gap-2">
                               {processingId === company.id ? (
-                                <Loading size="xs" />
+                                <FaSpinner className="animate-spin" />
                               ) : (
                                 <FaTimesCircle />
                               )}

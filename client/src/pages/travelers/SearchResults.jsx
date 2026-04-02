@@ -13,11 +13,11 @@ import {
   FaStar,
   FaClock,
   FaMapMarkerAlt,
+  FaSpinner,
   FaArrowLeft,
   FaTruck,
   FaCheckCircle,
 } from "react-icons/fa";
-import Loading from "../../components/Loading";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -410,7 +410,12 @@ const SearchResults = () => {
           </div>
 
           {loading ? (
-            <Loading />
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <FaSpinner className="animate-spin text-5xl text-primary mx-auto mb-4" />
+                <p className="text-neutral-600">Searching for trips...</p>
+              </div>
+            </div>
           ) : trips.length === 0 ? (
             <Card>
               <div className="text-center py-16">

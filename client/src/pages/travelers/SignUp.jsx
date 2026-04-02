@@ -6,8 +6,7 @@ import { authAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Input from "../../components/Input";
-import Button from "../../components/Button";
-import Loading from "../../components/Loading";
+import { FaSpinner } from "react-icons/fa";
 
 const SignUp = () => {
   const [searchParams] = useSearchParams();
@@ -130,14 +129,7 @@ const SignUp = () => {
                   }}
                   disabled={loading}
                   className="text-primary hover:underline text-sm font-medium disabled:opacity-50">
-                  {loading ? (
-                    <>
-                      <Loading size="xs" />
-                      Sending...
-                    </>
-                  ) : (
-                    "Resend Verification Email"
-                  )}
+                  {loading ? "Sending..." : "Resend Verification Email"}
                 </button>
               </div>
             </div>
@@ -274,7 +266,7 @@ const SignUp = () => {
                   className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                   {loading ? (
                     <>
-                      <Loading size="xs" />
+                      <FaSpinner className="animate-spin" />
                       Creating account...
                     </>
                   ) : (

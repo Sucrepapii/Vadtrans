@@ -6,7 +6,6 @@ import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
-import Loading from "../../components/Loading";
 import {
   FaQuestionCircle,
   FaEnvelope,
@@ -14,9 +13,7 @@ import {
   FaBook,
   FaSearch,
   FaPaperPlane,
-  FaWhatsapp,
-  FaFileAlt,
-  FaChevronDown,
+  FaSpinner,
 } from "react-icons/fa";
 import { contactAPI } from "../../services/api";
 
@@ -255,16 +252,11 @@ const HelpSupport = () => {
                 disabled={sending}>
                 <div className="flex items-center justify-center gap-2">
                   {sending ? (
-                    <>
-                      <Loading size="xs" />
-                      Sending...
-                    </>
+                    <FaSpinner className="animate-spin" />
                   ) : (
-                    <>
-                      <FaPaperPlane />
-                      Send Message
-                    </>
+                    <FaPaperPlane />
                   )}
+                  <span>{sending ? "Sending..." : "Send Message"}</span>
                 </div>
               </Button>
             </form>
