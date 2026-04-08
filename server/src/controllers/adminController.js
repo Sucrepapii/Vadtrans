@@ -3,6 +3,7 @@ const Trip = require("../models/Trip");
 const Booking = require("../models/Booking");
 const Shipment = require("../models/Shipment");
 const Fare = require("../models/Fare");
+const Notification = require("../models/Notification");
 const { Op } = require("sequelize");
 const { sequelize } = require("../config/database");
 
@@ -573,7 +574,22 @@ exports.approveCompany = async (req, res) => {
       });
     }
 
-    await company.update({ verificationStatus: "verified" });
+    const { comment } = req.body;
+    await company.update({ 
+      verificationStatus: "verified",
+      verificationComment: comment || "Congratulations! Your company has been verified."
+    });
+
+    // Create notification for the company
+    try {
+      await Notification.create({
+        userId: company.id,
+        message: `Your company registration has been approved. ${comment ? 'Comment: ' + comment : ''}`,
+        type: "system"
+      });
+    } catch (notifError) {
+      console.error("Error creating approval notification:", notifError);
+    }
 
     const companyData = company.toJSON();
     delete companyData.password;
@@ -614,7 +630,22 @@ exports.rejectCompany = async (req, res) => {
       });
     }
 
-    await company.update({ verificationStatus: "rejected" });
+    const { comment } = req.body;
+    await company.update({ 
+      verificationStatus: "rejected",
+      verificationComment: comment || "Unfortunately, your registration was not approved at this time."
+    });
+
+    // Create notification for the company
+    try {
+      await Notification.create({
+        userId: company.id,
+        message: `Your company registration was rejected. Reason: ${comment || 'No specific reason provided.'}`,
+        type: "system"
+      });
+    } catch (notifError) {
+      console.error("Error creating rejection notification:", notifError);
+    }
 
     const companyData = company.toJSON();
     delete companyData.password;

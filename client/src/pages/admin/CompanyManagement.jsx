@@ -39,6 +39,7 @@ const CompanyManagement = () => {
   const [editingEmailId, setEditingEmailId] = useState(null);
   const [newEmailValue, setNewEmailValue] = useState("");
   const [isSavingEmail, setIsSavingEmail] = useState(false);
+  const [verificationComment, setVerificationComment] = useState("");
 
   useEffect(() => {
     fetchCompanies();
@@ -87,10 +88,10 @@ const CompanyManagement = () => {
     }
   };
 
-  const handleApprove = async (companyId) => {
+  const handleApprove = async (companyId, comment) => {
     try {
       setProcessingId(companyId);
-      const response = await adminAPI.approveCompany(companyId);
+      const response = await adminAPI.approveCompany(companyId, comment);
       if (response.data.success) {
         toast.success("Company approved successfully!");
         setConfirmModal({
@@ -99,6 +100,7 @@ const CompanyManagement = () => {
           companyId: null,
           companyName: "",
         });
+        setVerificationComment("");
         fetchCompanies();
       }
     } catch (error) {
@@ -109,10 +111,10 @@ const CompanyManagement = () => {
     }
   };
 
-  const handleReject = async (companyId) => {
+  const handleReject = async (companyId, comment) => {
     try {
       setProcessingId(companyId);
-      const response = await adminAPI.rejectCompany(companyId);
+      const response = await adminAPI.rejectCompany(companyId, comment);
       if (response.data.success) {
         toast.success("Company rejected successfully!");
         setConfirmModal({
@@ -121,6 +123,7 @@ const CompanyManagement = () => {
           companyId: null,
           companyName: "",
         });
+        setVerificationComment("");
         fetchCompanies();
       }
     } catch (error) {
@@ -357,6 +360,17 @@ const CompanyManagement = () => {
                           </p>
                         </div>
                       )}
+
+                      {company.verificationComment && (
+                        <div className={`mt-3 p-3 rounded-lg border text-sm ${
+                          company.verificationStatus === 'rejected' 
+                            ? 'bg-red-50 border-red-100 text-red-700' 
+                            : 'bg-green-50 border-green-100 text-green-700'
+                        }`}>
+                          <p className="font-semibold mb-1">Admin Comment:</p>
+                          <p>{company.verificationComment}</p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Actions */}
@@ -490,19 +504,20 @@ const CompanyManagement = () => {
       {/* Confirmation Modal */}
       <ConfirmationModal
         isOpen={confirmModal.isOpen}
-        onClose={() =>
+        onClose={() => {
           setConfirmModal({
             isOpen: false,
             type: null,
             companyId: null,
             companyName: "",
-          })
-        }
+          });
+          setVerificationComment("");
+        }}
         onConfirm={() => {
           if (confirmModal.type === "approve") {
-            handleApprove(confirmModal.companyId);
+            handleApprove(confirmModal.companyId, verificationComment);
           } else if (confirmModal.type === "reject") {
-            handleReject(confirmModal.companyId);
+            handleReject(confirmModal.companyId, verificationComment);
           }
         }}
         title={
@@ -517,7 +532,24 @@ const CompanyManagement = () => {
         cancelText="Cancel"
         type={confirmModal.type === "approve" ? "success" : "danger"}
         isProcessing={processingId === confirmModal.companyId}
-      />
+      >
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-neutral-700 mb-1">
+            {confirmModal.type === "approve" ? "Approval Message (Optional)" : "Reason for Rejection"}
+          </label>
+          <textarea
+            value={verificationComment}
+            onChange={(e) => setVerificationComment(e.target.value)}
+            placeholder={
+              confirmModal.type === "approve" 
+                ? "Add a welcoming message or instructions..." 
+                : "Please explain why the application was rejected..."
+            }
+            className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm min-h-[100px]"
+            required={confirmModal.type === "reject"}
+          />
+        </div>
+      </ConfirmationModal>
     </div>
   );
 };

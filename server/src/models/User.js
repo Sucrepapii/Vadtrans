@@ -137,6 +137,10 @@ const User = sequelize.define(
       type: DataTypes.DATE,
       allowNull: true,
     },
+    verificationComment: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,
@@ -175,6 +179,10 @@ User.associate = (models) => {
   User.hasMany(models.Trip, {
     foreignKey: "companyId",
     as: "trips",
+  });
+  User.hasMany(models.Notification, {
+    foreignKey: "userId",
+    as: "notifications",
   });
 };
 

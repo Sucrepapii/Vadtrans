@@ -15,6 +15,7 @@ const ConfirmationModal = ({
   cancelText = "Cancel",
   type = "warning", // warning, danger, success
   isProcessing = false,
+  children,
 }) => {
   if (!isOpen) return null;
 
@@ -62,6 +63,9 @@ const ConfirmationModal = ({
 
         {/* Message */}
         <p className="text-neutral-600 text-center mb-6">{message}</p>
+
+        {/* Custom Content (Children) */}
+        {children && <div className="mb-6">{children}</div>}
 
         {/* Actions */}
         <div className="flex gap-3">
