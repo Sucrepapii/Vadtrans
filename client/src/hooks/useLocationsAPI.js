@@ -11,7 +11,7 @@ export const useLocationsAPI = () => {
   const states = useMemo(() => nigeriaLocations.map(item => ({
     name: item.state,
     alias: item.alias || item.state.toLowerCase().replace(/ /g, '_')
-  })), []);
+  })).sort((a, b) => a.name.localeCompare(b.name)), []);
 
   // Function to fetch cities (LGAs) for a specific state
   // Kept as async to maintain backward compatibility with existing components

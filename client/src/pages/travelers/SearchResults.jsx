@@ -25,10 +25,18 @@ const SearchResults = () => {
   const [urlSearchParams] = useSearchParams();
   const companyId = urlSearchParams.get("companyId");
 
+  const getTodayDate = () => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, "0");
+    const day = String(today.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
   const [searchParams, setSearchParams] = useState({
     from: "",
     to: "",
-    date: "",
+    date: getTodayDate(),
     transportType: "all",
     serviceCategory: "passenger",
     freightType: "",
