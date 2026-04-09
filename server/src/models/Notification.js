@@ -30,9 +30,18 @@ const Notification = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    userId: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: "Users",
+        key: "id",
+      },
+    },
   },
   {
     timestamps: true,
+    tableName: "Notifications",
   },
 );
 // Define associations
