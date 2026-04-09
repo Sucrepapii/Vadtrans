@@ -17,6 +17,7 @@ import {
   FaEdit,
   FaCheck,
   FaTimes,
+  FaTrash,
 } from "react-icons/fa";
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
@@ -129,6 +130,28 @@ const CompanyManagement = () => {
     } catch (error) {
       console.error("Error rejecting company:", error);
       toast.error(error.response?.data?.message || "Failed to reject company");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  const handleDeleteCompany = async (companyId) => {
+    try {
+      setProcessingId(companyId);
+      const response = await adminAPI.deleteUser(companyId);
+      if (response.data.success) {
+        toast.success(response.data.message || "Company deleted successfully");
+        setConfirmModal({
+          isOpen: false,
+          type: null,
+          companyId: null,
+          companyName: "",
+        });
+        setCompanies(companies.filter((c) => c.id !== companyId));
+      }
+    } catch (error) {
+      console.error("Error deleting company:", error);
+      toast.error(error.response?.data?.message || "Failed to delete company");
     } finally {
       setProcessingId(null);
     }
@@ -435,6 +458,28 @@ const CompanyManagement = () => {
                           </Button>
                         </>
                       )}
+
+                      <Button
+                        variant="secondary"
+                        onClick={() =>
+                          setConfirmModal({
+                            isOpen: true,
+                            type: "delete",
+                            companyId: company.id,
+                            companyName: company.name,
+                          })
+                        }
+                        disabled={processingId === company.id}
+                        className="w-full text-red-600 hover:bg-neutral-100 border-red-200">
+                        <div className="flex items-center justify-center gap-2">
+                          {processingId === company.id && confirmModal.type === "delete" ? (
+                            <FaSpinner className="animate-spin" />
+                          ) : (
+                            <FaTrash />
+                          )}
+                          <span>Delete Company</span>
+                        </div>
+                      </Button>
                     </div>
                   </div>
                 </Card>
@@ -518,37 +563,55 @@ const CompanyManagement = () => {
             handleApprove(confirmModal.companyId, verificationComment);
           } else if (confirmModal.type === "reject") {
             handleReject(confirmModal.companyId, verificationComment);
+          } else if (confirmModal.type === "delete") {
+            handleDeleteCompany(confirmModal.companyId);
           }
         }}
         title={
-          confirmModal.type === "approve" ? "Approve Company" : "Reject Company"
+          confirmModal.type === "approve"
+            ? "Approve Company"
+            : confirmModal.type === "reject"
+            ? "Reject Company"
+            : "Delete Company"
         }
         message={
           confirmModal.type === "approve"
             ? `Are you sure you want to approve "${confirmModal.companyName}"? This will allow them to list trips and accept bookings.`
-            : `Are you sure you want to reject "${confirmModal.companyName}"? They will need to resubmit their application.`
+            : confirmModal.type === "reject"
+            ? `Are you sure you want to reject "${confirmModal.companyName}"? They will need to resubmit their application.`
+            : `Are you sure you want to PERMANENTLY delete "${confirmModal.companyName}"? This will delete all their trips, bookings, and associated records. This action cannot be undone.`
         }
-        confirmText={confirmModal.type === "approve" ? "Approve" : "Reject"}
+        confirmText={
+          confirmModal.type === "approve"
+            ? "Approve"
+            : confirmModal.type === "reject"
+            ? "Reject"
+            : "Delete Permanently"
+        }
         cancelText="Cancel"
         type={confirmModal.type === "approve" ? "success" : "danger"}
         isProcessing={processingId === confirmModal.companyId}
       >
-        <div className="mt-4">
-          <label className="block text-sm font-medium text-neutral-700 mb-1">
-            {confirmModal.type === "approve" ? "Approval Message (Optional)" : "Reason for Rejection"}
-          </label>
-          <textarea
-            value={verificationComment}
-            onChange={(e) => setVerificationComment(e.target.value)}
-            placeholder={
-              confirmModal.type === "approve" 
-                ? "Add a welcoming message or instructions..." 
-                : "Please explain why the application was rejected..."
-            }
-            className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm min-h-[100px]"
-            required={confirmModal.type === "reject"}
-          />
-        </div>
+        {(confirmModal.type === "approve" || confirmModal.type === "reject") && (
+          <div className="mt-4">
+            <label className="block text-sm font-medium text-neutral-700 mb-1">
+              {confirmModal.type === "approve"
+                ? "Approval Message (Optional)"
+                : "Reason for Rejection"}
+            </label>
+            <textarea
+              value={verificationComment}
+              onChange={(e) => setVerificationComment(e.target.value)}
+              placeholder={
+                confirmModal.type === "approve"
+                  ? "Add a welcoming message or instructions..."
+                  : "Please explain why the application was rejected..."
+              }
+              className="w-full px-3 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm min-h-[100px]"
+              required={confirmModal.type === "reject"}
+            />
+          </div>
+        )}
       </ConfirmationModal>
     </div>
   );

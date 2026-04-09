@@ -14,9 +14,9 @@ const {
   createFare,
   updateFare,
   deleteFare,
-  getAllCompanies,
   approveCompany,
   rejectCompany,
+  deleteUser,
 } = require("../controllers/adminController");
 const {
   getNotifications,
@@ -45,6 +45,7 @@ router.put("/bookings/:id", updateBookingStatus);
 // User Management
 router.get("/users", getAllUsers);
 router.put("/users/:id", updateUser);
+router.delete("/users/:id", deleteUser);
 
 // Company Management
 router.get("/companies", getAllCompanies);

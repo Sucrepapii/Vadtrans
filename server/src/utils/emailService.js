@@ -461,6 +461,52 @@ const sendContactFormEmail = async ({ name, email, subject, message }) => {
   }
 };
 
+const sendAccountDeletedEmail = async (user) => {
+  try {
+    if (!isConfigured()) {
+      return { success: true, mode: "console" };
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: process.env.SMTP_FROM || "VadTrans <account@resend.dev>",
+      to: [user.email],
+      subject: "Account Closure Notification - VadTrans",
+      html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6; color: #333;">
+        <div style="background-color: #f82b2b; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0;">
+          <h2 style="margin: 0;">Account Closure Notice</h2>
+        </div>
+        <div style="padding: 20px; border: 1px solid #eee; border-top: none;">
+          <p>Hello ${user.name},</p>
+          <p>This email is to inform you that your VadTrans account associated with <strong>${user.email}</strong> has been closed by an administrator.</p>
+          <p>As a result of this action:</p>
+          <ul>
+            <li>Your access to the VadTrans platform has been revoked.</li>
+            <li>All your personal data, active bookings, and associated records have been removed from our active systems.</li>
+            <li>Any pending transactions or future trips have been cancelled.</li>
+          </ul>
+          <p>If you have any questions regarding this action or believe this was done in error, please contact our support team at <a href="mailto:support@vadtrans.com">support@vadtrans.com</a>.</p>
+          <p>Thank you for the time you spent with VadTrans.</p>
+          <hr style="border: 1px solid #eee; margin: 20px 0;" />
+          <p style="font-size: 12px; color: #888;">&copy; ${new Date().getFullYear()} VadTrans. All rights reserved.</p>
+        </div>
+      </div>
+    `,
+    });
+
+    if (error) {
+      console.error("❌ Resend Error:", error);
+      return { success: false, error: error.message };
+    }
+
+    console.log("✅ Account deletion email sent to:", user.email);
+    return { success: true, messageId: data.id };
+  } catch (error) {
+    console.error("❌ Error sending account deletion email:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendBookingConfirmationEmail,
@@ -468,4 +514,5 @@ module.exports = {
   sendPasswordResetEmail,
   sendPasswordSuccessEmail,
   sendContactFormEmail,
+  sendAccountDeletedEmail,
 };

@@ -10,6 +10,7 @@ import {
   FaCheckCircle,
   FaTimesCircle,
   FaEye,
+  FaTrash,
 } from "react-icons/fa";
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
@@ -47,6 +48,29 @@ const ClientManagement = () => {
       toast.error("Failed to load users");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteUser = async (userId, userName) => {
+    if (
+      window.confirm(
+        `Are you sure you want to delete ${userName}? This will also delete all associated bookings and data. This action cannot be undone.`
+      )
+    ) {
+      try {
+        const response = await adminAPI.deleteUser(userId);
+        if (response.data.success) {
+          toast.success(response.data.message || "User deleted successfully");
+          // Update local state
+          setCompanies(companies.filter((c) => c.id !== userId));
+          setCustomers(customers.filter((c) => c.id !== userId));
+        }
+      } catch (error) {
+        console.error("Error deleting user:", error);
+        toast.error(
+          error.response?.data?.message || "Failed to delete user"
+        );
+      }
     }
   };
 
@@ -173,9 +197,17 @@ const ClientManagement = () => {
                             {new Date(company.createdAt).toLocaleDateString()}
                           </td>
                           <td className="px-4 py-3">
-                            <Button variant="text" className="text-sm">
-                              <FaEye /> View
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button variant="text" title="View" className="text-sm p-1">
+                                <FaEye className="text-neutral-500 hover:text-primary transition-colors" />
+                              </Button>
+                              <button
+                                onClick={() => handleDeleteUser(company.id, company.name)}
+                                className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                                title="Delete Company">
+                                <FaTrash />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -245,9 +277,17 @@ const ClientManagement = () => {
                             {new Date(customer.createdAt).toLocaleDateString()}
                           </td>
                           <td className="px-4 py-3">
-                            <Button variant="text" className="text-sm">
-                              <FaEye /> View
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              <Button variant="text" title="View" className="text-sm p-1">
+                                <FaEye className="text-neutral-500 hover:text-primary transition-colors" />
+                              </Button>
+                              <button
+                                onClick={() => handleDeleteUser(customer.id, customer.name)}
+                                className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                                title="Delete Customer">
+                                <FaTrash />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))

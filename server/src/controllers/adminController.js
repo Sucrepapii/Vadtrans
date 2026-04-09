@@ -6,6 +6,7 @@ const Fare = require("../models/Fare");
 const Notification = require("../models/Notification");
 const { Op } = require("sequelize");
 const { sequelize } = require("../config/database");
+const { sendAccountDeletedEmail } = require("../utils/emailService");
 
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/stats
@@ -660,6 +661,108 @@ exports.rejectCompany = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error rejecting company",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Delete user/company (hard delete)
+// @route   DELETE /api/admin/users/:id
+// @access  Private/Admin
+exports.deleteUser = async (req, res) => {
+  const transaction = await sequelize.transaction();
+  try {
+    const user = await User.findByPk(req.params.id);
+
+    if (!user) {
+      await transaction.rollback();
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    const userData = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    };
+
+    console.log(`🗑️ Deleting ${user.role}: ${user.name} (ID: ${user.id})`);
+
+    // 1. Delete associated data based on role
+    if (user.role === "company") {
+      // Find all trips owned by this company
+      const companyTrips = await Trip.findAll({
+        where: { companyId: user.id },
+        transaction,
+      });
+      const tripIds = companyTrips.map((t) => t.id);
+
+      if (tripIds.length > 0) {
+        console.log(`   - Deleting ${tripIds.length} trips and their associations...`);
+        // Delete bookings associated with these trips
+        await Booking.destroy({
+          where: { tripId: { [Op.in]: tripIds } },
+          transaction,
+        });
+        // Delete shipments associated with these trips
+        await Shipment.destroy({
+          where: { tripId: { [Op.in]: tripIds } },
+          transaction,
+        });
+        // Delete the trips
+        await Trip.destroy({
+          where: { id: { [Op.in]: tripIds } },
+          transaction,
+        });
+      }
+    }
+
+    // 2. Delete data common to all users
+    // Delete bookings made by this user
+    await Booking.destroy({
+      where: { userId: user.id },
+      transaction,
+    });
+
+    // Delete shipments sent by this user
+    await Shipment.destroy({
+      where: { userId: user.id },
+      transaction,
+    });
+
+    // Delete notifications for this user
+    await Notification.destroy({
+      where: { userId: user.id },
+      transaction,
+    });
+
+    // 3. Delete the user record
+    await user.destroy({ transaction });
+
+    // Commit the transaction
+    await transaction.commit();
+
+    // 4. Send deletion notification email (outside transaction)
+    try {
+      await sendAccountDeletedEmail(userData);
+    } catch (emailError) {
+      console.error("⚠️ Failed to send deletion email:", emailError.message);
+      // We don't fail the request if email fails
+    }
+
+    res.status(200).json({
+      success: true,
+      message: `${user.role === "company" ? "Company" : "User"} and all associated data deleted successfully. Notification email sent.`,
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error("❌ Error deleting user:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error deleting user",
       error: error.message,
     });
   }
