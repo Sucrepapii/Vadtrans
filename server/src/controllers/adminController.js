@@ -4,6 +4,7 @@ const Booking = require("../models/Booking");
 const Shipment = require("../models/Shipment");
 const Fare = require("../models/Fare");
 const Notification = require("../models/Notification");
+const Review = require("../models/Review");
 const { Op } = require("sequelize");
 const { sequelize } = require("../config/database");
 const { sendAccountDeletedEmail } = require("../utils/emailService");
@@ -766,6 +767,16 @@ exports.deleteUser = async (req, res) => {
       console.error("⚠️ Failed to delete associated notifications:", err.message);
     }
 
+    // Delete reviews by this user
+    try {
+      await Review.destroy({
+        where: { userId: user.id },
+        transaction,
+      });
+    } catch (err) {
+      console.error("⚠️ Failed to delete associated reviews:", err.message);
+    }
+
     // 3. Delete the user record
     await user.destroy({ transaction });
 
@@ -785,11 +796,15 @@ exports.deleteUser = async (req, res) => {
       message: `${user.role === "company" ? "Company" : "User"} and all associated data deleted successfully. Notification email sent.`,
     });
   } catch (error) {
-    await transaction.rollback();
+    // If we've already committed, we don't rollback
+    if (transaction && !transaction.finished) {
+      await transaction.rollback();
+    }
     console.error("❌ Error deleting user:", error);
     res.status(500).json({
       success: false,
-      message: "Error deleting user",
+      message: `Error deleting user: ${error.message}`,
+      details: error.parent?.detail || error.original?.message || error.message,
       error: error.message,
     });
   }
