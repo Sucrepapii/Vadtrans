@@ -704,18 +704,6 @@ exports.deleteUser = async (req, res) => {
       if (tripIds.length > 0) {
         console.log(`   - Deleting ${tripIds.length} trips and their associations...`);
         
-    // 1. Delete associated data based on role
-    if (user.role === "company") {
-      // Find all trips owned by this company
-      const companyTrips = await Trip.findAll({
-        where: { companyId: user.id },
-        transaction,
-      });
-      const tripIds = companyTrips.map((t) => t.id);
-
-      if (tripIds.length > 0) {
-        console.log(`   - Deleting ${tripIds.length} trips and their associations...`);
-        
         // Delete bookings associated with these trips
         await Booking.destroy({
           where: { tripId: { [Op.in]: tripIds } },
