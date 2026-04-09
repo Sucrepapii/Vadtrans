@@ -704,78 +704,62 @@ exports.deleteUser = async (req, res) => {
       if (tripIds.length > 0) {
         console.log(`   - Deleting ${tripIds.length} trips and their associations...`);
         
+    // 1. Delete associated data based on role
+    if (user.role === "company") {
+      // Find all trips owned by this company
+      const companyTrips = await Trip.findAll({
+        where: { companyId: user.id },
+        transaction,
+      });
+      const tripIds = companyTrips.map((t) => t.id);
+
+      if (tripIds.length > 0) {
+        console.log(`   - Deleting ${tripIds.length} trips and their associations...`);
+        
         // Delete bookings associated with these trips
-        try {
-          await Booking.destroy({
-            where: { tripId: { [Op.in]: tripIds } },
-            transaction,
-          });
-        } catch (err) {
-          console.error("⚠️ Failed to delete associated bookings (trips):", err.message);
-        }
+        await Booking.destroy({
+          where: { tripId: { [Op.in]: tripIds } },
+          transaction,
+        });
 
         // Delete shipments associated with these trips
-        try {
-          await Shipment.destroy({
-            where: { tripId: { [Op.in]: tripIds } },
-            transaction,
-          });
-        } catch (err) {
-          console.error("⚠️ Failed to delete associated shipments (trips):", err.message);
-        }
+        await Shipment.destroy({
+          where: { tripId: { [Op.in]: tripIds } },
+          transaction,
+        });
 
         // Delete the trips
-        try {
-          await Trip.destroy({
-            where: { id: { [Op.in]: tripIds } },
-            transaction,
-          });
-        } catch (err) {
-          console.error("⚠️ Failed to delete trips:", err.message);
-        }
+        await Trip.destroy({
+          where: { id: { [Op.in]: tripIds } },
+          transaction,
+        });
       }
     }
 
     // 2. Delete data common to all users
     // Delete bookings made by this user
-    try {
-      await Booking.destroy({
-        where: { userId: user.id },
-        transaction,
-      });
-    } catch (err) {
-      console.error("⚠️ Failed to delete associated bookings (user):", err.message);
-    }
+    await Booking.destroy({
+      where: { userId: user.id },
+      transaction,
+    });
 
     // Delete shipments sent by this user
-    try {
-      await Shipment.destroy({
-        where: { userId: user.id },
-        transaction,
-      });
-    } catch (err) {
-      console.error("⚠️ Failed to delete associated shipments (user):", err.message);
-    }
+    await Shipment.destroy({
+      where: { userId: user.id },
+      transaction,
+    });
 
     // Delete notifications for this user
-    try {
-      await Notification.destroy({
-        where: { userId: user.id },
-        transaction,
-      });
-    } catch (err) {
-      console.error("⚠️ Failed to delete associated notifications:", err.message);
-    }
+    await Notification.destroy({
+      where: { userId: user.id },
+      transaction,
+    });
 
     // Delete reviews by this user
-    try {
-      await Review.destroy({
-        where: { userId: user.id },
-        transaction,
-      });
-    } catch (err) {
-      console.error("⚠️ Failed to delete associated reviews:", err.message);
-    }
+    await Review.destroy({
+      where: { userId: user.id },
+      transaction,
+    });
 
     // 3. Delete the user record
     await user.destroy({ transaction });
