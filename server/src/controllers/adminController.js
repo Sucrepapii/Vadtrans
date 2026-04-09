@@ -708,10 +708,14 @@ exports.deleteUser = async (req, res) => {
           transaction,
         });
         // Delete shipments associated with these trips
-        await Shipment.destroy({
-          where: { tripId: { [Op.in]: tripIds } },
-          transaction,
-        });
+        try {
+          await Shipment.destroy({
+            where: { tripId: { [Op.in]: tripIds } },
+            transaction,
+          });
+        } catch (shipmentErr) {
+          console.error("⚠️ Failed to delete associated shipments (trips):", shipmentErr.message);
+        }
         // Delete the trips
         await Trip.destroy({
           where: { id: { [Op.in]: tripIds } },
@@ -728,10 +732,14 @@ exports.deleteUser = async (req, res) => {
     });
 
     // Delete shipments sent by this user
-    await Shipment.destroy({
-      where: { userId: user.id },
-      transaction,
-    });
+    try {
+      await Shipment.destroy({
+        where: { userId: user.id },
+        transaction,
+      });
+    } catch (shipmentErr) {
+      console.error("⚠️ Failed to delete associated shipments (user):", shipmentErr.message);
+    }
 
     // Delete notifications for this user
     await Notification.destroy({

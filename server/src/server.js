@@ -119,6 +119,8 @@ const initializeDatabase = async () => {
     await testConnection();
     // Sync all models with database (alter: true updates schema)
     await sequelize.sync({ alter: true });
+    // Explicitly sync Shipment to ensure it exists
+    await Shipment.sync({ alter: true });
     console.log("✅ Database models synchronized");
 
     // Check if any users exist, if not create default admin
@@ -275,6 +277,14 @@ app.get("/api/fix-db-schema", async (req, res) => {
     await addCol("Trips", "state", "VARCHAR(255)");
     await addCol("Trips", "documentPrices", "TEXT");
     await addCol("Trips", "bookedSeats", "TEXT", "[]");
+
+    // Patch Shipments (Ensure table exists and has critical columns)
+    try {
+      await Shipment.sync({ alter: true });
+      report.push("✅ Synced Shipments table (alter: true)");
+    } catch (e) {
+      report.push(`⚠️ Failed to sync Shipments table: ${e.message}`);
+    }
 
     // Patch Bookings
     await addCol("Bookings", "totalAmount", "FLOAT", 0);

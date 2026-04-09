@@ -93,6 +93,7 @@ const Shipment = sequelize.define(
   },
   {
     timestamps: true,
+    tableName: 'Shipments',
     hooks: {
       beforeCreate: (shipment) => {
         if (!shipment.trackingId) {
