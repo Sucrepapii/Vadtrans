@@ -14,6 +14,7 @@ const {
   createFare,
   updateFare,
   deleteFare,
+  getAllCompanies,
   approveCompany,
   rejectCompany,
   deleteUser,
