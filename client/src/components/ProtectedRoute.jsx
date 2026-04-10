@@ -4,7 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
-  const { isAuthenticated, isAdmin, loading } = useAuth();
+  const { isAuthenticated, isStaff, loading } = useAuth();
 
   if (loading) {
     return (
@@ -31,7 +31,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     );
   }
 
-  if (requireAdmin && !isAdmin) {
+  if (requireAdmin && !isStaff) {
     return <Navigate to="/" replace />;
   }
 

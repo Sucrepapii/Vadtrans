@@ -44,7 +44,14 @@ exports.getDashboardStats = async (req, res) => {
 
     // Exchange rate (approximate, should ideally come from an API or config)
     const NGN_USD_RATE = 1500;
-    const totalRevenueUSD = totalRevenueNaira / NGN_USD_RATE;
+    let totalRevenueUSD = totalRevenueNaira / NGN_USD_RATE;
+
+    // Moderator Restriction: Cannot see revenue stats
+    if (req.user && req.user.role === "moderator") {
+      totalRevenueNaira = 0;
+      totalRevenueUSD = 0;
+      console.log("🛡️ [STATS] Moderator role detected - zeroing revenue stats");
+    }
 
     // Recent bookings
     let recentBookings = [];
@@ -683,6 +690,15 @@ exports.deleteUser = async (req, res) => {
       });
     }
 
+    // Finance Restriction: Cannot delete users
+    if (req.user && req.user.role === "finance") {
+      await transaction.rollback();
+      return res.status(403).json({
+        success: false,
+        message: "Finance role is not authorized to delete users/companies",
+      });
+    }
+
     const userData = {
       id: user.id,
       name: user.name,
@@ -777,6 +793,95 @@ exports.deleteUser = async (req, res) => {
       success: false,
       message: `Error deleting user: ${error.message}`,
       details: error.parent?.detail || error.original?.message || error.message,
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Get all staff (admin, finance, moderator)
+// @route   GET /api/admin/staff
+// @access  Private/Admin
+exports.getAllStaff = async (req, res) => {
+  try {
+    const staff = await User.findAll({
+      where: {
+        role: { [Op.in]: ["admin", "finance", "moderator"] },
+      },
+      attributes: { exclude: ["password"] },
+      order: [["createdAt", "DESC"]],
+    });
+
+    res.status(200).json({
+      success: true,
+      count: staff.length,
+      data: staff,
+    });
+  } catch (error) {
+    console.error("Error fetching staff:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching staff members",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Create new staff member
+// @route   POST /api/admin/staff
+// @access  Private/Admin
+exports.createStaff = async (req, res) => {
+  try {
+    const { name, email, password, role, phone } = req.body;
+
+    // Basic validation
+    if (!name || !email || !password || !role) {
+      return res.status(400).json({
+        success: false,
+        message: "Please provide name, email, password and role",
+      });
+    }
+
+    // Check if role is a staff role
+    if (!["admin", "finance", "moderator"].includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid staff role provided",
+      });
+    }
+
+    // Check if user exists
+    const userExists = await User.findOne({ where: { email } });
+    if (userExists) {
+      return res.status(400).json({
+        success: false,
+        message: "User with this email already exists",
+      });
+    }
+
+    // Create staff user
+    const staff = await User.create({
+      name,
+      email,
+      password,
+      role,
+      phone: phone || "",
+      isVerified: true, // Staff accounts are auto-verified
+    });
+
+    // Remove password from response
+    const staffData = staff.toJSON();
+    delete staffData.password;
+
+    res.status(201).json({
+      success: true,
+      message: "Staff member created successfully",
+      data: staffData,
+    });
+  } catch (error) {
+    console.error("Error creating staff:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error creating staff member",
       error: error.message,
     });
   }

@@ -307,6 +307,15 @@ app.get("/api/fix-db-schema", async (req, res) => {
           `ALTER TYPE "enum_Bookings_bookingStatus" ADD VALUE IF NOT EXISTS 'pending';`,
         );
         report.push(`✅ Added 'pending' to enum_Bookings_bookingStatus`);
+
+        // Add new roles to Users role ENUM
+        await sequelize.query(
+          `ALTER TYPE "enum_Users_role" ADD VALUE IF NOT EXISTS 'finance';`,
+        );
+        await sequelize.query(
+          `ALTER TYPE "enum_Users_role" ADD VALUE IF NOT EXISTS 'moderator';`,
+        );
+        report.push(`✅ Added 'finance' and 'moderator' to enum_Users_role`);
       }
     } catch (e) {
       report.push(`⚠️ Failed to add 'pending' to enum: ${e.message}`);

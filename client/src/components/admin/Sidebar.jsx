@@ -14,6 +14,7 @@ import {
   FaTimes,
   FaSignOutAlt,
   FaBox,
+  FaUserShield,
 } from "react-icons/fa";
 import NotificationBell from "./NotificationBell";
 
@@ -32,6 +33,7 @@ const Sidebar = () => {
     { icon: FaCalendarCheck, label: "Bookings", path: "/admin/bookings" },
     { icon: FaBox, label: "Shipments", path: "/admin/shipments" },
     { icon: FaQuestionCircle, label: "FAQs", path: "/admin/faqs" },
+    { icon: FaUserShield, label: "Staff", path: "/admin/staff" },
   ];
 
   const handleLogout = () => {

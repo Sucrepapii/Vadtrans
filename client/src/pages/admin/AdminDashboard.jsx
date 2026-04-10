@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/admin/Sidebar";
+import { useAuth } from "../../context/AuthContext";
 import Card from "../../components/Card";
 import {
   FaUsers,
@@ -15,6 +16,7 @@ import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
 
 const AdminDashboard = () => {
+  const { isModerator } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -101,7 +103,7 @@ const AdminDashboard = () => {
           })}`,
       color: "bg-primary",
     },
-  ];
+  ].filter(card => !(isModerator && card.label === "Revenue"));
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -221,20 +223,22 @@ const AdminDashboard = () => {
             })}
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className={`grid grid-cols-1 ${isModerator ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-6`}>
             {/* Main Chart Section */}
-            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="font-bold text-gray-800 text-lg">
-                  Revenue Analytics
-                </h3>
-                <select className="text-xs bg-gray-50 border-none rounded-lg px-3 py-2 text-gray-500 font-medium focus:ring-0 cursor-pointer">
-                  <option>This Week</option>
-                  <option>This Month</option>
-                </select>
+            {!isModerator && (
+              <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                <div className="flex justify-between items-center mb-6">
+                  <h3 className="font-bold text-gray-800 text-lg">
+                    Revenue Analytics
+                  </h3>
+                  <select className="text-xs bg-gray-50 border-none rounded-lg px-3 py-2 text-gray-500 font-medium focus:ring-0 cursor-pointer">
+                    <option>This Week</option>
+                    <option>This Month</option>
+                  </select>
+                </div>
+                <BarChart />
               </div>
-              <BarChart />
-            </div>
+            )}
 
             {/* Top Companies */}
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">

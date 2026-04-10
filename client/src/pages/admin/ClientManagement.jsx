@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Sidebar from "../../components/admin/Sidebar";
+import { useAuth } from "../../context/AuthContext";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
@@ -16,6 +17,7 @@ import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
 
 const ClientManagement = () => {
+  const { isFinance } = useAuth();
   const [activeTab, setActiveTab] = useState("companies");
   const [searchTerm, setSearchTerm] = useState("");
   const [companies, setCompanies] = useState([]);
@@ -201,12 +203,14 @@ const ClientManagement = () => {
                               <Button variant="text" title="View" className="text-sm p-1">
                                 <FaEye className="text-neutral-500 hover:text-primary transition-colors" />
                               </Button>
-                              <button
-                                onClick={() => handleDeleteUser(company.id, company.name)}
-                                className="p-1 text-red-500 hover:text-red-700 transition-colors"
-                                title="Delete Company">
-                                <FaTrash />
-                              </button>
+                              {!isFinance && (
+                                <button
+                                  onClick={() => handleDeleteUser(company.id, company.name)}
+                                  className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                                  title="Delete Company">
+                                  <FaTrash />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
@@ -281,12 +285,14 @@ const ClientManagement = () => {
                               <Button variant="text" title="View" className="text-sm p-1">
                                 <FaEye className="text-neutral-500 hover:text-primary transition-colors" />
                               </Button>
-                              <button
-                                onClick={() => handleDeleteUser(customer.id, customer.name)}
-                                className="p-1 text-red-500 hover:text-red-700 transition-colors"
-                                title="Delete Customer">
-                                <FaTrash />
-                              </button>
+                              {!isFinance && (
+                                <button
+                                  onClick={() => handleDeleteUser(customer.id, customer.name)}
+                                  className="p-1 text-red-500 hover:text-red-700 transition-colors"
+                                  title="Delete Customer">
+                                  <FaTrash />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>

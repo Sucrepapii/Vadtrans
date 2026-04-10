@@ -116,6 +116,10 @@ export const adminAPI = {
   getNotifications: () => api.get("/admin/notifications"),
   markNotificationRead: (id) => api.put(`/admin/notifications/${id}/read`),
   markAllNotificationsRead: () => api.put("/admin/notifications/read-all"),
+  
+  // Staff Management
+  getStaff: () => api.get("/admin/staff"),
+  createStaff: (data) => api.post("/admin/staff", data),
 };
 
 // Contact API

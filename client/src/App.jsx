@@ -45,6 +45,7 @@ import TicketManagement from "./pages/admin/TicketManagement";
 import BookingManagement from "./pages/admin/BookingManagement";
 import ShipmentManagement from "./pages/admin/ShipmentManagement";
 import FAQManagement from "./pages/admin/FAQManagement";
+import StaffManagement from "./pages/admin/StaffManagement";
 
 const App = () => {
   return (
@@ -221,6 +222,14 @@ const App = () => {
           element={
             <ProtectedRoute requireAdmin={true}>
               <FAQManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/staff"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <StaffManagement />
             </ProtectedRoute>
           }
         />

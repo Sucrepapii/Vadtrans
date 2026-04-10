@@ -18,6 +18,8 @@ const {
   approveCompany,
   rejectCompany,
   deleteUser,
+  getAllStaff,
+  createStaff,
 } = require("../controllers/adminController");
 const {
   getNotifications,
@@ -52,6 +54,10 @@ router.delete("/users/:id", deleteUser);
 router.get("/companies", getAllCompanies);
 router.put("/companies/:id/approve", approveCompany);
 router.put("/companies/:id/reject", rejectCompany);
+
+// Staff Management
+router.get("/staff", getAllStaff);
+router.post("/staff", createStaff);
 
 // Fare Management
 router.get("/fares", getAllFares);

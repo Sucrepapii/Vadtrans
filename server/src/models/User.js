@@ -112,7 +112,7 @@ const User = sequelize.define(
         "Stores vehicleTypes, cargoCapacity, weightLimit, crossBorderCapability, insuranceStatus",
     },
     role: {
-      type: DataTypes.ENUM("traveler", "company", "admin"),
+      type: DataTypes.ENUM("traveler", "company", "admin", "finance", "moderator"),
       defaultValue: "traveler",
     },
     avatar: {
