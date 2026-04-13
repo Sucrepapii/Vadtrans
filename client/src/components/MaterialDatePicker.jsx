@@ -83,19 +83,23 @@ export const MaterialTimePicker = ({
   className = "",
   fullWidth = true,
 }) => {
-  // Helpers to parse "HH:MM" string to dayjs object
+  // Helpers to parse "hh:mm A" or "HH:mm" string to dayjs object
   const parseTime = (timeStr) => {
     if (!timeStr) return null;
+    // Support both "06:30 AM" and legacy "14:30" formats
+    if (timeStr.includes("AM") || timeStr.includes("PM")) {
+      return dayjs(timeStr, "hh:mm A");
+    }
     const [hours, minutes] = timeStr.split(":");
-    return dayjs().hour(hours).minute(minutes);
+    return dayjs().hour(parseInt(hours)).minute(parseInt(minutes));
   };
 
   const timeValue = value ? parseTime(value) : null;
 
   const handleChange = (newValue) => {
     if (newValue) {
-      // Format back to "HH:MM" string
-      onChange(newValue.format("HH:mm"));
+      // Format to 12-hour with AM/PM (e.g., "06:30 AM")
+      onChange(newValue.format("hh:mm A"));
     } else {
       onChange("");
     }
@@ -109,6 +113,7 @@ export const MaterialTimePicker = ({
             label={label}
             value={timeValue}
             onChange={handleChange}
+            ampm={true}
             slotProps={{
               textField: {
                 fullWidth: fullWidth,
