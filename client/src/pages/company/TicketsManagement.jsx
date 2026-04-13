@@ -27,6 +27,8 @@ import {
   FaMapMarkerAlt,
   FaSpinner,
   FaTruck,
+  FaExchangeAlt,
+  FaMinus,
 } from "react-icons/fa";
 import { MaterialTimePicker } from "../../components/MaterialDatePicker";
 import MaterialDatePicker from "../../components/MaterialDatePicker";
@@ -50,7 +52,7 @@ const TicketsManagement = () => {
     from: "",
     to: "",
     transportType: "inter-state",
-    departureTime: "",
+    departureTimes: [""],
     departureDate: "",
     operatingDays: [],
     duration: "",
@@ -193,7 +195,7 @@ const TicketsManagement = () => {
       from: "",
       to: "",
       transportType: "inter-state",
-      departureTime: "",
+      departureTimes: [""],
       operatingDays: [],
       duration: "",
       price: "",
@@ -219,6 +221,44 @@ const TicketsManagement = () => {
     setIsModalOpen(true);
   };
 
+  const handleSwapLocations = () => {
+    setFormData((prev) => ({
+      ...prev,
+      from: prev.to,
+      to: prev.from,
+      state: prev.toState, // When swapping, the previous "to" state becomes the "from" state
+      toState: prev.state || prev.fromState,
+      // For international
+      fromCountry: prev.toCountry,
+      toCountry: prev.fromCountry,
+      fromState: prev.toState,
+    }));
+  };
+
+  const handleAddTimeSlot = () => {
+    setFormData((prev) => ({
+      ...prev,
+      departureTimes: [...prev.departureTimes, ""],
+    }));
+  };
+
+  const handleRemoveTimeSlot = (index) => {
+    if (formData.departureTimes.length <= 1) return;
+    setFormData((prev) => ({
+      ...prev,
+      departureTimes: prev.departureTimes.filter((_, i) => i !== index),
+    }));
+  };
+
+  const handleTimeSlotChange = (index, value) => {
+    const newTimes = [...formData.departureTimes];
+    newTimes[index] = value;
+    setFormData((prev) => ({
+      ...prev,
+      departureTimes: newTimes,
+    }));
+  };
+
   const handleEditTicket = (ticket) => {
     setEditingTicket(ticket);
     const [from, to] = ticket.route.split(" - ");
@@ -227,6 +267,7 @@ const TicketsManagement = () => {
       to,
       transportType: ticket.transportType,
       departureTime: ticket.departureTime,
+      departureTimes: [ticket.departureTime || ""],
       departureDate: ticket.departureDate || "",
       operatingDays: Array.isArray(ticket.operatingDays)
         ? ticket.operatingDays
@@ -326,12 +367,32 @@ const TicketsManagement = () => {
 
       if (editingTicket) {
         // Update existing trip
-        await tripAPI.updateTrip(editingTicket.id, tripData);
+        const updateData = {
+          ...tripData,
+          departureTime: formData.departureTimes[0],
+        };
+        await tripAPI.updateTrip(editingTicket.id, updateData);
         toast.success("Trip updated successfully!");
       } else {
-        // Create new trip
-        await tripAPI.createTrip(tripData);
-        toast.success("Trip created successfully!");
+        // Create new trip(s) - one for each time slot
+        const validTimes = formData.departureTimes.filter((t) => t);
+        if (validTimes.length === 0) {
+          toast.error("Please add at least one departure time");
+          setSaving(false);
+          return;
+        }
+
+        const promises = validTimes.map((time) => {
+          return tripAPI.createTrip({
+            ...tripData,
+            departureTime: time,
+          });
+        });
+
+        await Promise.all(promises);
+        toast.success(
+          `${validTimes.length} trip${validTimes.length > 1 ? "s" : ""} created successfully!`,
+        );
       }
 
       setIsModalOpen(false);
@@ -719,6 +780,18 @@ const TicketsManagement = () => {
           )}
 
           {/* FROM/TO LOCATION */}
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-semibold text-neutral-800">Route Selection</h3>
+            <button
+              type="button"
+              onClick={handleSwapLocations}
+              className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors bg-primary/5 px-3 py-1.5 rounded-full border border-primary/10"
+              title="Swap From/To locations">
+              <FaExchangeAlt />
+              SWAP ROUTE
+            </button>
+          </div>
+
           {formData.transportType === "intra-state" ? (
             <>
               {/* Single State Selection for city-to-city trips */}
@@ -994,15 +1067,46 @@ const TicketsManagement = () => {
               />
             </div>
             
-            <div className="flex flex-col justify-end">
-              <MaterialTimePicker
-                label="Departure Time"
-                value={formData.departureTime}
-                onChange={(timeStr) =>
-                  setFormData({ ...formData, departureTime: timeStr })
-                }
-                className="w-full"
-              />
+            <div className="md:col-span-2 space-y-3">
+              <label className="block text-sm font-bold text-neutral-800 mb-1 flex items-center justify-between">
+                <span>Departure Time Slots</span>
+                {!editingTicket && (
+                  <button
+                    type="button"
+                    onClick={handleAddTimeSlot}
+                    className="text-[10px] bg-primary text-white px-2 py-1 rounded-md hover:bg-primary/90 transition-all flex items-center gap-1">
+                    <FaPlus size={8} /> ADD SLOT
+                  </button>
+                )}
+              </label>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {formData.departureTimes.map((time, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <div className="flex-1">
+                      <MaterialTimePicker
+                        label={`Slot ${index + 1}`}
+                        value={time}
+                        onChange={(timeStr) => handleTimeSlotChange(index, timeStr)}
+                      />
+                    </div>
+                    {!editingTicket && formData.departureTimes.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveTimeSlot(index)}
+                        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Remove time slot">
+                        <FaMinus />
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <p className="text-[10px] text-neutral-400 mt-1 italic">
+                {editingTicket 
+                  ? "Editing is limited to one time slot per record." 
+                  : "Add multiple slots to create separate trips for each time automatically."}
+              </p>
             </div>
           </div>
 
