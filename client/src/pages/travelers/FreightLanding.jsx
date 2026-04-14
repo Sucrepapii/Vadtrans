@@ -200,12 +200,12 @@ const FreightLanding = () => {
             </div>
 
             {/* Right side - DHL STYLE SEARCH CARD */}
-            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-neutral-100 w-full max-w-xl mx-auto lg:mx-0">
-              <form onSubmit={handleSearch} className="p-6 sm:p-8 space-y-6">
+            <div className="bg-white rounded-3xl shadow-2xl overflow-hidden border border-neutral-100 w-full max-w-xl mx-auto lg:mx-0 relative">
+              <form onSubmit={handleSearch} className="p-5 sm:p-8 space-y-6">
                 {!showDetails ? (
                   <>
                     {/* Origin/Destination Fields Row */}
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
                       <div className="space-y-2">
                         <label className="text-[10px] font-black uppercase text-neutral-400 tracking-widest">Where from?</label>
                         <div className="relative">
@@ -213,7 +213,7 @@ const FreightLanding = () => {
                           <select
                             value={searchData.fromState || searchData.fromCountry || ""}
                             onChange={(e) => handleLocationChange("origin", e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-primary font-medium appearance-none"
+                            className="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-primary font-medium appearance-none text-sm sm:text-base pointer-events-auto"
                             required>
                             <option value="">Origin</option>
                             <optgroup label="Nigeria">
@@ -236,7 +236,7 @@ const FreightLanding = () => {
                           <select
                             value={searchData.toState || searchData.toCountry || ""}
                             onChange={(e) => handleLocationChange("destination", e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-primary font-medium appearance-none"
+                            className="w-full pl-10 pr-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:outline-none focus:border-primary font-medium appearance-none text-sm sm:text-base"
                             required>
                             <option value="">Destination</option>
                             <optgroup label="Nigeria">
@@ -279,11 +279,11 @@ const FreightLanding = () => {
                     </button>
                   </>
                 ) : (
-                  <div className="space-y-6">
+                  <div className="space-y-6 pb-20 sm:pb-0">
                     {/* Brand Themed Expanded Box */}
-                    <div className="bg-primary/5 -mx-8 -mt-8 p-8 space-y-6 animate-fadeIn border-b border-primary/10">
+                    <div className="bg-primary/5 -mx-5 sm:-mx-8 -mt-5 sm:-mt-8 p-6 sm:p-8 space-y-6 animate-fadeIn border-b border-primary/10">
                       <div className="flex items-center justify-between mb-4">
-                        <h3 className="font-raleway font-black uppercase tracking-tight text-2xl text-charcoal">Describe Your Shipment</h3>
+                        <h3 className="font-raleway font-black uppercase tracking-tight text-xl sm:text-2xl text-charcoal">Shipment Details</h3>
                         <button 
                           type="button"
                           onClick={() => setShowDetails(false)}
@@ -293,65 +293,68 @@ const FreightLanding = () => {
                       </div>
 
                       {/* Presets Grid */}
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                         {DHL_PRESETS.map((preset) => (
                           <button
                             key={preset.id}
                             type="button"
                             onClick={() => handlePresetSelect(preset)}
-                            className={`p-4 rounded-2xl flex flex-col items-center gap-2 transition-all border-2 ${
+                            className={`p-3 sm:p-4 rounded-xl sm:rounded-2xl flex flex-col items-center gap-2 transition-all border-2 ${
                               selectedPreset === preset.id
                                 ? "bg-white border-primary shadow-lg"
                                 : "bg-white/50 border-transparent hover:bg-white hover:shadow-md"
                             }`}>
-                            <div className={`text-2xl ${selectedPreset === preset.id ? "text-primary" : "text-charcoal/40"}`}>
+                            <div className={`text-xl sm:text-2xl ${selectedPreset === preset.id ? "text-primary" : "text-charcoal/40"}`}>
                               {preset.icon}
                             </div>
-                            <span className="text-[10px] font-bold uppercase tracking-wider text-charcoal">{preset.label}</span>
+                            <span className="text-[9px] sm:text-[10px] font-bold uppercase tracking-wider text-charcoal">{preset.label}</span>
                           </button>
                         ))}
                       </div>
 
                       {/* Manual Dimension Fields */}
-                      <div className="grid grid-cols-3 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black uppercase text-charcoal tracking-widest">Length (cm)</label>
-                          <input
-                            type="number"
-                            placeholder="L"
-                            value={searchData.length}
-                            onChange={(e) => setSearchData({...searchData, length: e.target.value})}
-                            className="w-full p-2 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-bold text-center border border-neutral-100"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black uppercase text-charcoal tracking-widest">Width (cm)</label>
-                          <input
-                            type="number"
-                            placeholder="W"
-                            value={searchData.width}
-                            onChange={(e) => setSearchData({...searchData, width: e.target.value})}
-                            className="w-full p-2 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-bold text-center border border-neutral-100"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-[9px] font-black uppercase text-charcoal tracking-widest">Height (cm)</label>
-                          <input
-                            type="number"
-                            placeholder="H"
-                            value={searchData.height}
-                            onChange={(e) => setSearchData({...searchData, height: e.target.value})}
-                            className="w-full p-2 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-bold text-center border border-neutral-100"
-                          />
+                      <div>
+                        <p className="text-[10px] font-black uppercase text-charcoal tracking-widest mb-3 text-center sm:text-left">Dimensions (CM)</p>
+                        <div className="grid grid-cols-3 gap-2">
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-black uppercase text-neutral-400 tracking-widest block text-center">L</label>
+                            <input
+                              type="number"
+                              placeholder="L"
+                              value={searchData.length}
+                              onChange={(e) => setSearchData({...searchData, length: e.target.value})}
+                              className="w-full px-1 py-3 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-bold text-center border border-neutral-100 text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-black uppercase text-neutral-400 tracking-widest block text-center">W</label>
+                            <input
+                              type="number"
+                              placeholder="W"
+                              value={searchData.width}
+                              onChange={(e) => setSearchData({...searchData, width: e.target.value})}
+                              className="w-full px-1 py-3 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-bold text-center border border-neutral-100 text-sm"
+                            />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-[8px] font-black uppercase text-neutral-400 tracking-widest block text-center">H</label>
+                            <input
+                              type="number"
+                              placeholder="H"
+                              value={searchData.height}
+                              onChange={(e) => setSearchData({...searchData, height: e.target.value})}
+                              className="w-full px-1 py-3 bg-white rounded-lg focus:outline-none focus:ring-2 focus:ring-primary font-bold text-center border border-neutral-100 text-sm"
+                            />
+                          </div>
                         </div>
                       </div>
 
                       {/* Weight Field */}
-                      <div className="flex items-center gap-4 bg-white p-4 rounded-2xl border border-neutral-200 shadow-sm">
-                        <div className="text-primary text-xl">
+                      <div className="flex items-center gap-3 sm:gap-4 bg-white p-3 sm:p-4 rounded-xl sm:rounded-2xl border border-neutral-200 shadow-sm transition-all focus-within:border-primary">
+                        <div className="text-primary text-lg sm:text-xl">
                           <FaWeightHanging />
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <label className="text-[9px] font-black uppercase text-charcoal tracking-widest block">Total Weight (kg)</label>
                           <input
                             type="number"
@@ -359,20 +362,30 @@ const FreightLanding = () => {
                             step="0.1"
                             value={searchData.weight}
                             onChange={(e) => setSearchData({...searchData, weight: e.target.value})}
-                            className="w-full bg-transparent text-xl font-bold focus:outline-none placeholder:text-charcoal/20"
+                            className="w-full bg-transparent text-lg sm:text-xl font-bold focus:outline-none placeholder:text-charcoal/20"
                           />
                         </div>
                       </div>
                     </div>
 
-                    {/* Final Actions */}
-                    <div className="p-2 space-y-4">
+                    {/* Final Actions - Static on Desktop, Hidden on Mobile Sticky to avoid double buttons */}
+                    <div className="p-2 space-y-4 hidden sm:block">
                         <div className="text-[10px] text-neutral-400 font-medium leading-relaxed">
                           By clicking "Find Carriers", you agree that your shipment adheres to international shipping standards and restricted items policies.
                         </div>
                         <button
                           type="submit"
                           className="w-full py-4 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-sm hover:translate-y-[-2px] hover:shadow-xl transition-all flex items-center justify-center gap-3">
+                          Find Carriers
+                          <FaArrowRight size={14} />
+                        </button>
+                    </div>
+
+                    {/* Mobile Sticky CTA */}
+                    <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t border-neutral-100 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] sm:hidden z-50 animate-slideUp">
+                       <button
+                          type="submit"
+                          className="w-full py-4 bg-primary text-white rounded-xl font-black uppercase tracking-widest text-sm flex items-center justify-center gap-3 shadow-lg shadow-primary/30">
                           Find Carriers
                           <FaArrowRight size={14} />
                         </button>
@@ -386,11 +399,11 @@ const FreightLanding = () => {
       </section>
 
       {/* Trust Badges */}
-      <section className="py-12 bg-white border-b border-neutral-100">
+      <section className="py-12 bg-white border-b border-neutral-100 px-4">
         <div className="container-custom max-w-6xl">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-xl">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6 sm:gap-8">
+             <div className="flex items-center gap-4 bg-neutral-50 sm:bg-transparent p-4 sm:p-0 rounded-2xl">
+                <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex-shrink-0 flex items-center justify-center text-xl">
                   <FaShieldAlt />
                 </div>
                 <div>
@@ -398,8 +411,8 @@ const FreightLanding = () => {
                   <p className="text-xs text-neutral-500">Protection for goods</p>
                 </div>
              </div>
-             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl">
+             <div className="flex items-center gap-4 bg-neutral-50 sm:bg-transparent p-4 sm:p-0 rounded-2xl">
+                <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex-shrink-0 flex items-center justify-center text-xl">
                   <FaClock />
                 </div>
                 <div>
@@ -407,8 +420,8 @@ const FreightLanding = () => {
                   <p className="text-xs text-neutral-500">Always know location</p>
                 </div>
              </div>
-             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center text-xl">
+             <div className="flex items-center gap-4 bg-neutral-50 sm:bg-transparent p-4 sm:p-0 rounded-2xl">
+                <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-2xl flex-shrink-0 flex items-center justify-center text-xl">
                   <FaCheckCircle />
                 </div>
                 <div>
@@ -416,8 +429,8 @@ const FreightLanding = () => {
                   <p className="text-xs text-neutral-500">Trusted transit partners</p>
                 </div>
              </div>
-             <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex items-center justify-center text-xl">
+             <div className="flex items-center gap-4 bg-neutral-50 sm:bg-transparent p-4 sm:p-0 rounded-2xl">
+                <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-2xl flex-shrink-0 flex items-center justify-center text-xl">
                   <FaHandHoldingHeart />
                 </div>
                 <div>

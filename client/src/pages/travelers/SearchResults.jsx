@@ -437,21 +437,21 @@ const SearchResults = () => {
                 </div>
               )}
 
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <p className="text-neutral-600">
-                  Found {filteredTrips.length} available trip
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                <p className="text-sm sm:text-base text-neutral-600">
+                  Showing {filteredTrips.length} active trip
                   {filteredTrips.length !== 1 ? "s" : ""}
                 </p>
                 <div className="w-full sm:w-80 relative">
                   <input
                     type="text"
-                    placeholder="Search routes, terminals, companies..."
+                    placeholder="Filter results..."
                     value={searchTerm}
                     onChange={(e) => {
                       setSearchTerm(e.target.value);
-                      setCurrentPage(1); // Reset to first page when searching
+                      setCurrentPage(1);
                     }}
-                    className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
+                    className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary shadow-sm text-sm"
                   />
                   <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
                     <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"></path></svg>
@@ -470,21 +470,21 @@ const SearchResults = () => {
 
               <div className="space-y-8">
                 {filteredTrips.length === 0 && !searchTerm && (
-                  <div className="text-center py-16 bg-white rounded-xl border border-neutral-200 shadow-sm flex flex-col items-center justify-center">
-                    <div className="w-20 h-20 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-400 mb-4">
-                      <FaBus size={40} />
+                  <div className="text-center py-12 sm:py-16 bg-white rounded-xl border border-neutral-200 shadow-sm flex flex-col items-center justify-center px-4">
+                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-400 mb-4">
+                      <FaBus size={32} />
                     </div>
-                    <h3 className="text-xl font-bold text-charcoal mb-2">
+                    <h3 className="text-lg sm:text-xl font-bold text-charcoal mb-2 text-center">
                       No Trips Available
                     </h3>
-                    <p className="text-neutral-500 max-w-md mx-auto">
+                    <p className="text-sm text-neutral-500 max-w-sm mx-auto text-center leading-relaxed">
                       {searchParams.companyId 
-                        ? "This provider currently has no scheduled trips. Please check back later or search for other providers."
+                        ? "This provider currently has no scheduled trips. Please check back later."
                         : "No trips found matching your route and date. Try adjusting your search criteria."}
                     </p>
                     <Button 
                       variant="primary" 
-                      className="mt-6"
+                      className="mt-6 font-bold"
                       onClick={() => navigate("/")}
                     >
                       Back to Search
@@ -497,7 +497,7 @@ const SearchResults = () => {
                     if (categoryTrips.length === 0) return null;
                     return (
                       <div key={categoryName}>
-                        <h2 className="text-xl font-bold text-charcoal mb-4 pb-2 border-b border-neutral-200">
+                        <h2 className="text-lg sm:text-xl font-bold text-charcoal mb-4 pb-2 border-b border-neutral-200">
                           {categoryName}
                         </h2>
                         <div className="space-y-4">
@@ -511,9 +511,10 @@ const SearchResults = () => {
 
               {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-4 mt-8 pt-4 border-t border-neutral-200">
+                <div className="flex justify-center items-center gap-2 sm:gap-4 mt-8 pt-4 border-t border-neutral-200">
                   <Button
                     variant="secondary"
+                    size="sm"
                     onClick={() => {
                       setCurrentPage((prev) => Math.max(prev - 1, 1));
                       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -521,11 +522,12 @@ const SearchResults = () => {
                     disabled={currentPage === 1}>
                     Previous
                   </Button>
-                  <span className="text-neutral-600 font-medium">
+                  <span className="text-xs sm:text-sm text-neutral-600 font-medium whitespace-nowrap">
                     Page {currentPage} of {totalPages}
                   </span>
                   <Button
                     variant="secondary"
+                    size="sm"
                     onClick={() => {
                       setCurrentPage((prev) => Math.min(prev + 1, totalPages));
                       window.scrollTo({ top: 0, behavior: "smooth" });
