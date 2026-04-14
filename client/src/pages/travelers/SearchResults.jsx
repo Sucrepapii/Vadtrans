@@ -159,12 +159,8 @@ const SearchResults = () => {
   };
 
   const getTransportLabel = (type) => {
-    const labels = {
-      "inter-state": "Inter-State (Nigeria)",
-      international: "International (West Africa)",
-      "intra-state": "Intra-State (City-to-City)",
-    };
-    return labels[type] || type;
+    if (type === "international") return "International";
+    return "Local";
   };
 
   const handleSelectTrip = (trip) => {
@@ -199,8 +195,7 @@ const SearchResults = () => {
   const totalPages = Math.ceil(filteredTrips.length / tripsPerPage);
 
   const groupedTrips = {
-    "Inter-State Trips": currentTrips.filter((t) => t.transportType === "inter-state"),
-    "Intra-State Trips": currentTrips.filter((t) => t.transportType === "intra-state"),
+    "Local Trips": currentTrips.filter((t) => ["inter-state", "intra-state"].includes(t.transportType)),
     "International Trips": currentTrips.filter(
       (t) => t.transportType === "international",
     ),
@@ -208,131 +203,120 @@ const SearchResults = () => {
 
   const renderTripCard = (trip) => {
     const Icon = getTransportIcon(trip);
+    const isFreight = trip.serviceCategory === "freight";
+
     return (
-      <Card key={trip.id} className="hover:shadow-lg transition-shadow">
+      <Card key={trip.id} className="hover:shadow-lg transition-shadow border-l-4 overflow-hidden" style={{ borderLeftColor: isFreight ? '#EF4444' : '#3B82F6' }}>
         <div className="p-4 sm:p-6">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
-                <Icon className="text-2xl sm:text-3xl text-primary" />
-                <div>
-                  <h3 className="font-semibold text-base sm:text-lg text-charcoal">
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isFreight ? 'bg-red-50' : 'bg-blue-50'}`}>
+                  <Icon className={`text-2xl ${isFreight ? 'text-red-600' : 'text-blue-600'}`} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-bold text-lg text-charcoal truncate">
                     {trip.from} → {trip.to}
                   </h3>
-                  <div className="flex items-center gap-2 mt-1">
+                  <div className="flex items-center gap-2 mt-0.5">
                     {trip.company?.avatar ? (
                       <img
                         src={trip.company.avatar}
                         alt="Company Logo"
-                        className="w-5 h-5 rounded-full object-cover"
+                        className="w-4 h-4 rounded-full object-cover"
                       />
                     ) : (
-                      <div className="w-5 h-5 rounded-full bg-neutral-200 flex items-center justify-center text-[10px] text-neutral-600 font-bold">
+                      <div className="w-4 h-4 rounded-full bg-neutral-200 flex items-center justify-center text-[8px] text-neutral-600 font-bold">
                         {trip.company?.name?.charAt(0) || "C"}
                       </div>
                     )}
-                    <p className="text-sm font-medium text-neutral-700">
+                    <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                       {trip.company?.name || "VadTrans Company"}
                     </p>
                   </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
-                <div>
-                  <p className="text-xs text-neutral-500">Departure</p>
-                  <div className="flex items-center gap-1 mt-1">
-                    <FaClock className="text-neutral-400" />
-                    <span className="font-medium text-charcoal">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-100">
+                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Departure</p>
+                  <div className="flex items-center gap-1.5">
+                    <FaClock className="text-neutral-400 text-xs" />
+                    <span className="font-bold text-charcoal text-sm">
                       {trip.departureTime}
                     </span>
                   </div>
-                  {trip.operatingDays && (
-                    <div
-                      className="text-[10px] text-primary font-medium mt-0.5 max-w-[120px] truncate"
-                      title={trip.operatingDays}>
-                      Runs: {trip.operatingDays}
-                    </div>
-                  )}
                 </div>
-                {trip.terminal ? (
-                  <div>
-                    <p className="text-xs text-neutral-500">Terminal</p>
-                    <div className="flex items-center gap-1 mt-1">
-                      <FaMapMarkerAlt className="text-neutral-400 flex-shrink-0" />
-                      <p className="font-medium text-charcoal">
-                        {trip.terminal}
-                      </p>
-                    </div>
+
+                <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-100">
+                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">
+                    {isFreight ? "Capacity" : "Availability"}
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    {isFreight ? (
+                      <FaBox className="text-neutral-400 text-xs" />
+                    ) : (
+                      <FaStar className="text-neutral-400 text-xs" />
+                    )}
+                    <p className="font-bold text-charcoal text-sm">
+                      {isFreight
+                        ? `${trip.maxWeightCapacity || 0} kg`
+                        : `${trip.availableSeats} / ${trip.seats} seats`}
+                    </p>
                   </div>
-                ) : (
-                  <div className="hidden sm:block"></div>
-                )}
-                <div>
-                  <p className="text-xs text-neutral-500">
-                    {trip.serviceCategory === "freight"
-                      ? "Max Capacity"
-                      : "Seats Available"}
-                  </p>
-                  <p className="font-medium text-charcoal mt-1">
-                    {trip.serviceCategory === "freight"
-                      ? `${trip.maxWeightCapacity || 0} kg`
-                      : `${trip.availableSeats} / ${trip.seats}`}
-                  </p>
                 </div>
-                <div>
-                  <p className="text-xs text-neutral-500">Status</p>
-                  <span
-                    className={
-                      "inline-block mt-1 px-2 py-1 rounded-full text-xs font-medium " +
-                      (trip.status === "active"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-neutral-100 text-neutral-800")
-                    }>
-                    {trip.status}
-                  </span>
-                </div>
-                <div>
-                  <p className="text-xs text-neutral-500">Vehicle</p>
-                  <p className="font-medium text-charcoal mt-1 capitalize">
-                    {trip.vehicleType || "Bus"}
-                  </p>
+
+                <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-100">
+                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Vehicle</p>
+                  <div className="flex items-center gap-1.5">
+                    <FaTruck className="text-neutral-400 text-xs" />
+                    <p className="font-bold text-charcoal text-sm capitalize truncate">
+                      {trip.vehicleType || (isFreight ? "Truck" : "Bus")}
+                    </p>
+                  </div>
                 </div>
               </div>
+
+              {trip.terminal && (
+                <div className="mt-4 flex items-start gap-2 bg-neutral-900/5 p-2 rounded-lg border border-neutral-900/5">
+                  <FaMapMarkerAlt className="text-neutral-400 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs font-medium text-neutral-600">
+                    <span className="text-[10px] uppercase font-bold text-neutral-400 block mb-0.5">Terminal</span>
+                    {trip.terminal}
+                  </p>
+                </div>
+              )}
             </div>
 
-            <div className="flex md:flex-col items-center md:items-end justify-between md:justify-start gap-3 md:gap-4 pt-3 md:pt-0 border-t md:border-t-0 md:ml-6">
+            <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-end gap-4 pt-4 md:pt-0 border-t md:border-t-0 border-neutral-100">
               <div className="text-left md:text-right">
-                <p className="text-xs sm:text-sm text-neutral-500">
-                  {trip.serviceCategory === "freight" ? "Starts from" : "From"}
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">
+                  {isFreight ? "Starting From" : "Per Seat"}
                 </p>
-                <p className="text-2xl sm:text-3xl font-bold text-primary">
-                  ₦{Number(trip.serviceCategory === "freight" ? (trip.minCharge || trip.price) : trip.price).toLocaleString()}
-                </p>
+                <div className="flex items-center md:justify-end gap-1">
+                  <span className="text-sm font-bold text-primary">₦</span>
+                  <span className="text-3xl font-black text-primary">
+                    {Number(isFreight ? (trip.minCharge || trip.price) : trip.price).toLocaleString()}
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col items-end gap-2">
-                <Button
-                  variant="primary"
-                  onClick={() => handleSelectTrip(trip)}
-                  disabled={
-                    trip.availableSeats === 0 &&
-                    trip.serviceCategory !== "freight"
-                  }
-                  className="whitespace-nowrap text-sm sm:text-base px-4 sm:px-6">
-                  {trip.availableSeats === 0 &&
-                  trip.serviceCategory !== "freight"
-                    ? "Sold Out"
-                    : trip.serviceCategory === "freight"
-                      ? "Book Transport"
-                      : "Select Trip"}
-                </Button>
-                {trip.availableSeats === 0 && (
-                  <p className="text-[10px] sm:text-xs text-red-600 font-medium max-w-[150px] text-right">
-                    Fully booked for today! This vehicle will be available
-                    tomorrow.
-                  </p>
-                )}
-              </div>
+              
+              <Button
+                variant="primary"
+                onClick={() => handleSelectTrip(trip)}
+                disabled={
+                  trip.availableSeats === 0 &&
+                  !isFreight
+                }
+                className={`whitespace-nowrap font-bold uppercase tracking-wider text-xs px-6 py-3 rounded-xl shadow-lg transition-all ${
+                  isFreight ? "shadow-primary/20" : ""
+                }`}>
+                {trip.availableSeats === 0 && !isFreight
+                  ? "Sold Out"
+                  : isFreight
+                    ? "Ship with this carrier"
+                    : "Reserve a Seat"}
+              </Button>
             </div>
           </div>
         </div>
@@ -406,11 +390,11 @@ const SearchResults = () => {
                   </span>
                 </div>
               )}
-              {searchParams.transportType !== "all" && (
+                    {searchParams.transportType !== "all" && (
                 <div className="flex items-center gap-2">
                   <span className="text-neutral-300 hidden sm:inline">|</span>
                   <span className="bg-primary/10 text-primary px-3 py-0.5 rounded-full text-xs font-semibold capitalize">
-                    {getTransportLabel(searchParams.transportType)}
+                    {searchParams.transportType === "international" ? "International" : "Local"}
                   </span>
                 </div>
               )}

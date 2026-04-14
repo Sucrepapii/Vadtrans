@@ -6,7 +6,6 @@ import { useAuth } from "../../context/AuthContext";
 import api, { shipmentAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import Card from "../../components/Card";
 import Button from "../../components/Button";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 import {
@@ -15,8 +14,13 @@ import {
   FaCreditCard,
   FaCheckCircle,
   FaArrowLeft,
+  FaArrowRight,
   FaSpinner,
   FaMapMarkerAlt,
+  FaTruck,
+  FaShieldAlt,
+  FaLock,
+  FaMoneyBillWave,
 } from "react-icons/fa";
 
 const FreightCheckout = () => {
@@ -24,7 +28,6 @@ const FreightCheckout = () => {
   const location = useLocation();
   const { user } = useAuth();
 
-  // Freight specific location state
   const { tripData, freightInfo, searchDate } = location.state || {};
   const { senderDetails, receiverDetails, cargoDetails } = freightInfo || {};
   const items = cargoDetails?.items || [];
@@ -32,20 +35,16 @@ const FreightCheckout = () => {
   const [paymentMethod, setPaymentMethod] = useState("paystack");
   const [isProcessing, setIsProcessing] = useState(false);
 
-  // New Pricing Formula: Total = max(minCharge, baseFare + totalWeight * pricePerKg)
   const calculateSubtotal = () => {
     if (!tripData) return 0;
-    
     const baseFare = Number(tripData.baseFare || 0);
     const pricePerKg = Number(tripData.pricePerKg || 0);
     const minCharge = Number(tripData.minCharge || 0);
-    
     const totalWeight = items.reduce(
       (acc, item) => acc + parseFloat(item.weight || 0) * (item.quantity || 1),
-      0
+      0,
     );
-    
-    const calculatedPrice = baseFare + (totalWeight * pricePerKg);
+    const calculatedPrice = baseFare + totalWeight * pricePerKg;
     return Math.max(minCharge, calculatedPrice);
   };
 
@@ -54,11 +53,14 @@ const FreightCheckout = () => {
   const vat = calculateVAT(serviceFee);
   const total = subtotal + serviceFee + vat;
 
-  // Stabilize the config to prevent hook re-initialization issues
+  const totalWeight = items.reduce(
+    (acc, item) => acc + parseFloat(item.weight || 0) * (item.quantity || 1),
+    0,
+  );
+
   const paystackConfig = React.useMemo(() => {
     const email = user?.email || senderDetails?.email || "";
     const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-
     return {
       reference: new Date().getTime().toString(),
       email,
@@ -81,7 +83,7 @@ const FreightCheckout = () => {
       navigate("/booking/freight-confirmation", {
         state: {
           trip: tripData,
-          bookingId: trackingId, // Passing tracking ID as booking ID for the generic confirm page
+          bookingId: trackingId,
           isFreight: true,
           freightDetails: freightInfo,
           totalAmount: total,
@@ -100,13 +102,10 @@ const FreightCheckout = () => {
         goToConfirmation();
         return;
       }
-
-      // Verify payment on backend
       const verifyRes = await shipmentAPI.verifyPayment({
         reference: reference.reference,
         shipmentId,
       });
-
       if (verifyRes.data.success) {
         toast.success("Shipment booked successfully!");
       } else {
@@ -134,10 +133,8 @@ const FreightCheckout = () => {
       toast.error("Missing freight information");
       return;
     }
-
     try {
       setIsProcessing(true);
-
       const shipmentData = {
         tripId: tripData.id,
         senderDetails,
@@ -146,16 +143,12 @@ const FreightCheckout = () => {
         paymentMethod,
         totalAmount: total,
       };
-
       const response = await shipmentAPI.createShipment(shipmentData);
-
       if (response.data.success) {
         const shipmentId = response.data.shipment.id;
         const trackingId = response.data.shipment.trackingId;
-
         sessionStorage.setItem("lastPendingShipmentId", shipmentId);
         sessionStorage.setItem("lastPendingTrackingId", trackingId);
-
         if (paymentMethod === "paystack") {
           if (!paystackConfig.publicKey || !paystackConfig.email) {
             toast.error(
@@ -164,14 +157,11 @@ const FreightCheckout = () => {
             setIsProcessing(false);
             return;
           }
-
-          // Trigger Paystack popup
           initializePayment({
             onSuccess: handlePaystackSuccess,
             onClose: handlePaystackClose,
           });
         } else {
-          // Pay on delivery
           toast.success("Shipment Order Placed Successfully!");
           navigate("/booking/freight-confirmation", {
             state: {
@@ -204,135 +194,210 @@ const FreightCheckout = () => {
     });
   };
 
+  // DHL-style Step Indicator
+  const steps = [
+    { label: "Describe Shipment", step: 1, active: true },
+    { label: "Review & Pay", step: 2, active: true },
+    { label: "Confirmation", step: 3, active: false },
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50">
+    <div className="min-h-screen flex flex-col bg-[#F7F7F7]">
       <Navbar variant="desktop" />
 
-      <div className="flex-1 py-8 px-4">
-        <div className="container-custom max-w-4xl px-4">
-          {/* Progress Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              {["Cargo Info", "Review & Pay", "Confirmation"].map(
-                (step, idx) => (
-                  <div key={step} className="flex items-center">
+      <div className="flex-1">
+        {/* Header Banner */}
+        <div className="bg-gradient-to-r from-primary to-primary/90 text-white py-6 px-4">
+          <div className="container-custom max-w-5xl">
+            <div className="flex items-center gap-3 mb-3">
+              <FaCreditCard className="text-2xl opacity-80" />
+              <h1 className="text-2xl font-raleway font-bold">
+                Review & Pay
+              </h1>
+            </div>
+            {tripData && (
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="bg-white/20 px-3 py-1 rounded-full font-medium backdrop-blur-sm">
+                  {tripData.from}
+                </span>
+                <FaArrowRight className="text-xs opacity-60" />
+                <span className="bg-white/20 px-3 py-1 rounded-full font-medium backdrop-blur-sm">
+                  {tripData.to}
+                </span>
+                <span className="text-white/70 ml-2">
+                  {items.length} item{items.length > 1 ? "s" : ""} •{" "}
+                  {totalWeight} kg total
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Step Indicator */}
+        <div className="bg-white border-b border-neutral-200 shadow-sm">
+          <div className="container-custom max-w-5xl py-4 px-4">
+            <div className="flex items-center justify-center gap-0">
+              {steps.map((s, idx) => (
+                <React.Fragment key={s.step}>
+                  <div className="flex items-center gap-2">
                     <div
-                      className={`flex items-center justify-center w-10 h-10 rounded-full ${idx <= 1 ? "bg-primary text-white" : "bg-neutral-200 text-neutral-600"}`}>
-                      {idx + 1}
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                        s.active
+                          ? "bg-primary text-white shadow-lg shadow-primary/30"
+                          : "bg-neutral-200 text-neutral-500"
+                      }`}>
+                      {s.step <= 2 && s.active ? "✓" : s.step}
                     </div>
-                    {idx < 2 && (
-                      <div
-                        className={`w-12 md:w-24 h-1 mx-1 ${idx === 0 ? "bg-primary" : "bg-neutral-200"}`}></div>
-                    )}
+                    <span
+                      className={`text-xs font-bold uppercase tracking-wider hidden sm:block ${
+                        s.active ? "text-primary" : "text-neutral-400"
+                      }`}>
+                      {s.label}
+                    </span>
                   </div>
-                ),
-              )}
+                  {idx < steps.length - 1 && (
+                    <div
+                      className={`w-12 md:w-20 h-0.5 mx-2 ${
+                        idx < 1 ? "bg-primary" : "bg-neutral-200"
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
+              ))}
             </div>
           </div>
+        </div>
 
-          <Button
-            variant="secondary"
+        {/* Main Content */}
+        <div className="container-custom max-w-5xl py-8 px-4">
+          <button
             onClick={handleBack}
-            className="flex items-center gap-2 text-sm mb-4">
-            <FaArrowLeft />
-            <span>Back to Cargo Info</span>
-          </Button>
-
-          <h1 className="text-xl sm:text-2xl font-raleway font-bold text-charcoal mb-6">
-            Review Shipment Details
-          </h1>
+            className="flex items-center gap-2 text-sm text-neutral-500 hover:text-primary transition-colors mb-6 font-medium">
+            <FaArrowLeft className="text-xs" />
+            Back to cargo info
+          </button>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left Column */}
             <div className="lg:col-span-2 space-y-6">
               {/* Sender & Receiver Summary */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <Card>
-                  <div className="flex items-center gap-2 mb-3 border-b pb-2">
-                    <FaUser className="text-primary" />
-                    <h3 className="font-semibold">From (Sender)</h3>
-                  </div>
-                  <div>
-                    <p className="font-medium text-charcoal">
-                      {senderDetails?.name}
-                    </p>
-                    <p className="text-sm text-neutral-600 mt-1">
-                      {senderDetails?.phone}
-                    </p>
-                    <p className="text-sm text-neutral-600 mb-2">
-                      {senderDetails?.email}
-                    </p>
-                    <div className="flex items-start gap-1 mt-2 text-sm text-neutral-600">
-                      <FaMapMarkerAlt className="mt-1 flex-shrink-0 text-neutral-400" />
-                      <span>{senderDetails?.address}</span>
+                <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 p-5">
+                  <div className="flex items-center gap-2 mb-3 pb-3 border-b border-neutral-100">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 flex items-center justify-center">
+                      <FaUser className="text-emerald-600 text-xs" />
                     </div>
+                    <h3 className="font-bold text-sm text-neutral-800">
+                      Sender
+                    </h3>
                   </div>
-                </Card>
+                  <p className="font-bold text-neutral-900">
+                    {senderDetails?.name}
+                  </p>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    {senderDetails?.phone}
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    {senderDetails?.email}
+                  </p>
+                  <div className="flex items-start gap-1.5 mt-2 text-xs text-neutral-400">
+                    <FaMapMarkerAlt className="mt-0.5 flex-shrink-0" />
+                    <span>{senderDetails?.address}</span>
+                  </div>
+                </div>
 
-                <Card>
-                  <div className="flex items-center gap-2 mb-3 border-b pb-2">
-                    <FaUser className="text-secondary" />
-                    <h3 className="font-semibold">To (Receiver)</h3>
-                  </div>
-                  <div>
-                    <p className="font-medium text-charcoal">
-                      {receiverDetails?.name}
-                    </p>
-                    <p className="text-sm text-neutral-600 mt-1">
-                      {receiverDetails?.phone}
-                    </p>
-                    <p className="text-sm text-neutral-600 mb-2">
-                      {receiverDetails?.email}
-                    </p>
-                    <div className="flex items-start gap-1 mt-2 text-sm text-neutral-600">
-                      <FaMapMarkerAlt className="mt-1 flex-shrink-0 text-neutral-400" />
-                      <span>{receiverDetails?.address}</span>
+                <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 p-5">
+                  <div className="flex items-center gap-2 mb-3 pb-3 border-b border-neutral-100">
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                      <FaUser className="text-blue-600 text-xs" />
                     </div>
+                    <h3 className="font-bold text-sm text-neutral-800">
+                      Receiver
+                    </h3>
                   </div>
-                </Card>
+                  <p className="font-bold text-neutral-900">
+                    {receiverDetails?.name}
+                  </p>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    {receiverDetails?.phone}
+                  </p>
+                  <p className="text-xs text-neutral-500">
+                    {receiverDetails?.email}
+                  </p>
+                  <div className="flex items-start gap-1.5 mt-2 text-xs text-neutral-400">
+                    <FaMapMarkerAlt className="mt-0.5 flex-shrink-0" />
+                    <span>{receiverDetails?.address}</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Cargo Setup */}
-              <Card>
-                <div className="flex items-center gap-2 mb-4">
-                  <FaBox className="text-primary" />
-                  <h3 className="font-semibold">Cargo Itemized Summary</h3>
+              {/* Cargo Items */}
+              <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+                <div className="px-5 py-4 border-b border-neutral-100">
+                  <div className="flex items-center gap-2">
+                    <FaBox className="text-primary text-sm" />
+                    <h3 className="font-bold text-sm text-neutral-800">
+                      Shipment Contents
+                    </h3>
+                  </div>
                 </div>
-                <div className="space-y-4">
+                <div className="divide-y divide-neutral-100">
                   {items.map((item, idx) => (
-                    <div key={idx} className="bg-neutral-50 p-3 rounded border border-neutral-100">
-                      <div className="flex justify-between items-start mb-2">
-                        <div>
-                          <p className="font-bold text-charcoal">{item.description}</p>
-                          <p className="text-xs text-neutral-500 uppercase tracking-tighter">{item.type}</p>
-                        </div>
-                        {item.isFragile && (
-                          <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold uppercase">Fragile</span>
-                        )}
+                    <div
+                      key={idx}
+                      className="px-5 py-4 flex items-center gap-4">
+                      <div className="w-10 h-10 rounded-xl bg-neutral-100 flex items-center justify-center flex-shrink-0">
+                        <FaBox className="text-neutral-400" />
                       </div>
-                      <div className="flex gap-4 text-sm">
-                        <span className="text-neutral-600"><span className="text-neutral-400">Weight:</span> {item.weight} kg</span>
-                        <span className="text-neutral-600"><span className="text-neutral-400">Qty:</span> {item.quantity}</span>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-bold text-neutral-900 text-sm">
+                            {item.description}
+                          </p>
+                          {item.isFragile && (
+                            <span className="bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded text-[9px] font-black uppercase">
+                              Fragile
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-xs text-neutral-400">
+                          {item.type} • Qty: {item.quantity}
+                        </p>
+                      </div>
+                      <div className="bg-neutral-50 border border-neutral-200 rounded-lg px-3 py-1.5 text-sm font-black text-neutral-800">
+                        {item.weight}{" "}
+                        <span className="text-[10px] text-neutral-400 font-medium">
+                          kg
+                        </span>
                       </div>
                     </div>
                   ))}
-                  <div className="pt-2 border-t border-dotted border-neutral-300 flex justify-between items-center text-sm font-bold">
-                    <span className="text-neutral-500 uppercase tracking-widest text-[10px]">Total Weight</span>
-                    <span className="text-charcoal bg-neutral-200 px-3 py-1 rounded">
-                      {items.reduce((acc, item) => acc + parseFloat(item.weight || 0) * (item.quantity || 1), 0)} kg
-                    </span>
-                  </div>
                 </div>
-              </Card>
+                <div className="bg-neutral-50 px-5 py-3 flex justify-between items-center border-t border-neutral-100">
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-wider">
+                    Total Weight
+                  </span>
+                  <span className="font-black text-neutral-800">
+                    {totalWeight} kg
+                  </span>
+                </div>
+              </div>
 
-              {/* Payment Select */}
-              <Card>
+              {/* Payment Method */}
+              <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 p-5">
                 <div className="flex items-center gap-2 mb-4">
-                  <FaCreditCard className="text-primary" />
-                  <h3 className="font-semibold">Payment Option</h3>
+                  <FaCreditCard className="text-primary text-sm" />
+                  <h3 className="font-bold text-sm text-neutral-800">
+                    Payment Method
+                  </h3>
                 </div>
-                <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   <label
-                    className={`flex items-center gap-3 p-3 rounded border cursor-pointer transition-colors ${paymentMethod === "paystack" ? "border-primary bg-primary/5" : "border-neutral-200"}`}>
+                    className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      paymentMethod === "paystack"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-neutral-100 hover:border-neutral-200"
+                    }`}>
                     <input
                       type="radio"
                       name="payment"
@@ -342,16 +407,21 @@ const FreightCheckout = () => {
                       className="w-4 h-4 text-primary"
                     />
                     <div>
-                      <p className="font-medium">
-                        Pay Now (Card/Bank via Paystack)
+                      <p className="font-bold text-sm text-neutral-800">
+                        Pay Now
                       </p>
-                      <p className="text-xs text-neutral-500">
-                        Secure immediate payment
+                      <p className="text-[10px] text-neutral-400">
+                        Card or Bank via Paystack
                       </p>
                     </div>
+                    <FaLock className="ml-auto text-neutral-300 text-xs" />
                   </label>
                   <label
-                    className={`flex items-center gap-3 p-3 rounded border cursor-pointer transition-colors ${paymentMethod === "pay_on_delivery" ? "border-primary bg-primary/5" : "border-neutral-200"}`}>
+                    className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
+                      paymentMethod === "pay_on_delivery"
+                        ? "border-primary bg-primary/5 shadow-sm"
+                        : "border-neutral-100 hover:border-neutral-200"
+                    }`}>
                     <input
                       type="radio"
                       name="payment"
@@ -361,84 +431,110 @@ const FreightCheckout = () => {
                       className="w-4 h-4 text-primary"
                     />
                     <div>
-                      <p className="font-medium">Pay on Delivery / Escrow</p>
-                      <p className="text-xs text-neutral-500">
-                        Pay when the cargo arrives
+                      <p className="font-bold text-sm text-neutral-800">
+                        Pay on Delivery
+                      </p>
+                      <p className="text-[10px] text-neutral-400">
+                        Pay when cargo arrives
                       </p>
                     </div>
+                    <FaMoneyBillWave className="ml-auto text-neutral-300 text-xs" />
                   </label>
                 </div>
-              </Card>
+              </div>
             </div>
 
-            {/* Price Summary */}
+            {/* Right Column - Order Summary */}
             <div>
-              <Card className="sticky top-4">
-                <h3 className="font-semibold mb-4 text-lg">Order Summary</h3>
-
-                <div className="bg-blue-50/50 p-3 rounded-md border border-blue-100 mb-4">
-                  <p className="text-sm font-medium text-blue-900 mb-1">
-                    {tripData?.from} → {tripData?.to}
-                  </p>
-                  <p className="text-xs text-blue-700">
-                    Transport: {tripData?.vehicleType || "Truck"}
-                  </p>
+              <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden sticky top-4">
+                <div className="bg-neutral-900 px-5 py-4">
+                  <h3 className="text-white font-bold text-sm uppercase tracking-wider">
+                    Order Summary
+                  </h3>
                 </div>
 
-                <div className="space-y-3 mb-6">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-neutral-600">Base Freight Rate</span>
-                    <span className="font-medium">
-                      ₦{subtotal.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-neutral-600">
-                      Platform Handling (5%)
-                    </span>
-                    <span className="font-medium">
-                      ₦{serviceFee.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm border-b border-neutral-200 pb-3">
-                    <span className="text-neutral-600">VAT (7.5%)</span>
-                    <span className="font-medium">₦{vat.toLocaleString()}</span>
-                  </div>
-                  <div className="pt-2 flex justify-between items-center">
-                    <span className="font-bold text-gray-800">
-                      Total Shipment Cost
-                    </span>
-                    <span className="font-bold text-primary text-xl">
-                      ₦{total.toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-
-                <Button
-                  variant="primary"
-                  fullWidth
-                  onClick={handleConfirmOrder}
-                  disabled={isProcessing}>
-                  {isProcessing ? (
-                    <div className="flex items-center justify-center gap-2">
-                      <FaSpinner className="animate-spin" />
-                      <span>Processing...</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-center gap-2 shadow-md">
-                      <FaCheckCircle />
-                      <span>
-                        {paymentMethod === "paystack"
-                          ? "Pay & Book Cargo"
-                          : "Confirm Order"}
+                <div className="p-5">
+                  {/* Route */}
+                  <div className="bg-primary/5 border border-primary/10 rounded-xl p-3 mb-5">
+                    <div className="flex items-center gap-2 mb-1">
+                      <FaTruck className="text-primary text-xs" />
+                      <span className="text-xs font-bold text-primary uppercase tracking-wider">
+                        Route
                       </span>
                     </div>
-                  )}
-                </Button>
-                <p className="text-center text-xs mt-3 text-neutral-400">
-                  By booking, you agree to our cargo terms of service.
-                </p>
-              </Card>
+                    <p className="font-bold text-neutral-900 text-sm">
+                      {tripData?.from} → {tripData?.to}
+                    </p>
+                    <p className="text-[10px] text-neutral-500 mt-0.5">
+                      {tripData?.vehicleType || "Vehicle"} •{" "}
+                      {tripData?.company?.name || "Carrier"}
+                    </p>
+                  </div>
+
+                  {/* Cost Breakdown */}
+                  <div className="space-y-3 mb-5">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-neutral-500">
+                        Base Freight Rate
+                      </span>
+                      <span className="font-bold text-neutral-800">
+                        ₦{subtotal.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-neutral-500">
+                        Platform Fee (5%)
+                      </span>
+                      <span className="font-bold text-neutral-800">
+                        ₦{serviceFee.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm pb-3 border-b border-dashed border-neutral-200">
+                      <span className="text-neutral-500">VAT (7.5%)</span>
+                      <span className="font-bold text-neutral-800">
+                        ₦{vat.toLocaleString()}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center pt-1">
+                      <span className="font-bold text-neutral-900">Total</span>
+                      <span className="font-black text-primary text-2xl">
+                        ₦{total.toLocaleString()}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Confirm Button */}
+                  <button
+                    onClick={handleConfirmOrder}
+                    disabled={isProcessing}
+                    className={`w-full py-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                      isProcessing
+                        ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                        : "bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
+                    }`}>
+                    {isProcessing ? (
+                      <>
+                        <FaSpinner className="animate-spin" />
+                        Processing...
+                      </>
+                    ) : (
+                      <>
+                        <FaCheckCircle />
+                        {paymentMethod === "paystack"
+                          ? "Pay & Ship Now"
+                          : "Confirm Shipment"}
+                      </>
+                    )}
+                  </button>
+
+                  <div className="flex items-center justify-center gap-2 mt-3">
+                    <FaShieldAlt className="text-emerald-400 text-xs" />
+                    <p className="text-[10px] text-neutral-400 font-medium">
+                      Secure checkout • Cargo insured in transit
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>

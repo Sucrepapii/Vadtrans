@@ -117,50 +117,14 @@ const LandingPage = () => {
                 <span className="text-primary">Anytime</span>
               </h1>
               <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8">
-                Book tickets and move cargo with ease. Safe, reliable, and
-                affordable transport logistics across Nigeria and West Africa.
+                Book tickets and move cargo with ease. Safe, reliable, and affordable transport logistics across Nigeria and West Africa.
               </p>
 
-              {/* Service Category Tabs */}
-              <div className="flex bg-white rounded-t-lg overflow-hidden border-b border-neutral-100 shadow-md">
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSearchData({
-                      ...searchData,
-                      serviceCategory: "passenger",
-                    })
-                  }
-                  className={`flex-1 py-3 sm:py-4 px-2 text-center font-semibold transition-colors flex items-center justify-center gap-2 ${
-                    searchData.serviceCategory === "passenger"
-                      ? "bg-primary text-white"
-                      : "bg-white text-neutral-600 hover:bg-neutral-50"
-                  }`}>
-                  <FaBus className="text-xl" />
-                  <span className="hidden sm:inline">Passenger Travel</span>
-                  <span className="sm:hidden">Passenger</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() =>
-                    setSearchData({ ...searchData, serviceCategory: "freight" })
-                  }
-                  className={`flex-1 py-3 sm:py-4 px-2 text-center font-semibold transition-colors flex items-center justify-center gap-2 ${
-                    searchData.serviceCategory === "freight"
-                      ? "bg-primary text-white"
-                      : "bg-white text-neutral-600 hover:bg-neutral-50"
-                  }`}>
-                  <FaTruck className="text-xl" />
-                  <span className="hidden sm:inline">Freight Transport</span>
-                  <span className="sm:hidden">Freight</span>
-                </button>
-              </div>
-
               {/* Search Form */}
-              <form
+                <form
                 onSubmit={handleSearch}
-                className="bg-white rounded-b-lg shadow-lg p-4 sm:p-6 space-y-3 sm:space-y-4">
-                {/* Transport Type - Show first so it affects location options */}
+                className="bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-3 sm:space-y-4">
+                {/* Transport Type */}
                 <div>
                   <label className="block text-sm font-medium text-charcoal mb-2">
                     Transport Type
@@ -188,35 +152,6 @@ const LandingPage = () => {
                     </option>
                   </select>
                 </div>
-
-                {/* Freight Type - Only show if serviceCategory is freight */}
-                {searchData.serviceCategory === "freight" && (
-                  <div>
-                    <label className="block text-sm font-medium text-charcoal mb-2">
-                      Freight Classification
-                    </label>
-                    <select
-                      value={searchData.freightType || ""}
-                      onChange={(e) =>
-                        setSearchData({
-                          ...searchData,
-                          freightType: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary sm:text-base text-base">
-                      <option value="">Any Cargo Size</option>
-                      <option value="Small Parcel">
-                        Small Parcel (Documents, E-commerce)
-                      </option>
-                      <option value="Medium Cargo">
-                        Medium Cargo (Boxes, Commercial goods)
-                      </option>
-                      <option value="Large/Bulk Cargo">
-                        Large/Bulk Cargo (Industrial, FTL)
-                      </option>
-                    </select>
-                  </div>
-                )}
 
                 {/* FROM LOCATION */}
                 {searchData.transportType === "international" ? (
@@ -554,8 +489,7 @@ const LandingPage = () => {
                   alt="Travel"
                   className="w-full h-auto rounded-lg shadow-xl"
                   onError={(e) => {
-                    e.target.src =
-                      "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Crect fill='%23FFE5E5' width='600' height='400'/%3E%3Crect x='150' y='100' width='300' height='200' rx='20' fill='%23FF6B6B'/%3E%3Crect x='180' y='130' width='60' height='60' rx='5' fill='white'/%3E%3Crect x='270' y='130' width='60' height='60' rx='5' fill='white'/%3E%3Crect x='360' y='130' width='60' height='60' rx='5' fill='white'/%3E%3Ccircle cx='220' cy='320' r='25' fill='%23333'/%3E%3Ccircle cx='380' cy='320' r='25' fill='%23333'/%3E%3C/svg%3E";
+                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Crect fill='%23FFE5E5' width='600' height='400'/%3E%3Crect x='150' y='100' width='300' height='200' rx='20' fill='%23FF6B6B'/%3E%3Crect x='180' y='130' width='60' height='60' rx='5' fill='white'/%3E%3Crect x='270' y='130' width='60' height='60' rx='5' fill='white'/%3E%3Crect x='360' y='130' width='60' height='60' rx='5' fill='white'/%3E%3Ccircle cx='220' cy='320' r='25' fill='%23333'/%3E%3Ccircle cx='380' cy='320' r='25' fill='%23333'/%3E%3C/svg%3E";
                   }}
                 />
               </div>

@@ -99,6 +99,15 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                   }>
                   About Us
                 </NavLink>
+                <NavLink
+                  to="/freight"
+                  className={({ isActive }) =>
+                    isActive
+                      ? "text-primary font-bold transition-colors"
+                      : "text-charcoal hover:text-primary transition-colors font-medium"
+                  }>
+                  Freight
+                </NavLink>
                 {user?.role === "company" ? (
                   <NavLink
                     to="/company/driver-console"
@@ -201,6 +210,11 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                 to="/about"
                 className="block py-2 hover:text-primary transition-colors">
                 About Us
+              </Link>
+              <Link
+                to="/freight"
+                className="block py-2 hover:text-primary transition-colors">
+                Freight
               </Link>
               {user?.role === "company" ? (
                 <Link
@@ -322,6 +336,11 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
               to="/about"
               className="block py-2 hover:text-primary transition-colors">
               About
+            </Link>
+            <Link
+              to="/freight"
+              className="block py-2 hover:text-primary transition-colors">
+              Freight
             </Link>
             {isAuthenticated ? (
               <>

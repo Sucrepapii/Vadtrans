@@ -2,7 +2,6 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
-import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import {
@@ -12,9 +11,14 @@ import {
   FaMapMarkerAlt,
   FaBox,
   FaWeight,
-  FaMoneyBillWave,
   FaArrowLeft,
-  FaInfoCircle,
+  FaArrowRight,
+  FaPlus,
+  FaTimes,
+  FaTruck,
+  FaShieldAlt,
+  FaCubes,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 
 const FreightInfo = () => {
@@ -38,6 +42,7 @@ const FreightInfo = () => {
   });
 
   const [items, setItems] = useState([]);
+  const [showAddItem, setShowAddItem] = useState(false);
   const [currentItem, setCurrentItem] = useState({
     type: "General goods",
     description: "",
@@ -59,6 +64,7 @@ const FreightInfo = () => {
       quantity: 1,
       isFragile: false,
     });
+    setShowAddItem(false);
   };
 
   const removeItem = (id) => {
@@ -71,7 +77,6 @@ const FreightInfo = () => {
       alert("Please add at least one item to your shipment.");
       return;
     }
-    // Pass freight data directly to checkout
     navigate("/booking/freight-checkout", {
       state: {
         tripData,
@@ -87,69 +92,122 @@ const FreightInfo = () => {
 
   const itemTypes = ["General goods", "Fragile", "Perishable", "Heavy-duty"];
 
+  const totalWeight = items.reduce(
+    (acc, item) => acc + parseFloat(item.weight || 0) * (item.quantity || 1),
+    0,
+  );
+
+  const getItemIcon = (type) => {
+    switch (type) {
+      case "Fragile":
+        return <FaExclamationTriangle className="text-amber-500" />;
+      case "Heavy-duty":
+        return <FaWeight className="text-slate-600" />;
+      case "Perishable":
+        return <FaCubes className="text-green-500" />;
+      default:
+        return <FaBox className="text-primary" />;
+    }
+  };
+
+  // DHL-style Step Indicator
+  const steps = [
+    { label: "Describe Shipment", step: 1, active: true },
+    { label: "Review & Pay", step: 2, active: false },
+    { label: "Confirmation", step: 3, active: false },
+  ];
+
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50">
+    <div className="min-h-screen flex flex-col bg-[#F7F7F7]">
       <Navbar variant="desktop" />
 
-      <div className="flex-1 py-8 px-4">
-        <div className="container-custom max-w-4xl px-4">
-          {/* Progress Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between">
-              {["Cargo Info", "Review & Pay", "Confirmation"].map(
-                (step, idx) => (
-                  <div key={step} className="flex items-center">
-                    <div
-                      className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                        idx === 0
-                          ? "bg-primary text-white"
-                          : "bg-neutral-200 text-neutral-600"
-                      }`}>
-                      {idx + 1}
-                    </div>
-                    {idx < 2 && (
-                      <div className="w-12 md:w-24 h-1 bg-neutral-200 mx-1"></div>
-                    )}
-                  </div>
-                ),
-              )}
+      <div className="flex-1">
+        {/* DHL-style Yellow/Red Header Banner */}
+        <div className="bg-gradient-to-r from-primary to-primary/90 text-white py-6 px-4">
+          <div className="container-custom max-w-5xl">
+            <div className="flex items-center gap-3 mb-3">
+              <FaTruck className="text-2xl opacity-80" />
+              <h1 className="text-2xl font-raleway font-bold">
+                Describe Your Shipment
+              </h1>
             </div>
-            <div className="flex justify-between mt-2">
-              {["Cargo Info", "Review & Pay", "Confirmation"].map((step) => (
-                <p
-                  key={step}
-                  className="text-xs text-center text-neutral-600"
-                  style={{ width: "80px" }}>
-                  {step}
-                </p>
+
+            {/* Route Summary */}
+            {tripData && (
+              <div className="flex flex-wrap items-center gap-2 text-sm">
+                <span className="bg-white/20 px-3 py-1 rounded-full font-medium backdrop-blur-sm">
+                  {tripData.from}
+                </span>
+                <FaArrowRight className="text-xs opacity-60" />
+                <span className="bg-white/20 px-3 py-1 rounded-full font-medium backdrop-blur-sm">
+                  {tripData.to}
+                </span>
+                <span className="text-white/70 ml-2">
+                  via {tripData.company?.name || "Carrier"} •{" "}
+                  {tripData.vehicleType || "Vehicle"}
+                </span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Step Indicator - DHL style */}
+        <div className="bg-white border-b border-neutral-200 shadow-sm">
+          <div className="container-custom max-w-5xl py-4 px-4">
+            <div className="flex items-center justify-center gap-0">
+              {steps.map((s, idx) => (
+                <React.Fragment key={s.step}>
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
+                        s.active
+                          ? "bg-primary text-white shadow-lg shadow-primary/30"
+                          : "bg-neutral-200 text-neutral-500"
+                      }`}>
+                      {s.step}
+                    </div>
+                    <span
+                      className={`text-xs font-bold uppercase tracking-wider hidden sm:block ${
+                        s.active ? "text-primary" : "text-neutral-400"
+                      }`}>
+                      {s.label}
+                    </span>
+                  </div>
+                  {idx < steps.length - 1 && (
+                    <div
+                      className={`w-12 md:w-20 h-0.5 mx-2 ${
+                        idx === 0 ? "bg-primary/30" : "bg-neutral-200"
+                      }`}
+                    />
+                  )}
+                </React.Fragment>
               ))}
             </div>
           </div>
+        </div>
 
+        {/* Main Content */}
+        <div className="container-custom max-w-5xl py-8 px-4">
           {/* Back Button */}
-          <Button
-            variant="secondary"
+          <button
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-sm mb-4">
-            <FaArrowLeft />
-            <span>Back to Results</span>
-          </Button>
-
-          <h1 className="text-xl sm:text-2xl font-raleway font-bold text-charcoal mb-2">
-            Freight & Cargo Details
-          </h1>
-          <p className="text-neutral-600 mb-6">
-            Enter sender, receiver, and item details for your shipment.
-          </p>
+            className="flex items-center gap-2 text-sm text-neutral-500 hover:text-primary transition-colors mb-6 font-medium">
+            <FaArrowLeft className="text-xs" />
+            Back to search results
+          </button>
 
           <form onSubmit={handleContinue} className="space-y-6">
+            {/* Sender & Receiver - Side by Side */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Sender Details */}
-              <Card>
-                <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <FaUser className="text-primary" /> Sender Details
-                </h3>
-                <div className="space-y-4">
+              {/* Sender Card */}
+              <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 px-5 py-3 flex items-center gap-2">
+                  <FaUser className="text-white text-sm" />
+                  <h3 className="text-white font-bold text-sm uppercase tracking-wider">
+                    Sender Details
+                  </h3>
+                </div>
+                <div className="p-5 space-y-4">
                   <Input
                     label="Full Name / Company"
                     value={senderDetails.name}
@@ -161,6 +219,7 @@ const FreightInfo = () => {
                     }
                     icon={FaUser}
                     required
+                    placeholder="Who is sending this shipment?"
                   />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
@@ -175,6 +234,7 @@ const FreightInfo = () => {
                       }
                       icon={FaPhone}
                       required
+                      placeholder="+234..."
                     />
                     <Input
                       label="Email Address"
@@ -188,6 +248,7 @@ const FreightInfo = () => {
                       }
                       icon={FaEnvelope}
                       required
+                      placeholder="sender@email.com"
                     />
                   </div>
                   <Input
@@ -201,16 +262,20 @@ const FreightInfo = () => {
                     }
                     icon={FaMapMarkerAlt}
                     required
+                    placeholder="Full pickup address..."
                   />
                 </div>
-              </Card>
+              </div>
 
-              {/* Receiver Details */}
-              <Card>
-                <h3 className="font-semibold mb-4 flex items-center gap-2">
-                  <FaUser className="text-secondary" /> Receiver Details
-                </h3>
-                <div className="space-y-4">
+              {/* Receiver Card */}
+              <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+                <div className="bg-gradient-to-r from-blue-500 to-blue-600 px-5 py-3 flex items-center gap-2">
+                  <FaUser className="text-white text-sm" />
+                  <h3 className="text-white font-bold text-sm uppercase tracking-wider">
+                    Receiver Details
+                  </h3>
+                </div>
+                <div className="p-5 space-y-4">
                   <Input
                     label="Full Name / Company"
                     value={receiverDetails.name}
@@ -222,6 +287,7 @@ const FreightInfo = () => {
                     }
                     icon={FaUser}
                     required
+                    placeholder="Who is receiving this shipment?"
                   />
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Input
@@ -236,6 +302,7 @@ const FreightInfo = () => {
                       }
                       icon={FaPhone}
                       required
+                      placeholder="+234..."
                     />
                     <Input
                       label="Email Address"
@@ -249,6 +316,7 @@ const FreightInfo = () => {
                       }
                       icon={FaEnvelope}
                       required
+                      placeholder="receiver@email.com"
                     />
                   </div>
                   <Input
@@ -262,211 +330,300 @@ const FreightInfo = () => {
                     }
                     icon={FaMapMarkerAlt}
                     required
+                    placeholder="Full delivery address..."
                   />
                 </div>
-              </Card>
+              </div>
             </div>
 
-            {/* Multi-Item Cargo Cart */}
-            <Card className="border-t-4 border-t-primary">
-              <h3 className="font-semibold mb-4 flex items-center gap-2">
-                <FaBox className="text-primary" /> Shipment Items (Cart)
-              </h3>
-
-              {/* Add Item Form */}
-              <div className="bg-neutral-50 p-4 rounded-lg border border-neutral-200 mb-6">
-                <h4 className="text-sm font-bold text-charcoal mb-3 uppercase tracking-wider">
-                  Add New Item
-                </h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-                  <div>
-                    <label className="block text-xs font-bold text-neutral-500 mb-1">
-                      Item Type
-                    </label>
-                    <select
-                      value={currentItem.type}
-                      onChange={(e) =>
-                        setCurrentItem({ ...currentItem, type: e.target.value })
-                      }
-                      className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-1 focus:ring-primary outline-none bg-white text-sm">
-                      {itemTypes.map((t) => (
-                        <option key={t} value={t}>
-                          {t}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="md:col-span-1">
-                    <label className="block text-xs font-bold text-neutral-500 mb-1">
-                      Description (e.g. LED TV)
-                    </label>
-                    <input
-                      type="text"
-                      value={currentItem.description}
-                      onChange={(e) =>
-                        setCurrentItem({
-                          ...currentItem,
-                          description: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-1 focus:ring-primary outline-none bg-white text-sm"
-                      placeholder="What are you shipping?"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <div className="w-1/2">
-                      <label className="block text-xs font-bold text-neutral-500 mb-1">
-                        Weight (kg)
-                      </label>
-                      <input
-                        type="number"
-                        value={currentItem.weight}
-                        onChange={(e) =>
-                          setCurrentItem({
-                            ...currentItem,
-                            weight: e.target.value,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-1 focus:ring-primary outline-none bg-white text-sm"
-                        placeholder="0"
-                      />
-                    </div>
-                    <div className="w-1/2">
-                      <label className="block text-xs font-bold text-neutral-500 mb-1">
-                        Qty
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={currentItem.quantity}
-                        onChange={(e) =>
-                          setCurrentItem({
-                            ...currentItem,
-                            quantity: parseInt(e.target.value) || 1,
-                          })
-                        }
-                        className="w-full px-3 py-2 border border-neutral-300 rounded focus:ring-1 focus:ring-primary outline-none bg-white text-sm"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={currentItem.isFragile}
-                        onChange={(e) =>
-                          setCurrentItem({
-                            ...currentItem,
-                            isFragile: e.target.checked,
-                          })
-                        }
-                        className="w-4 h-4 text-primary rounded"
-                      />
-                      <span className="text-xs font-medium">Fragile?</span>
-                    </label>
-                    <Button
-                      type="button"
-                      variant="primary"
-                      onClick={addItem}
-                      className="flex-1 py-2 text-sm">
-                      Add to Cart
-                    </Button>
-                  </div>
+            {/* Shipment Items Section */}
+            <div className="bg-white rounded-2xl shadow-sm border border-neutral-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-neutral-800 to-neutral-900 px-5 py-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <FaBox className="text-white text-sm" />
+                  <h3 className="text-white font-bold text-sm uppercase tracking-wider">
+                    Shipment Items
+                  </h3>
+                  {items.length > 0 && (
+                    <span className="bg-white/20 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
+                      {items.length} item{items.length > 1 ? "s" : ""}
+                    </span>
+                  )}
                 </div>
+                {!showAddItem && (
+                  <button
+                    type="button"
+                    onClick={() => setShowAddItem(true)}
+                    className="flex items-center gap-1.5 bg-white text-neutral-900 text-[10px] font-black uppercase px-3 py-1.5 rounded-lg hover:bg-neutral-100 transition-colors">
+                    <FaPlus size={8} />
+                    ADD ITEM
+                  </button>
+                )}
               </div>
 
-              {/* Items List */}
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-neutral-100 text-neutral-600 font-bold">
-                    <tr>
-                      <th className="p-3 rounded-l">Item</th>
-                      <th className="p-3">Type</th>
-                      <th className="p-3 text-center">Qty</th>
-                      <th className="p-3 text-center">Weight</th>
-                      <th className="p-3 text-center">Fragile</th>
-                      <th className="p-3 rounded-r text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-neutral-100">
-                    {items.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan="6"
-                          className="p-8 text-center text-neutral-400 italic">
-                          No items added yet. Use the form above to add items to
-                          your shipment.
-                        </td>
-                      </tr>
-                    ) : (
-                      items.map((item) => (
-                        <tr key={item.id} className="hover:bg-neutral-50">
-                          <td className="p-3 font-medium text-charcoal">
-                            {item.description}
-                          </td>
-                          <td className="p-3 text-neutral-600">{item.type}</td>
-                          <td className="p-3 text-center">{item.quantity}</td>
-                          <td className="p-3 text-center">{item.weight} kg</td>
-                          <td className="p-3 text-center">
-                            {item.isFragile ? (
-                              <span className="bg-red-100 text-red-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
-                                Yes
-                              </span>
-                            ) : (
-                              <span className="bg-neutral-100 text-neutral-500 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase">
-                                No
+              <div className="p-5">
+                {/* Add Item Collapsible Form */}
+                {showAddItem && (
+                  <div className="bg-neutral-50 rounded-xl p-5 border-2 border-dashed border-neutral-300 mb-5 animate-[fadeIn_0.2s_ease-in-out]">
+                    <div className="flex items-center justify-between mb-4">
+                      <h4 className="text-sm font-bold text-neutral-800 uppercase tracking-wider">
+                        New Item Details
+                      </h4>
+                      <button
+                        type="button"
+                        onClick={() => setShowAddItem(false)}
+                        className="text-neutral-400 hover:text-neutral-600 transition-colors">
+                        <FaTimes />
+                      </button>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">
+                          Category
+                        </label>
+                        <select
+                          value={currentItem.type}
+                          onChange={(e) =>
+                            setCurrentItem({
+                              ...currentItem,
+                              type: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-sm font-medium">
+                          {itemTypes.map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">
+                          Description
+                        </label>
+                        <input
+                          type="text"
+                          value={currentItem.description}
+                          onChange={(e) =>
+                            setCurrentItem({
+                              ...currentItem,
+                              description: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-sm"
+                          placeholder="e.g. Samsung 55'' LED TV"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">
+                          Weight (kg)
+                        </label>
+                        <input
+                          type="number"
+                          value={currentItem.weight}
+                          onChange={(e) =>
+                            setCurrentItem({
+                              ...currentItem,
+                              weight: e.target.value,
+                            })
+                          }
+                          className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-sm"
+                          placeholder="0"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-neutral-500 mb-1.5 uppercase tracking-wider">
+                          Quantity
+                        </label>
+                        <input
+                          type="number"
+                          min="1"
+                          value={currentItem.quantity}
+                          onChange={(e) =>
+                            setCurrentItem({
+                              ...currentItem,
+                              quantity: parseInt(e.target.value) || 1,
+                            })
+                          }
+                          className="w-full px-4 py-3 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none bg-white text-sm"
+                        />
+                      </div>
+                      <div className="flex flex-col justify-end">
+                        <label className="flex items-center gap-2 cursor-pointer bg-amber-50 border border-amber-200 rounded-xl px-4 py-3">
+                          <input
+                            type="checkbox"
+                            checked={currentItem.isFragile}
+                            onChange={(e) =>
+                              setCurrentItem({
+                                ...currentItem,
+                                isFragile: e.target.checked,
+                              })
+                            }
+                            className="w-4 h-4 text-amber-500 rounded"
+                          />
+                          <span className="text-xs font-bold text-amber-700 uppercase">
+                            Fragile
+                          </span>
+                        </label>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={addItem}
+                      className="w-full py-3 bg-neutral-900 text-white rounded-xl font-bold text-sm hover:bg-neutral-800 transition-colors flex items-center justify-center gap-2">
+                      <FaPlus size={10} />
+                      Add to Shipment
+                    </button>
+                  </div>
+                )}
+
+                {/* Item Cards */}
+                {items.length === 0 && !showAddItem ? (
+                  <div className="text-center py-12">
+                    <FaBox className="text-4xl text-neutral-300 mx-auto mb-3" />
+                    <p className="text-neutral-500 font-medium mb-1">
+                      No items added yet
+                    </p>
+                    <p className="text-neutral-400 text-sm mb-4">
+                      Click "Add Item" above to describe what you're shipping
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => setShowAddItem(true)}
+                      className="inline-flex items-center gap-2 bg-primary text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-primary/90 transition-colors">
+                      <FaPlus size={10} />
+                      Add Your First Item
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {items.map((item, idx) => (
+                      <div
+                        key={item.id}
+                        className="group flex items-center gap-4 bg-neutral-50 hover:bg-neutral-100 rounded-xl p-4 border border-neutral-100 transition-all">
+                        {/* Icon */}
+                        <div className="w-10 h-10 rounded-xl bg-white shadow-sm flex items-center justify-center flex-shrink-0 border border-neutral-100">
+                          {getItemIcon(item.type)}
+                        </div>
+
+                        {/* Details */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-neutral-900 truncate">
+                              {item.description}
+                            </p>
+                            {item.isFragile && (
+                              <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-md text-[9px] font-black uppercase flex-shrink-0">
+                                ⚠ Fragile
                               </span>
                             )}
-                          </td>
-                          <td className="p-3 text-right">
-                            <button
-                              type="button"
-                              onClick={() => removeItem(item.id)}
-                              className="text-red-500 hover:text-red-700 font-medium">
-                              Remove
-                            </button>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                  {items.length > 0 && (
-                    <tfoot className="bg-neutral-50 font-bold border-t border-neutral-200">
-                      <tr>
-                        <td colSpan="3" className="p-3 text-right">
-                          Total Estimated Weight:
-                        </td>
-                        <td className="p-3 text-center">
-                          {items.reduce(
-                            (acc, item) =>
-                              acc + parseFloat(item.weight) * item.quantity,
-                            0,
-                          )}{" "}
-                          kg
-                        </td>
-                        <td colSpan="2"></td>
-                      </tr>
-                    </tfoot>
-                  )}
-                </table>
-              </div>
-            </Card>
+                          </div>
+                          <p className="text-xs text-neutral-400 mt-0.5">
+                            {item.type} • Qty: {item.quantity}
+                          </p>
+                        </div>
 
-            <div className="flex gap-4 pt-4">
-              <Button
+                        {/* Weight Badge */}
+                        <div className="flex-shrink-0 text-right">
+                          <div className="bg-white border border-neutral-200 rounded-lg px-3 py-1.5">
+                            <span className="text-sm font-black text-neutral-800">
+                              {item.weight}
+                            </span>
+                            <span className="text-[10px] text-neutral-400 ml-0.5">
+                              kg
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Remove */}
+                        <button
+                          type="button"
+                          onClick={() => removeItem(item.id)}
+                          className="opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600 transition-all p-1 flex-shrink-0">
+                          <FaTimes />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Running Total Footer */}
+              {items.length > 0 && (
+                <div className="bg-neutral-900 px-5 py-4 flex items-center justify-between">
+                  <div className="flex items-center gap-6">
+                    <div>
+                      <p className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">
+                        Total Items
+                      </p>
+                      <p className="text-white text-lg font-black">
+                        {items.length}
+                      </p>
+                    </div>
+                    <div className="w-px h-8 bg-neutral-700" />
+                    <div>
+                      <p className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">
+                        Total Weight
+                      </p>
+                      <p className="text-white text-lg font-black">
+                        {totalWeight}{" "}
+                        <span className="text-sm font-medium text-neutral-400">
+                          kg
+                        </span>
+                      </p>
+                    </div>
+                    {tripData && (
+                      <>
+                        <div className="w-px h-8 bg-neutral-700 hidden sm:block" />
+                        <div className="hidden sm:block">
+                          <p className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider">
+                            Max Capacity
+                          </p>
+                          <p className="text-white text-lg font-black">
+                            {tripData.maxWeightCapacity || "N/A"}{" "}
+                            <span className="text-sm font-medium text-neutral-400">
+                              kg
+                            </span>
+                          </p>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <FaShieldAlt className="text-emerald-400 text-sm" />
+                    <span className="text-neutral-400 text-[10px] font-bold uppercase tracking-wider hidden sm:block">
+                      Insured
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* CTA Footer */}
+            <div className="flex gap-4 pt-2">
+              <button
                 type="button"
-                variant="secondary"
                 onClick={() => navigate(-1)}
-                className="w-1/3">
+                className="flex-shrink-0 px-6 py-4 border-2 border-neutral-200 text-neutral-600 rounded-xl font-bold text-sm hover:border-neutral-300 transition-colors">
+                <FaArrowLeft className="inline mr-2" />
                 Back
-              </Button>
-              <Button
+              </button>
+              <button
                 type="submit"
-                variant="primary"
-                className="w-2/3"
-                disabled={items.length === 0}>
+                disabled={items.length === 0}
+                className={`flex-1 py-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${
+                  items.length === 0
+                    ? "bg-neutral-200 text-neutral-400 cursor-not-allowed"
+                    : "bg-primary text-white hover:bg-primary/90 shadow-lg shadow-primary/20"
+                }`}>
                 Continue to Payment
-              </Button>
+                <FaArrowRight className="text-xs" />
+              </button>
             </div>
           </form>
         </div>
