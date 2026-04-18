@@ -54,29 +54,22 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
         {/* Main navbar */}
         <div className="bg-white border-b">
           <div className="container-custom">
-            <div className="flex items-center justify-between h-20">
+            <div className="flex items-center justify-between h-24 md:h-32">
               {/* Logo */}
-              <Link to="/" className="flex flex-col">
+              <Link to="/" className="flex flex-col items-start px-2">
                 <div className="flex items-center gap-2 group">
                   <div className="flex flex-col justify-center">
                     <img
-                      src="/logo_full.png"
+                      src={
+                        user?.role === "company"
+                          ? "/logo_transport.png"
+                          : "/logo_traveller.png"
+                      }
                       alt="VadTrans"
-                      className="h-10 w-auto object-contain"
+                      className="h-16 md:h-28 w-auto object-contain mix-blend-multiply transition-all"
                     />
                   </div>
                 </div>
-                {(portalLabel ||
-                  (user?.role === "company"
-                    ? "TRANSPORT PORTAL"
-                    : "TRAVELLER PORTAL")) && (
-                  <span className="text-[10px] font-bold tracking-widest text-neutral-500 uppercase">
-                    {portalLabel ||
-                      (user?.role === "company"
-                        ? "TRANSPORT PORTAL"
-                        : "TRAVELLER PORTAL")}
-                  </span>
-                )}
               </Link>
 
               {/* Navigation Links */}
@@ -309,13 +302,15 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <div>
-              <img
-                src="/logo_full.png"
-                alt="VadTrans"
-                className="h-8 w-auto object-contain brightness-0 invert"
-              />
-            </div>
+            <img
+              src={
+                user?.role === "company"
+                  ? "/logo_transport_white.png"
+                  : "/logo_traveller_white.png"
+              }
+              alt="VadTrans"
+              className="h-14 w-auto object-contain mix-blend-screen"
+            />
           </Link>
 
           <button

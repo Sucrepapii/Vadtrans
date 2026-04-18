@@ -79,14 +79,11 @@ const Sidebar = () => {
                 <FaTachometerAlt className="text-sm text-primary" />
               </div>
               <div>
-                <img
-                  src="/logo_full.png"
-                  alt="VadTrans"
-                  className="h-6 w-auto object-contain brightness-0 invert"
-                />
-                <span className="text-[10px] text-neutral-400 font-medium tracking-widest uppercase block mt-1">
-                  Admin Portal
-                </span>
+                  <img
+                    src="/logo_transport_white.png"
+                    alt="VadTrans"
+                    className="h-12 w-auto object-contain mix-blend-screen"
+                  />
               </div>
             </div>
           )}
