@@ -78,6 +78,14 @@ const TicketsManagement = () => {
       NIN: "",
       "No Document": "",
     },
+    // Carpooling specific fields
+    timeWindowStart: "",
+    timeWindowEnd: "",
+    minSeats: 1,
+    departureDeadline: "",
+    depositAmount: 0,
+    cancellationWindow: 12,
+    confirmationWindow: 2,
   });
 
   const { states, getCitiesForState } = useLocationsAPI();
@@ -170,6 +178,13 @@ const TicketsManagement = () => {
           NIN: "",
           "No Document": "",
         },
+        timeWindowStart: trip.timeWindowStart || "",
+        timeWindowEnd: trip.timeWindowEnd || "",
+        minSeats: trip.minSeats || 1,
+        departureDeadline: trip.departureDeadline || "",
+        depositAmount: trip.depositAmount || 0,
+        cancellationWindow: trip.cancellationWindow || 12,
+        confirmationWindow: trip.confirmationWindow || 2,
       }));
 
       setTickets(transformedTrips);
@@ -261,38 +276,42 @@ const TicketsManagement = () => {
 
   const handleEditTicket = (ticket) => {
     setEditingTicket(ticket);
-    const [from, to] = ticket.route.split(" - ");
     setFormData({
-      from,
-      to,
+      from: ticket.route.split(" - ")[0],
+      to: ticket.route.split(" - ")[1],
       transportType: ticket.transportType,
-      departureTime: ticket.departureTime,
-      departureTimes: [ticket.departureTime || ""],
+      departureTimes: [ticket.departureTime],
       departureDate: ticket.departureDate || "",
-      operatingDays: Array.isArray(ticket.operatingDays)
-        ? ticket.operatingDays
-        : ticket.operatingDays
-          ? ticket.operatingDays.split(",")
-          : [],
+      operatingDays: ticket.operatingDays || [],
       duration: ticket.duration || "",
-      price: ticket.price,
+      price: ticket.price || "",
       baseFare: ticket.baseFare || "",
       pricePerKg: ticket.pricePerKg || "",
       minCharge: ticket.minCharge || "",
       maxWeightCapacity: ticket.maxWeightCapacity || "",
-      seats: ticket.seats,
+      seats: ticket.seats || 18,
       serviceCategory: ticket.serviceCategory || "passenger",
       freightType: ticket.freightType || "",
+      state: ticket.state || "",
+      toState: ticket.toState || "",
+      fromCountry: ticket.fromCountry || "Nigeria",
+      toCountry: ticket.toCountry || "",
       vehicleType: ticket.vehicleType || "Hiace Bus (18 seater)",
       terminal: ticket.terminal || "",
       city: ticket.city || "",
-      state: ticket.state || "",
       documentPrices: ticket.documentPrices || {
         "Regular Passport": "",
         "Virgin Passport": "",
         NIN: "",
         "No Document": "",
       },
+      timeWindowStart: ticket.timeWindowStart || "",
+      timeWindowEnd: ticket.timeWindowEnd || "",
+      minSeats: ticket.minSeats || 1,
+      departureDeadline: ticket.departureDeadline || "",
+      depositAmount: ticket.depositAmount || 0,
+      cancellationWindow: ticket.cancellationWindow || 12,
+      confirmationWindow: ticket.confirmationWindow || 2,
     });
     setIsModalOpen(true);
   };
@@ -363,6 +382,13 @@ const TicketsManagement = () => {
         fromState: formData.transportType === "international" ? formData.fromState : (formData.transportType === "inter-state" ? formData.state : null),
         toState: formData.transportType === "international" ? formData.toState : (formData.transportType === "inter-state" ? formData.toState : null),
         documentPrices: formData.documentPrices,
+        timeWindowStart: formData.timeWindowStart || null,
+        timeWindowEnd: formData.timeWindowEnd || null,
+        minSeats: Number(formData.minSeats || 1),
+        departureDeadline: formData.departureDeadline || null,
+        depositAmount: Number(formData.depositAmount || 0),
+        cancellationWindow: Number(formData.cancellationWindow || 12),
+        confirmationWindow: Number(formData.confirmationWindow || 2),
       };
 
       if (editingTicket) {
@@ -1242,6 +1268,74 @@ const TicketsManagement = () => {
               disabled={saving}
             />
           </div>
+          
+          {formData.transportType === "carpooling" && (
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-sm font-semibold text-primary">Carpooling Specifics</h3>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Time Window Start"
+                  type="time"
+                  value={formData.timeWindowStart}
+                  onChange={(e) => setFormData({ ...formData, timeWindowStart: e.target.value })}
+                  disabled={saving}
+                />
+                <Input
+                  label="Time Window End"
+                  type="time"
+                  value={formData.timeWindowEnd}
+                  onChange={(e) => setFormData({ ...formData, timeWindowEnd: e.target.value })}
+                  disabled={saving}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Min Seats for Departure"
+                  type="number"
+                  value={formData.minSeats}
+                  onChange={(e) => setFormData({ ...formData, minSeats: e.target.value })}
+                  disabled={saving}
+                  placeholder="e.g. 3"
+                />
+                <Input
+                  label="Departure Deadline"
+                  type="time"
+                  value={formData.departureDeadline}
+                  onChange={(e) => setFormData({ ...formData, departureDeadline: e.target.value })}
+                  disabled={saving}
+                />
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <Input
+                  label="Deposit (₦)"
+                  type="number"
+                  value={formData.depositAmount}
+                  onChange={(e) => setFormData({ ...formData, depositAmount: e.target.value })}
+                  disabled={saving}
+                  placeholder="e.g. 1000"
+                />
+                <Input
+                  label="Cancel Window (hrs)"
+                  type="number"
+                  value={formData.cancellationWindow}
+                  onChange={(e) => setFormData({ ...formData, cancellationWindow: e.target.value })}
+                  disabled={saving}
+                  placeholder="e.g. 12"
+                />
+                <Input
+                  label="Confirm Window (hrs)"
+                  type="number"
+                  value={formData.confirmationWindow}
+                  onChange={(e) => setFormData({ ...formData, confirmationWindow: e.target.value })}
+                  disabled={saving}
+                  placeholder="e.g. 2"
+                />
+              </div>
+            </div>
+          )}
 
           {formData.transportType === "international" && (
             <div className="space-y-4 pt-4 border-t">

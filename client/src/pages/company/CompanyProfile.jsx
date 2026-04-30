@@ -123,6 +123,14 @@ const CompanyProfile = () => {
       NIN: "",
       "No Document": "",
     },
+    // Carpooling specific fields
+    timeWindowStart: "",
+    timeWindowEnd: "",
+    minSeats: 1,
+    departureDeadline: "",
+    depositAmount: 0,
+    cancellationWindow: 12,
+    confirmationWindow: 2,
   });
 
   const tabs = [
@@ -255,6 +263,13 @@ const CompanyProfile = () => {
         terminal: formData.terminal,
         city: formData.city,
         documentPrices: formData.documentPrices,
+        timeWindowStart: formData.timeWindowStart || null,
+        timeWindowEnd: formData.timeWindowEnd || null,
+        minSeats: Number(formData.minSeats || 1),
+        departureDeadline: formData.departureDeadline || null,
+        depositAmount: Number(formData.depositAmount || 0),
+        cancellationWindow: Number(formData.cancellationWindow || 12),
+        confirmationWindow: Number(formData.confirmationWindow || 2),
       };
 
       if (editingTrip) {
@@ -289,6 +304,13 @@ const CompanyProfile = () => {
           NIN: "",
           "No Document": "",
         },
+        timeWindowStart: "",
+        timeWindowEnd: "",
+        minSeats: 1,
+        departureDeadline: "",
+        depositAmount: 0,
+        cancellationWindow: 12,
+        confirmationWindow: 2,
       });
       setShowModal(false);
       setEditingTrip(null);
@@ -1654,6 +1676,67 @@ const CompanyProfile = () => {
               disabled={saving}
             />
           </div>
+
+          {formData.transportType === "carpooling" && (
+            <div className="space-y-4 pt-4 border-t">
+              <h3 className="text-sm font-semibold text-primary">Carpooling Specifics</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Time Window Start"
+                  type="time"
+                  value={formData.timeWindowStart}
+                  onChange={(e) => setFormData({ ...formData, timeWindowStart: e.target.value })}
+                  disabled={saving}
+                />
+                <Input
+                  label="Time Window End"
+                  type="time"
+                  value={formData.timeWindowEnd}
+                  onChange={(e) => setFormData({ ...formData, timeWindowEnd: e.target.value })}
+                  disabled={saving}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Min Seats for Departure"
+                  type="number"
+                  value={formData.minSeats}
+                  onChange={(e) => setFormData({ ...formData, minSeats: e.target.value })}
+                  disabled={saving}
+                />
+                <Input
+                  label="Departure Deadline"
+                  type="time"
+                  value={formData.departureDeadline}
+                  onChange={(e) => setFormData({ ...formData, departureDeadline: e.target.value })}
+                  disabled={saving}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <Input
+                  label="Deposit (₦)"
+                  type="number"
+                  value={formData.depositAmount}
+                  onChange={(e) => setFormData({ ...formData, depositAmount: e.target.value })}
+                  disabled={saving}
+                />
+                <Input
+                  label="Cancel Window (hrs)"
+                  type="number"
+                  value={formData.cancellationWindow}
+                  onChange={(e) => setFormData({ ...formData, cancellationWindow: e.target.value })}
+                  disabled={saving}
+                />
+                <Input
+                  label="Confirm Window (hrs)"
+                  type="number"
+                  value={formData.confirmationWindow}
+                  onChange={(e) => setFormData({ ...formData, confirmationWindow: e.target.value })}
+                  disabled={saving}
+                />
+              </div>
+            </div>
+          )}
 
           {formData.transportType === "international" && (
             <div className="space-y-4 pt-4 border-t">

@@ -33,8 +33,11 @@ const OfferRide = () => {
     timeWindowEnd: "07:15",
     seats: 3,
     price: "",
-    minSeats: 1,
     departureTime: "07:00", // Will be set to timeWindowStart
+    departureDeadline: "07:15",
+    depositAmount: 0,
+    cancellationWindow: 12,
+    confirmationWindow: 2,
   });
 
   const [cities, setCities] = useState([]);
@@ -186,6 +189,16 @@ const OfferRide = () => {
                         required
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Departure Deadline</label>
+                      <input 
+                        type="time"
+                        value={formData.departureDeadline}
+                        onChange={(e) => setFormData({...formData, departureDeadline: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
 
@@ -242,6 +255,43 @@ const OfferRide = () => {
                     <p className="text-xs text-blue-700 leading-relaxed">
                       Recommended price for {formData.from || 'this route'} is ₦1,200 – ₦2,000.
                     </p>
+                  </div>
+                </div>
+
+                {/* Advanced Rules */}
+                <div className="col-span-full pt-4 border-t border-neutral-100">
+                  <h2 className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <FaInfoCircle className="text-primary" /> Rules & Deposits
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Deposit (₦)</label>
+                      <input 
+                        type="number"
+                        value={formData.depositAmount}
+                        onChange={(e) => setFormData({...formData, depositAmount: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                        placeholder="0 for no deposit"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Cancel Window (hrs)</label>
+                      <input 
+                        type="number"
+                        value={formData.cancellationWindow}
+                        onChange={(e) => setFormData({...formData, cancellationWindow: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Confirm Window (hrs)</label>
+                      <input 
+                        type="number"
+                        value={formData.confirmationWindow}
+                        onChange={(e) => setFormData({...formData, confirmationWindow: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
