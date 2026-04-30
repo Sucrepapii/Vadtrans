@@ -34,6 +34,8 @@ const BookingConfirmation = () => {
     totalAmount,
     paymentMethod,
     bookingId,
+    paidAmount,
+    isDeposit,
   } = location.state || {}; // bookingId might be passed from MyBookings
 
   // State to hold fetched booking details
@@ -83,6 +85,10 @@ const BookingConfirmation = () => {
   const finalTotal = fetchedBooking?.totalAmount
     ? Number(fetchedBooking.totalAmount)
     : Number(totalAmount) || 0;
+  const finalPaidAmount = fetchedBooking?.paidAmount
+    ? Number(fetchedBooking.paidAmount)
+    : Number(paidAmount) || finalTotal;
+  const finalIsDeposit = fetchedBooking?.isDeposit ?? isDeposit;
   const finalBookingId =
     fetchedBooking?.bookingId || bookingId || `BK-${Date.now()}`;
   const finalPaymentMethod =
@@ -221,12 +227,17 @@ const BookingConfirmation = () => {
             <FaCheckCircle className="text-3xl text-green-600 flex-shrink-0" />
             <div>
               <h2 className="font-semibold text-green-900 text-lg">
-                Booking Confirmed!
+                {finalIsDeposit ? "Reservation Confirmed!" : "Booking Confirmed!"}
               </h2>
               <p className="text-green-700 text-sm">
-                Your booking reference:{" "}
+                Your {finalIsDeposit ? "reservation" : "booking"} reference:{" "}
                 <span className="font-mono font-bold">{finalBookingId}</span>
               </p>
+              {finalIsDeposit && (
+                <p className="text-[10px] text-green-600 mt-1">
+                  You've paid a deposit of ₦{finalPaidAmount.toLocaleString()}. The balance is due on departure.
+                </p>
+              )}
             </div>
           </div>
 
@@ -446,11 +457,19 @@ const BookingConfirmation = () => {
 
                     <div className="mb-4">
                       <div className="flex justify-between items-center">
-                        <span className="font-bold">Total</span>
+                        <span className="font-bold">{finalIsDeposit ? "Deposit Paid" : "Total Paid"}</span>
                         <span className="text-2xl font-bold text-primary">
-                          ₦{finalTotal.toLocaleString()}
+                          ₦{finalPaidAmount.toLocaleString()}
                         </span>
                       </div>
+                      {finalIsDeposit && (
+                        <div className="flex justify-between items-center mt-1">
+                          <span className="text-xs text-neutral-500">Balance Due</span>
+                          <span className="text-sm font-semibold text-neutral-700">
+                            ₦{(finalTotal - finalPaidAmount).toLocaleString()}
+                          </span>
+                        </div>
+                      )}
                       <p className="text-xs text-neutral-600 mt-1">
                         {passengerCount} traveller
                         {passengerCount > 1 ? "s" : ""}

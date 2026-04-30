@@ -11,7 +11,7 @@ exports.createBooking = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const { tripId, passengers, selectedSeats, paymentMethod, totalAmount } =
+    const { tripId, passengers, selectedSeats, paymentMethod, totalAmount, paidAmount, isDeposit } =
       req.body;
 
     // Validate input
@@ -99,6 +99,8 @@ exports.createBooking = async (req, res) => {
         totalAmount: bookingTotalAmount,
         serviceFee,
         vat,
+        paidAmount: paidAmount || bookingTotalAmount,
+        isDeposit: isDeposit || false,
         paymentStatus: "pending", // Payment will be verified via Paystack
         bookingStatus: "pending", // Booking starts pending until payment is verified
       },
@@ -286,39 +288,39 @@ exports.cancelBooking = async (req, res) => {
       });
     }
 
-    // Check cancellation policy: 48 hours for refund, +30 days for reuse (total 32 days)
-    const bookingDate = new Date(booking.createdAt);
+    // Fetch trip to get cancellation window
+    const trip = await Trip.findByPk(booking.tripId, { transaction });
+    const cancellationWindow = trip?.cancellationWindow || 12; // hours
     const currentDate = new Date();
-    const diffTime = Math.abs(currentDate - bookingDate);
-    const diffHours = diffTime / (1000 * 60 * 60);
 
-    // 48 hours + 30 days = 32 days = 768 hours
-    if (diffHours > 768) {
-      await transaction.rollback();
-      return res.status(400).json({
-        success: false,
-        message:
-          "Ticket has expired. Cancellations and reuse are only allowed within 32 days (48 hours + 30 days) from the booked date",
-      });
+    // Check departure time
+    const departureDate = new Date(trip?.departureDate || booking.createdAt);
+    // Parse departureTime (e.g., "07:00")
+    if (trip?.departureTime) {
+      const [hours, minutes] = trip.departureTime.split(':');
+      departureDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+    }
+
+    const timeToDeparture = (departureDate - currentDate) / (1000 * 60 * 60);
+
+    if (timeToDeparture < cancellationWindow) {
+      // Within penalty window
+      booking.paymentStatus = "failed"; // Simplified for now
+      booking.bookingStatus = "cancelled";
+    } else {
+      // Outside penalty window - full refund
+      booking.paymentStatus = "refunded";
+      booking.bookingStatus = "cancelled";
     }
 
     // Update booking status
-    booking.bookingStatus = "cancelled";
     booking.cancellationReason = req.body.reason || "User cancelled";
     booking.cancelledAt = new Date();
-
-    // Set payment status based on whether it is within the 48-hour refund window
-    if (diffHours <= 48) {
-      booking.paymentStatus = "refunded";
-    } else {
-      // Kept as 'paid', meaning it is cancelled for reuse
-      // (No explicit "reusable" enum value exists, so we leave it paid)
-    }
 
     await booking.save({ transaction });
 
     // Release seats
-    const trip = await Trip.findByPk(booking.tripId, { transaction });
+    // const trip = await Trip.findByPk(booking.tripId, { transaction }); // Already fetched above
     if (trip) {
       let bookedSeats = [];
       if (typeof trip.bookedSeats === "string") {

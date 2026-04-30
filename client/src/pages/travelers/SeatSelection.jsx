@@ -10,7 +10,7 @@ import { FaCheck, FaArrowLeft } from "react-icons/fa";
 const SeatSelection = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { tripData, passengers, searchDate } = location.state || {};
+  const { tripData, passengers, searchDate, isDepositOnly } = location.state || {};
 
   const [selectedSeats, setSelectedSeats] = useState([]);
 
@@ -80,6 +80,7 @@ const SeatSelection = () => {
         selectedSeats,
         paymentMethod: "card",
         searchDate,
+        isDepositOnly,
       },
     });
   };

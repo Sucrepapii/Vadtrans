@@ -19,6 +19,9 @@ import {
   FaClock,
   FaShieldAlt,
   FaTruck,
+  FaCar,
+  FaUsers,
+  FaHandHoldingHeart,
 } from "react-icons/fa";
 
 const LandingPage = () => {
@@ -45,8 +48,8 @@ const LandingPage = () => {
     to: "",
     date: getTodayDate(),
     transportType: "all",
-    fromState: "", // For intra-state trips
-    toState: "", // For intra-state trips
+    fromState: "", // For carpooling trips
+    toState: "", // For carpooling trips
     fromCountry: "Nigeria", // Default
     toCountry: "",
     serviceCategory: "passenger", // passenger or freight
@@ -88,7 +91,7 @@ const LandingPage = () => {
     if (searchData.transportType === "international") {
       return westAfricanCountries;
     }
-    // For both inter-state and intra-state, return the API states
+    // For both inter-state and carpooling, return the API states
     return states.map(s => s.name);
   }, [searchData.transportType, states]);
 
@@ -112,13 +115,41 @@ const LandingPage = () => {
             {/* Left side - Search Form */}
             <div>
               <h1 className="text-3xl sm:text-4xl md:text-5xl font-raleway font-bold text-charcoal mb-4 leading-tight">
-                Travel Anywhere,
+                Find a ride.
                 <br />
-                <span className="text-primary">Anytime</span>
+                <span className="text-primary">Save money.</span>
               </h1>
-              <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8">
-                Book tickets and move cargo with ease. Safe, reliable, and affordable transport logistics across Nigeria and West Africa.
+              <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8 font-medium">
+                Carpool with people going your way. Find a ride to work, school, or anywhere in Lagos and beyond.
               </p>
+
+              {/* Find/Offer Ride Interaction */}
+              <div className="mb-8 p-4 bg-white rounded-2xl shadow-sm border border-primary/10">
+                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                  Primary Feature: FIND OR SHARE A RIDE
+                </p>
+                <div className="grid grid-cols-2 gap-4">
+                  <button 
+                    onClick={() => {
+                      setSearchData({...searchData, transportType: 'carpooling'});
+                      const searchSection = document.getElementById('search-form');
+                      searchSection?.scrollIntoView({ behavior: 'smooth' });
+                    }}
+                    className="flex flex-col items-center justify-center p-4 bg-primary/5 hover:bg-primary/10 rounded-xl transition-all border border-primary/20 group">
+                    <FaUsers className="text-2xl text-primary mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-bold text-charcoal">Find a ride</span>
+                    <span className="text-[10px] text-neutral-500">Riders side</span>
+                  </button>
+                  <button 
+                    onClick={() => navigate('/offer-ride')}
+                    className="flex flex-col items-center justify-center p-4 bg-charcoal/5 hover:bg-charcoal/10 rounded-xl transition-all border border-charcoal/20 group">
+                    <FaCar className="text-2xl text-charcoal mb-2 group-hover:scale-110 transition-transform" />
+                    <span className="text-sm font-bold text-charcoal">Offer a ride</span>
+                    <span className="text-[10px] text-neutral-500">Drivers side</span>
+                  </button>
+                </div>
+              </div>
 
               {/* Search Form */}
                 <form
@@ -147,8 +178,8 @@ const LandingPage = () => {
                     <option value="international">
                       International (West Africa)
                     </option>
-                    <option value="intra-state">
-                      Intra-State (City-to-City)
+                    <option value="carpooling">
+                      Carpooling (Lagos & Beyond)
                     </option>
                   </select>
                 </div>
@@ -242,7 +273,7 @@ const LandingPage = () => {
                   <>
                     <div>
                       <label className="block text-sm font-medium text-charcoal mb-2">
-                        {searchData.transportType === "intra-state" ? "State (for city-to-city trip)" : "Departure State"}
+                        {searchData.transportType === "carpooling" ? "State (for carpooling trip)" : "Departure State"}
                       </label>
                       <div className="relative">
                         <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
@@ -252,9 +283,9 @@ const LandingPage = () => {
                             setSearchData({
                               ...searchData,
                               fromState: e.target.value,
-                              toState: searchData.transportType === "intra-state" ? e.target.value : searchData.toState,
+                              toState: searchData.transportType === "carpooling" ? e.target.value : searchData.toState,
                               from: "",
-                              to: searchData.transportType === "intra-state" ? "" : searchData.to,
+                              to: searchData.transportType === "carpooling" ? "" : searchData.to,
                             })
                           }
                           className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"

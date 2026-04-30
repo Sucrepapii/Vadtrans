@@ -22,7 +22,7 @@ const ReviewConfirm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { tripData, passengers, selectedSeats, paymentMethod, searchDate } =
+  const { tripData, passengers, selectedSeats, paymentMethod, searchDate, isDepositOnly } =
     location.state || {};
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -51,6 +51,10 @@ const ReviewConfirm = () => {
   const vat = calculateVAT(serviceFee);
   const total = subtotal + serviceFee + vat;
 
+  const isCarpool = tripData?.transportType === "carpooling";
+  const depositAmount = tripData?.depositAmount ? Number(tripData.depositAmount) * (passengers?.length || 1) : 1000 * (passengers?.length || 1);
+  const amountToPay = isDepositOnly ? depositAmount : total;
+
   // Stabilize the config to prevent hook re-initialization issues
   const paystackConfig = React.useMemo(() => {
     const email = user?.email || passengers?.[0]?.email || "";
@@ -59,10 +63,10 @@ const ReviewConfirm = () => {
     return {
       reference: new Date().getTime().toString(),
       email,
-      amount: Math.round(total * 100),
+      amount: Math.round(amountToPay * 100),
       publicKey,
     };
-  }, [user?.email, passengers?.[0]?.email, total]);
+  }, [user?.email, passengers?.[0]?.email, amountToPay]);
 
   const initializePayment = usePaystackPayment(paystackConfig);
 
@@ -145,6 +149,8 @@ const ReviewConfirm = () => {
           selectedSeats: selectedSeats || [],
           paymentMethod: "card",
           totalAmount: total,
+          paidAmount: amountToPay,
+          isDeposit: isDepositOnly,
         };
 
         const response = await bookingAPI.createBooking(bookingData);
@@ -372,11 +378,16 @@ const ReviewConfirm = () => {
                     smooth and reliable travel experience.
                   </p>
                   <div className="border-t pt-3 flex justify-between">
-                    <span className="font-bold">Total</span>
+                    <span className="font-bold">{isDepositOnly ? "Deposit to Pay" : "Total"}</span>
                     <span className="font-bold text-primary text-xl">
-                      ₦{total.toLocaleString()}
+                      ₦{amountToPay.toLocaleString()}
                     </span>
                   </div>
+                  {isDepositOnly && (
+                    <p className="text-[10px] text-neutral-500 mt-1 italic">
+                      Balance of ₦{(total - amountToPay).toLocaleString()} to be paid directly to the driver.
+                    </p>
+                  )}
                 </div>
 
                 <Button

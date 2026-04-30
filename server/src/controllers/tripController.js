@@ -170,6 +170,13 @@ exports.createTrip = async (req, res) => {
       toCountry,
       fromState,
       toState,
+      timeWindowStart,
+      timeWindowEnd,
+      minSeats,
+      departureDeadline,
+      depositAmount,
+      cancellationWindow,
+      confirmationWindow,
     } = req.body;
 
     // Validate required fields
@@ -217,6 +224,13 @@ exports.createTrip = async (req, res) => {
       toCountry: toCountry || null,
       fromState: fromState || null,
       toState: toState || null,
+      timeWindowStart: timeWindowStart || null,
+      timeWindowEnd: timeWindowEnd || null,
+      minSeats: minSeats || 1,
+      departureDeadline: departureDeadline || null,
+      depositAmount: depositAmount || 0,
+      cancellationWindow: cancellationWindow || 12,
+      confirmationWindow: confirmationWindow || 2,
       companyId: req.user.id,
       status: "active",
     });
@@ -284,6 +298,13 @@ exports.updateTrip = async (req, res) => {
       toCountry,
       fromState,
       toState,
+      timeWindowStart,
+      timeWindowEnd,
+      minSeats,
+      departureDeadline,
+      depositAmount,
+      cancellationWindow,
+      confirmationWindow,
     } = req.body;
 
     if (from) trip.from = from;
@@ -309,6 +330,13 @@ exports.updateTrip = async (req, res) => {
     if (toCountry !== undefined) trip.toCountry = toCountry;
     if (fromState !== undefined) trip.fromState = fromState;
     if (toState !== undefined) trip.toState = toState;
+    if (timeWindowStart !== undefined) trip.timeWindowStart = timeWindowStart;
+    if (timeWindowEnd !== undefined) trip.timeWindowEnd = timeWindowEnd;
+    if (minSeats !== undefined) trip.minSeats = minSeats;
+    if (departureDeadline !== undefined) trip.departureDeadline = departureDeadline;
+    if (depositAmount !== undefined) trip.depositAmount = depositAmount;
+    if (cancellationWindow !== undefined) trip.cancellationWindow = cancellationWindow;
+    if (confirmationWindow !== undefined) trip.confirmationWindow = confirmationWindow;
     
     if (seats !== undefined) {
       // Calculate booked seats BEFORE overwriting trip.seats

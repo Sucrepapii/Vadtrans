@@ -59,9 +59,21 @@ const Booking = sequelize.define(
     vat: {
       type: DataTypes.FLOAT,
     },
+    paidAmount: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0,
+    },
+    isDeposit: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     bookingStatus: {
       type: DataTypes.ENUM("pending", "confirmed", "cancelled", "completed"),
       defaultValue: "pending",
+    },
+    isConfirmed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
     },
     cancellationReason: {
       type: DataTypes.STRING,

@@ -160,17 +160,18 @@ const SearchResults = () => {
 
   const getTransportLabel = (type) => {
     if (type === "international") return "International";
+    if (type === "carpooling") return "Carpooling";
     return "Local";
   };
 
-  const handleSelectTrip = (trip) => {
+  const handleSelectTrip = (trip, isDepositOnly = false) => {
     if (trip.serviceCategory === "freight") {
       navigate("/booking/freight-info", {
         state: { tripData: trip, searchDate: searchParams.date },
       });
     } else {
       navigate("/booking/passenger-info", {
-        state: { tripData: trip, searchDate: searchParams.date },
+        state: { tripData: trip, searchDate: searchParams.date, isDepositOnly },
       });
     }
   };
@@ -195,7 +196,7 @@ const SearchResults = () => {
   const totalPages = Math.ceil(filteredTrips.length / tripsPerPage);
 
   const groupedTrips = {
-    "Local Trips": currentTrips.filter((t) => ["inter-state", "intra-state"].includes(t.transportType)),
+    "Local Trips": currentTrips.filter((t) => ["inter-state", "carpooling"].includes(t.transportType)),
     "International Trips": currentTrips.filter(
       (t) => t.transportType === "international",
     ),
@@ -261,6 +262,8 @@ const SearchResults = () => {
                     <p className="font-bold text-charcoal text-sm">
                       {isFreight
                         ? `${trip.maxWeightCapacity || 0} kg`
+                        : trip.transportType === "carpooling"
+                        ? `${trip.availableSeats} seats left`
                         : `${trip.availableSeats} / ${trip.seats} seats`}
                     </p>
                   </div>
@@ -301,22 +304,39 @@ const SearchResults = () => {
                 </div>
               </div>
               
-              <Button
-                variant="primary"
-                onClick={() => handleSelectTrip(trip)}
-                disabled={
-                  trip.availableSeats === 0 &&
-                  !isFreight
-                }
-                className={`whitespace-nowrap font-bold uppercase tracking-wider text-xs px-6 py-3 rounded-xl shadow-lg transition-all ${
-                  isFreight ? "shadow-primary/20" : ""
-                }`}>
-                {trip.availableSeats === 0 && !isFreight
-                  ? "Sold Out"
-                  : isFreight
-                    ? "Ship with this carrier"
-                    : "Reserve a Seat"}
-              </Button>
+              {trip.transportType === "carpooling" ? (
+                <div className="flex flex-col gap-2 w-full md:w-auto">
+                  <Button
+                    variant="primary"
+                    onClick={() => handleSelectTrip(trip, false)}
+                    className="whitespace-nowrap font-bold uppercase tracking-wider text-[10px] px-4 py-2 rounded-lg shadow-md transition-all">
+                    Book Instantly
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => handleSelectTrip(trip, true)}
+                    className="whitespace-nowrap font-bold uppercase tracking-wider text-[10px] px-4 py-2 rounded-lg shadow-sm border-primary text-primary hover:bg-primary/5 transition-all">
+                    Reserve Seat (₦1,000)
+                  </Button>
+                </div>
+              ) : (
+                <Button
+                  variant="primary"
+                  onClick={() => handleSelectTrip(trip)}
+                  disabled={
+                    trip.availableSeats === 0 &&
+                    !isFreight
+                  }
+                  className={`whitespace-nowrap font-bold uppercase tracking-wider text-xs px-6 py-3 rounded-xl shadow-lg transition-all ${
+                    isFreight ? "shadow-primary/20" : ""
+                  }`}>
+                  {trip.availableSeats === 0 && !isFreight
+                    ? "Sold Out"
+                    : isFreight
+                      ? "Ship with this carrier"
+                      : "Reserve a Seat"}
+                </Button>
+              )}
             </div>
           </div>
         </div>

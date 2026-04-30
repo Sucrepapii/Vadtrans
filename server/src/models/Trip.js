@@ -42,10 +42,10 @@ const Trip = sequelize.define(
         "Distinguishes between passenger travel and freight/cargo logistics",
     },
     transportType: {
-      type: DataTypes.ENUM("inter-state", "international", "intra-state"),
+      type: DataTypes.ENUM("inter-state", "international", "carpooling"),
       allowNull: false,
       comment:
-        "inter-state: Nigeria state-to-state | international: West Africa cross-border | intra-state: City-to-city within same state",
+        "inter-state: Nigeria state-to-state | international: West Africa cross-border | carpooling: Shared rides with flexible windows",
     },
     vehicleType: {
       type: DataTypes.STRING,
@@ -69,7 +69,43 @@ const Trip = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
       comment:
-        "For intra-state trips: the state within which cities are located",
+        "For carpooling trips: the state within which cities are located",
+    },
+    timeWindowStart: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Carpooling start time (e.g. 7:00 AM)",
+    },
+    timeWindowEnd: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Carpooling end time (e.g. 7:15 AM)",
+    },
+    minSeats: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 1,
+    },
+    departureDeadline: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    depositAmount: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: true,
+      defaultValue: 0,
+    },
+    cancellationWindow: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 12,
+      comment: "Hours before departure for free cancellation",
+    },
+    confirmationWindow: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      defaultValue: 2,
+      comment: "Hours before departure to confirm seat",
     },
     departureTime: {
       type: DataTypes.STRING,

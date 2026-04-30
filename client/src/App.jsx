@@ -27,6 +27,7 @@ import HelpSupport from "./pages/travelers/HelpSupport";
 import ContactUs from "./pages/travelers/ContactUs";
 import FAQPage from "./pages/travelers/FAQPage";
 import AboutUs from "./pages/travelers/AboutUs";
+import OfferRide from "./pages/travelers/OfferRide";
 import TermsOfService from "./pages/travelers/TermsOfService";
 import PrivacyPolicy from "./pages/travelers/PrivacyPolicy";
 import RefundPolicy from "./pages/travelers/RefundPolicy";
@@ -133,6 +134,14 @@ const App = () => {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/profile" element={<UserProfile />} />
         <Route path="/my-bookings" element={<MyBookings />} />
+        <Route
+          path="/offer-ride"
+          element={
+            <ProtectedRoute>
+              <OfferRide />
+            </ProtectedRoute>
+          }
+        />
         <Route path="/help" element={<HelpSupport />} />
         <Route path="/contact" element={<ContactUs />} />
         <Route path="/faqs" element={<FAQPage />} />
