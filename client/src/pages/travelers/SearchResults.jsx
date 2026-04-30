@@ -24,6 +24,7 @@ const SearchResults = () => {
   const location = useLocation();
   const [urlSearchParams] = useSearchParams();
   const companyId = urlSearchParams.get("companyId");
+  const urlTransportType = urlSearchParams.get("transportType");
 
   const getTodayDate = () => {
     const today = new Date();
@@ -67,11 +68,15 @@ const SearchResults = () => {
     // Get search params from location state or URL
     if (location.state) {
       setSearchParams({ ...location.state, companyId: companyId || "" });
-    } else if (companyId) {
-      // If no location state but companyId is in URL, update only that
-      setSearchParams(prev => ({ ...prev, companyId }));
+    } else if (companyId || urlTransportType) {
+      // If no location state but params are in URL, update them
+      setSearchParams(prev => ({ 
+        ...prev, 
+        companyId: companyId || prev.companyId,
+        transportType: urlTransportType || prev.transportType 
+      }));
     }
-  }, [location, companyId]);
+  }, [location, companyId, urlTransportType]);
 
   useEffect(() => {
     // Fetch trips when search params change

@@ -123,7 +123,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                   </NavLink>
                 )}
                 <NavLink
-                  to="/offer-ride"
+                  to="/search?transportType=carpooling"
                   className={({ isActive }) =>
                     isActive
                       ? "text-primary font-bold transition-colors"
@@ -223,7 +223,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                 </Link>
               )}
               <Link
-                to="/offer-ride"
+                to="/search?transportType=carpooling"
                 className="block py-2 hover:text-primary transition-colors">
                 Carpool
               </Link>
@@ -336,6 +336,11 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
               to="/freight"
               className="block py-2 hover:text-primary transition-colors">
               Freight
+            </Link>
+            <Link
+              to="/search?transportType=carpooling"
+              className="block py-2 hover:text-primary transition-colors">
+              Carpool
             </Link>
             {isAuthenticated ? (
               <>
