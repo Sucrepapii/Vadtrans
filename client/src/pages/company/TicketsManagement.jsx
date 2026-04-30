@@ -51,7 +51,7 @@ const TicketsManagement = () => {
   const [formData, setFormData] = useState({
     from: "",
     to: "",
-    transportType: "inter-state",
+    transportType: "carpooling",
     departureTimes: [""],
     departureDate: "",
     operatingDays: [],
@@ -149,7 +149,7 @@ const TicketsManagement = () => {
       const transformedTrips = response.data.trips.map((trip) => ({
         id: trip.id,
         route: `${trip.from} - ${trip.to}`,
-        transportType: trip.transportType,
+        transportType: trip.transportType === "intra-state" ? "carpooling" : trip.transportType,
         departureTime: trip.departureTime,
         departureDate: trip.departureDate,
         operatingDays: trip.operatingDays ? trip.operatingDays.split(",") : [],
@@ -685,14 +685,14 @@ const TicketsManagement = () => {
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               required
               disabled={saving}>
-              <option value="inter-state">
-                Inter-State Trips Across Nigeria
-              </option>
-              <option value="international">
-                International Trips Within West Africa
-              </option>
               <option value="carpooling">
                 Carpooling (City-to-City)
+              </option>
+              <option value="inter-state">
+                Nigeria (State-to-State)
+              </option>
+              <option value="international">
+                International (West Africa)
               </option>
             </select>
           </div>

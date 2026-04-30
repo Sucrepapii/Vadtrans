@@ -102,7 +102,7 @@ const CompanyProfile = () => {
   const [formData, setFormData] = useState({
     from: "",
     to: "",
-    transportType: "inter-state",
+    transportType: "carpooling",
     departureTime: "",
     departureDate: "",
     operatingDays: [],
@@ -197,7 +197,12 @@ const CompanyProfile = () => {
   const fetchTrips = async () => {
     try {
       const response = await tripAPI.getMyTrips();
-      setTrips(response.data.trips || []);
+      const rawTrips = response.data.trips || [];
+      const transformedTrips = rawTrips.map(trip => ({
+        ...trip,
+        transportType: trip.transportType === "intra-state" ? "carpooling" : trip.transportType
+      }));
+      setTrips(transformedTrips);
     } catch (error) {
       console.error("Error fetching trips:", error);
       toast.error("Failed to load trips");
@@ -1224,14 +1229,14 @@ const CompanyProfile = () => {
               className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
               required
               disabled={saving}>
-              <option value="inter-state">
-                Inter-State Trips Across Nigeria
-              </option>
-              <option value="international">
-                International Trips Within West Africa
-              </option>
               <option value="carpooling">
                 Carpooling (City-to-City)
+              </option>
+              <option value="inter-state">
+                Nigeria (State-to-State)
+              </option>
+              <option value="international">
+                International (West Africa)
               </option>
             </select>
           </div>
