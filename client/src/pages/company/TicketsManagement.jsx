@@ -65,7 +65,7 @@ const TicketsManagement = () => {
     serviceCategory: "passenger",
     freightType: "",
 
-    state: "", // For intra-state: the selected state for city-to-city trips
+    state: "", // For carpooling: the selected state for city-to-city trips
     toState: "",
     fromCountry: "Nigeria",
     toCountry: "",
@@ -86,7 +86,7 @@ const TicketsManagement = () => {
 
   useEffect(() => {
     let isMounted = true;
-    const stateToFetch = formData.transportType === "intra-state" || formData.transportType === "inter-state" 
+    const stateToFetch = formData.transportType === "carpooling" || formData.transportType === "inter-state" 
       ? formData.state 
       : null;
 
@@ -665,8 +665,8 @@ const TicketsManagement = () => {
               <option value="international">
                 International Trips Within West Africa
               </option>
-              <option value="intra-state">
-                Intra-State City-to-City Trips
+              <option value="carpooling">
+                Carpooling (City-to-City)
               </option>
             </select>
           </div>
@@ -792,12 +792,12 @@ const TicketsManagement = () => {
             </button>
           </div>
 
-          {formData.transportType === "intra-state" ? (
+          {formData.transportType === "carpooling" ? (
             <>
               {/* Single State Selection for city-to-city trips */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  State (for city-to-city trip)
+                  State (for carpooling trip)
                 </label>
                 <select
                   value={formData.state}

@@ -269,7 +269,7 @@ export const westAfricanStates = {
   Togo: ["Centrale", "Kara", "Maritime", "Plateaux", "Savanes"],
 };
 
-// Nigerian States with Major Cities (for Intra-State city-to-city trips)
+// Nigerian States with Major Cities (for Carpooling city-to-city trips)
 export const nigerianStatesWithCities = {
   Abia: [
     "Aba",

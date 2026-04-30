@@ -5,7 +5,7 @@
   /* FROM LOCATION */
 }
 {
-  formData.transportType === "intra-state" ? (
+  formData.transportType === "carpooling" ? (
     <>
       {/* From State */}
       <div>
@@ -80,7 +80,7 @@
   /* TO LOCATION */
 }
 {
-  formData.transportType === "intra-state" ? (
+  formData.transportType === "carpooling" ? (
     <>
       {/* To State */}
       <div>
