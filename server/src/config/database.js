@@ -15,7 +15,7 @@ if (databaseUrl) {
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: isProduction, // Strict in production, permissive in dev if needed
+        rejectUnauthorized: false, // Must be false for Railway/Neon/Render self-signed certs
       },
     },
     logging: false,
