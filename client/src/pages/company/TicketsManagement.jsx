@@ -37,6 +37,7 @@ const TicketsManagement = () => {
   const { user } = useAuth(); // Get user for verification status check
   const [tickets, setTickets] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showTypeSelection, setShowTypeSelection] = useState(false);
   const [editingTicket, setEditingTicket] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -208,7 +209,7 @@ const TicketsManagement = () => {
     setFormData({
       from: "",
       to: "",
-      transportType: "carpooling",
+      transportType: "inter-state",
       departureTimes: [""],
       operatingDays: [],
       duration: "",
@@ -232,6 +233,30 @@ const TicketsManagement = () => {
         "No Document": "",
       },
     });
+    setIsModalOpen(false);
+    setShowTypeSelection(true);
+  };
+
+  const handleSelectTripType = (type) => {
+    setShowTypeSelection(false);
+    
+    if (type === "carpooling") {
+      setFormData(prev => ({
+        ...prev,
+        transportType: "carpooling",
+        serviceCategory: "passenger",
+        vehicleType: "Sedan (small car)",
+        seats: 4
+      }));
+    } else if (type === "freight") {
+      setFormData(prev => ({
+        ...prev,
+        transportType: "inter-state",
+        serviceCategory: "freight",
+        vehicleType: "Van"
+      }));
+    }
+    
     setIsModalOpen(true);
   };
 
@@ -1441,6 +1466,58 @@ const TicketsManagement = () => {
             </div>
           )}
         </form>
+      </Modal>
+
+      <Modal
+        isOpen={showTypeSelection}
+        onClose={() => setShowTypeSelection(false)}
+        title="What kind of trip would you like to add?"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
+          <div 
+            onClick={() => handleSelectTripType("carpooling")}
+            className="group cursor-pointer border-2 border-neutral-100 hover:border-primary rounded-xl p-6 transition-all hover:bg-primary/5 flex flex-col items-center text-center space-y-4 shadow-sm hover:shadow-md"
+          >
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+              <FaCar size={32} />
+            </div>
+            <div>
+              <h3 className="font-raleway font-bold text-lg text-charcoal">Offer a Ride</h3>
+              <p className="text-sm text-neutral-600 mt-1">Passenger transport & carpooling (City-to-City)</p>
+            </div>
+            <div className="w-full pt-4 border-t border-neutral-100 group-hover:border-primary/20">
+              <span className="text-primary font-medium text-sm flex items-center justify-center gap-1">
+                Select <FaPlus size={10} />
+              </span>
+            </div>
+          </div>
+
+          <div 
+            onClick={() => handleSelectTripType("freight")}
+            className="group cursor-pointer border-2 border-neutral-100 hover:border-primary rounded-xl p-6 transition-all hover:bg-primary/5 flex flex-col items-center text-center space-y-4 shadow-sm hover:shadow-md"
+          >
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+              <FaTruck size={32} />
+            </div>
+            <div>
+              <h3 className="font-raleway font-bold text-lg text-charcoal">Freight Trip</h3>
+              <p className="text-sm text-neutral-600 mt-1">Cargo, logistics & parcel delivery</p>
+            </div>
+            <div className="w-full pt-4 border-t border-neutral-100 group-hover:border-primary/20">
+              <span className="text-primary font-medium text-sm flex items-center justify-center gap-1">
+                Select <FaPlus size={10} />
+              </span>
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 text-center">
+          <button 
+            onClick={() => setShowTypeSelection(false)}
+            className="text-neutral-500 hover:text-charcoal text-sm font-medium transition-colors"
+          >
+            Go Back
+          </button>
+        </div>
       </Modal>
       <ConfirmationModal
         isOpen={deleteConfirm.open}
