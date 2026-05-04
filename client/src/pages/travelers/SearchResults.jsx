@@ -268,7 +268,7 @@ const SearchResults = () => {
                       {isFreight
                         ? `${trip.maxWeightCapacity || 0} kg`
                         : trip.transportType === "carpooling"
-                        ? `${trip.availableSeats} seats left`
+                        ? `${trip.seats - trip.availableSeats} / ${trip.seats} seats booked`
                         : `${trip.availableSeats} / ${trip.seats} seats`}
                     </p>
                   </div>
@@ -314,14 +314,9 @@ const SearchResults = () => {
                   <Button
                     variant="primary"
                     onClick={() => handleSelectTrip(trip, false)}
-                    className="whitespace-nowrap font-bold uppercase tracking-wider text-[10px] px-4 py-2 rounded-lg shadow-md transition-all">
-                    Book Instantly
-                  </Button>
-                  <Button
-                    variant="secondary"
-                    onClick={() => handleSelectTrip(trip, true)}
-                    className="whitespace-nowrap font-bold uppercase tracking-wider text-[10px] px-4 py-2 rounded-lg shadow-sm border-primary text-primary hover:bg-primary/5 transition-all">
-                    Reserve Seat (₦1,000)
+                    disabled={trip.availableSeats === 0}
+                    className="whitespace-nowrap font-bold uppercase tracking-wider text-xs px-6 py-3 rounded-xl shadow-lg transition-all">
+                    {trip.availableSeats === 0 ? "Fully Booked" : "Book Seat"}
                   </Button>
                 </div>
               ) : (

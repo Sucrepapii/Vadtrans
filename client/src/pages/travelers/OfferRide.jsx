@@ -27,7 +27,7 @@ const OfferRide = () => {
   const [formData, setFormData] = useState({
     from: "",
     to: "",
-    state: "Lagos", // Default to Lagos as per request
+    state: "", // Default to empty
     departureDate: new Date().toISOString().split('T')[0],
     timeWindowStart: "07:00",
     timeWindowEnd: "07:15",
@@ -46,6 +46,8 @@ const OfferRide = () => {
   React.useEffect(() => {
     if (formData.state) {
       getCitiesForState(formData.state).then(setCities);
+    } else {
+      setCities([]);
     }
   }, [formData.state, getCitiesForState]);
 
@@ -54,6 +56,17 @@ const OfferRide = () => {
     if (!isAuthenticated) {
       toast.warning("Please sign in to offer a ride");
       navigate("/signin", { state: { from: "/offer-ride" } });
+      return;
+    }
+
+    if (Number(formData.price) > 5000) {
+      toast.error("Carpooling price cannot exceed ₦5,000.");
+      setLoading(false);
+      return;
+    }
+    if (Number(formData.price) < 1500) {
+      toast.error("Carpooling price cannot be less than ₦1,500.");
+      setLoading(false);
       return;
     }
 
@@ -67,6 +80,11 @@ const OfferRide = () => {
         departureTime: formData.timeWindowStart,
         fromState: formData.state,
         toState: formData.state,
+        vehiclePlateNumber: formData.vehiclePlateNumber,
+        pickupAddress: formData.pickupAddress,
+        depositAmount: 5,
+        cancellationWindow: 12,
+        confirmationWindow: 2,
       };
 
       const response = await tripAPI.createTrip(tripData);
@@ -112,37 +130,42 @@ const OfferRide = () => {
                   </h2>
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">State</label>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Select State</label>
                       <select 
                         value={formData.state}
-                        onChange={(e) => setFormData({...formData, state: e.target.value})}
+                        onChange={(e) => setFormData({...formData, state: e.target.value, from: "", to: ""})}
                         className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                        required
                       >
+                        <option value="">Choose a State</option>
                         {states.map(s => (
                           <option key={s.id} value={s.name}>{s.name}</option>
                         ))}
                       </select>
                     </div>
+
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-charcoal mb-1">Pickup (e.g., Festac)</label>
+                        <label className="block text-sm font-medium text-charcoal mb-1">Pickup City</label>
                         <select 
                           value={formData.from}
                           onChange={(e) => setFormData({...formData, from: e.target.value})}
                           className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                           required
+                          disabled={!formData.state}
                         >
                           <option value="">Select pickup</option>
                           {cities.map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-charcoal mb-1">Destination (e.g., VI)</label>
+                        <label className="block text-sm font-medium text-charcoal mb-1">Destination City</label>
                         <select 
                           value={formData.to}
                           onChange={(e) => setFormData({...formData, to: e.target.value})}
                           className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                           required
+                          disabled={!formData.state}
                         >
                           <option value="">Select destination</option>
                           {cities.map(c => <option key={c} value={c}>{c}</option>)}
@@ -170,7 +193,7 @@ const OfferRide = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">Start Window</label>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Earliest Pickup Time</label>
                       <input 
                         type="time"
                         value={formData.timeWindowStart}
@@ -180,7 +203,7 @@ const OfferRide = () => {
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">End Window</label>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Latest Pickup Time</label>
                       <input 
                         type="time"
                         value={formData.timeWindowEnd}
@@ -195,6 +218,37 @@ const OfferRide = () => {
                         type="time"
                         value={formData.departureDeadline}
                         onChange={(e) => setFormData({...formData, departureDeadline: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Vehicle & Terminal Details */}
+                <div className="col-span-full">
+                  <h2 className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <FaCar className="text-primary" /> Vehicle & Terminal
+                  </h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Vehicle Plate Number</label>
+                      <input 
+                        type="text"
+                        placeholder="e.g. LAG-123-XY"
+                        value={formData.vehiclePlateNumber || ""}
+                        onChange={(e) => setFormData({...formData, vehiclePlateNumber: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Pickup Address / Terminal</label>
+                      <input 
+                        type="text"
+                        placeholder="e.g. Conoil filling station, Festac"
+                        value={formData.pickupAddress || ""}
+                        onChange={(e) => setFormData({...formData, pickupAddress: e.target.value})}
                         className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                         required
                       />
@@ -249,51 +303,25 @@ const OfferRide = () => {
                       className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                       required
                     />
+                    <div className="mt-1">
+                      <p className="text-xs text-neutral-500 italic">
+                        Lower price → faster bookings<br/>
+                        Higher price → higher earnings per seat but slower fill
+                      </p>
+                    </div>
                   </div>
-                  <div className="mt-4 p-4 bg-blue-50 rounded-xl flex gap-3 items-start">
-                    <FaInfoCircle className="text-blue-500 mt-1" />
-                    <p className="text-xs text-blue-700 leading-relaxed">
-                      Recommended price for {formData.from || 'this route'} is ₦1,200 – ₦2,000.
-                    </p>
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3 items-start">
+                    <FaInfoCircle className="text-blue-500 mt-1 flex-shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold text-blue-800 mb-1">Price Recommendation</p>
+                      <p className="text-xs text-blue-700 leading-relaxed">
+                        For Mainland ↔ Island routes, Morning & Evening hours:
+                      </p>
+                      <p className="text-xs font-bold text-blue-800 mt-1">Minimum: ₦1,500 | Maximum: ₦5,000</p>
+                    </div>
                   </div>
                 </div>
 
-                {/* Advanced Rules */}
-                <div className="col-span-full pt-4 border-t border-neutral-100">
-                  <h2 className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-4 flex items-center gap-2">
-                    <FaInfoCircle className="text-primary" /> Rules & Deposits
-                  </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">Deposit (₦)</label>
-                      <input 
-                        type="number"
-                        value={formData.depositAmount}
-                        onChange={(e) => setFormData({...formData, depositAmount: e.target.value})}
-                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-                        placeholder="0 for no deposit"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">Cancel Window (hrs)</label>
-                      <input 
-                        type="number"
-                        value={formData.cancellationWindow}
-                        onChange={(e) => setFormData({...formData, cancellationWindow: e.target.value})}
-                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">Confirm Window (hrs)</label>
-                      <input 
-                        type="number"
-                        value={formData.confirmationWindow}
-                        onChange={(e) => setFormData({...formData, confirmationWindow: e.target.value})}
-                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-                      />
-                    </div>
-                  </div>
-                </div>
               </div>
 
               <div className="pt-6 border-t border-neutral-100">

@@ -1,4 +1,8 @@
 const { Resend } = require("resend");
+const he = require("he");
+
+// Helper to escape HTML to prevent injection
+const esc = (text) => (text ? he.encode(String(text)) : "");
 
 // Initialize Resend
 // Use RESEND_API_KEY if available, otherwise fallback to SMTP_PASS
@@ -56,7 +60,7 @@ const sendWelcomeEmail = async (user) => {
           </div>
           <div class="hero">
             <h1>Welcome to the Partner Network</h1>
-            <p>Dear ${user.name},</p>
+            <p>Dear ${esc(user.name)},</p>
             <p>We are thrilled to welcome your transportation business to VadTrans. You have taken a significant step towards digitizing your operations and reaching thousands of new travelers.</p>
             <a href="${
               process.env.CLIENT_URL || "https://www.vadtrans.com"
@@ -126,7 +130,7 @@ const sendWelcomeEmail = async (user) => {
             <p style="color: #e0e7ff; font-size: 16px;">Travel Made Simple</p>
           </div>
           <div class="content">
-            <p>Hello ${user.name},</p>
+            <p>Hello ${esc(user.name)},</p>
             <p>Thank you for choosing VadTrans. Your account has been successfully created, and you are now part of Nigeria's most reliable transportation network.</p>
             
             <div style="text-align: center;">
@@ -206,7 +210,7 @@ const sendBookingConfirmationEmail = async (booking, user) => {
     const { data, error } = await resend.emails.send({
       from: process.env.SMTP_FROM || "VadTrans <bookings@resend.dev>",
       to: [user.email],
-      subject: `Booking Confirmation - ${booking.bookingId} 🎫`,
+      subject: `Booking Confirmation - ${esc(booking.bookingId)} 🎫`,
       html: `
         <!DOCTYPE html>
         <html>
@@ -227,13 +231,13 @@ const sendBookingConfirmationEmail = async (booking, user) => {
               <h1>✅ Booking Confirmed!</h1>
             </div>
             <div class="content">
-              <h2>Hi ${user.name},</h2>
+              <h2>Hi ${esc(user.name)},</h2>
               <p>Your booking has been confirmed! Here are your trip details:</p>
               
               <div class="booking-details">
                 <div class="detail-row">
                   <strong>Booking ID:</strong>
-                  <span>${booking.bookingId}</span>
+                  <span>${esc(booking.bookingId)}</span>
                 </div>
                 <div class="detail-row">
                   <strong>Total Amount:</strong>
@@ -245,7 +249,7 @@ const sendBookingConfirmationEmail = async (booking, user) => {
                 </div>
                 <div class="detail-row">
                   <strong>Seats:</strong>
-                  <span>${booking.selectedSeats.join(", ")}</span>
+                  <span>${esc(booking.selectedSeats.join(", "))}</span>
                 </div>
               </div>
 
@@ -315,7 +319,7 @@ const sendVerificationEmail = async (user, token) => {
               <h1>Verify Your Email</h1>
             </div>
             <div class="content">
-              <h2>Hi ${user.name}!</h2>
+              <h2>Hi ${esc(user.name)}!</h2>
               <p>Please click the button below to verify your email address and activate your account.</p>
               
               <a href="${verificationUrl}" class="button">Verify Email</a>
@@ -357,7 +361,7 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #6C5DD3;">Password Reset Request</h2>
-        <p>Hello ${user.name},</p>
+        <p>Hello ${esc(user.name)},</p>
         <p>You requested to reset your password. Please click the button below to set a new password. This link will expire in 1 hour.</p>
         <div style="text-align: center; margin: 30px 0;">
           <a href="${resetUrl}" style="background-color: #6C5DD3; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; font-weight: bold;">Reset Password</a>
@@ -396,7 +400,7 @@ const sendPasswordSuccessEmail = async (user) => {
       html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h2 style="color: #6C5DD3;">Password Changed</h2>
-        <p>Hello ${user.name},</p>
+        <p>Hello ${esc(user.name)},</p>
         <p>Your password has been successfully updated.</p>
         <p>If you did not make this change, please contact support immediately.</p>
         <div style="text-align: center; margin: 30px 0;">
@@ -439,12 +443,12 @@ const sendContactFormEmail = async ({ name, email, subject, message }) => {
       subject: `Contact Form: ${subject}`,
       html: `
         <h3>New Contact Form Submission</h3>
-        <p><strong>Name:</strong> ${name}</p>
-        <p><strong>Email:</strong> ${email}</p>
-        <p><strong>Subject:</strong> ${subject}</p>
+        <p><strong>Name:</strong> ${esc(name)}</p>
+        <p><strong>Email:</strong> ${esc(email)}</p>
+        <p><strong>Subject:</strong> ${esc(subject)}</p>
         <hr/>
         <p><strong>Message:</strong></p>
-        <p>${message.replace(/\n/g, "<br>")}</p>
+        <p>${esc(message).replace(/\n/g, "<br>")}</p>
       `,
     });
 
@@ -477,8 +481,8 @@ const sendAccountDeletedEmail = async (user) => {
           <h2 style="margin: 0;">Account Closure Notice</h2>
         </div>
         <div style="padding: 20px; border: 1px solid #eee; border-top: none;">
-          <p>Hello ${user.name},</p>
-          <p>This email is to inform you that your VadTrans account associated with <strong>${user.email}</strong> has been closed by an administrator.</p>
+          <p>Hello ${esc(user.name)},</p>
+          <p>This email is to inform you that your VadTrans account associated with <strong>${esc(user.email)}</strong> has been closed by an administrator.</p>
           <p>As a result of this action:</p>
           <ul>
             <li>Your access to the VadTrans platform has been revoked.</li>

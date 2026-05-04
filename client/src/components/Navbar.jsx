@@ -131,6 +131,17 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                   }>
                   Carpool
                 </NavLink>
+                {user?.role === "company" && (
+                  <NavLink
+                    to="/offer-ride"
+                    className={({ isActive }) =>
+                      isActive
+                        ? "text-primary font-bold transition-colors"
+                        : "text-charcoal hover:text-primary transition-colors font-medium"
+                    }>
+                    Offer a Ride
+                  </NavLink>
+                )}
                 <NavLink
                   to="/signup?role=company"
                   className={({ isActive }) =>

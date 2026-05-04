@@ -22,10 +22,11 @@ const ReviewConfirm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { tripData, passengers, selectedSeats, paymentMethod, searchDate, isDepositOnly } =
+  const { tripData, passengers, selectedSeats, paymentMethod, searchDate } =
     location.state || {};
 
   const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentOption, setPaymentOption] = useState("full"); // "full" or "deposit"
 
   const calculatePassengerPrice = (passenger) => {
     // Only apply document pricing for international trips
@@ -52,8 +53,8 @@ const ReviewConfirm = () => {
   const total = subtotal + serviceFee + vat;
 
   const isCarpool = tripData?.transportType === "carpooling";
-  const depositAmount = tripData?.depositAmount ? Number(tripData.depositAmount) * (passengers?.length || 1) : 1000 * (passengers?.length || 1);
-  const amountToPay = isDepositOnly ? depositAmount : total;
+  const depositAmount = isCarpool ? total * 0.05 : 0; // 5% deposit
+  const amountToPay = (isCarpool && paymentOption === "deposit") ? depositAmount : total;
 
   // Stabilize the config to prevent hook re-initialization issues
   const paystackConfig = React.useMemo(() => {
@@ -150,7 +151,7 @@ const ReviewConfirm = () => {
           paymentMethod: "card",
           totalAmount: total,
           paidAmount: amountToPay,
-          isDeposit: isDepositOnly,
+          isDeposit: isCarpool && paymentOption === "deposit",
         };
 
         const response = await bookingAPI.createBooking(bookingData);
@@ -347,6 +348,56 @@ const ReviewConfirm = () => {
                   )}
                 </div>
               </Card>
+
+              {isCarpool && (
+                <Card>
+                  <div className="flex items-center gap-2 mb-4">
+                    <FaCreditCard className="text-primary" />
+                    <h3 className="font-semibold">Payment Option</h3>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
+                    <label className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${paymentOption === "full" ? "border-primary bg-primary/5" : "border-neutral-200 bg-white"}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-charcoal">Pay Full Amount</span>
+                        <input 
+                          type="radio" 
+                          name="paymentOption" 
+                          value="full" 
+                          checked={paymentOption === "full"} 
+                          onChange={() => setPaymentOption("full")}
+                          className="w-4 h-4 text-primary"
+                        />
+                      </div>
+                      <p className="text-sm text-neutral-600">Pay ₦{total.toLocaleString()} now</p>
+                    </label>
+
+                    <label className={`cursor-pointer p-4 rounded-xl border-2 transition-all ${paymentOption === "deposit" ? "border-primary bg-primary/5" : "border-neutral-200 bg-white"}`}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-charcoal">Reserve with 5% Deposit</span>
+                        <input 
+                          type="radio" 
+                          name="paymentOption" 
+                          value="deposit" 
+                          checked={paymentOption === "deposit"} 
+                          onChange={() => setPaymentOption("deposit")}
+                          className="w-4 h-4 text-primary"
+                        />
+                      </div>
+                      <p className="text-sm text-neutral-600">Pay ₦{depositAmount.toLocaleString()} now to hold your seat</p>
+                    </label>
+                  </div>
+
+                  <div className="bg-neutral-50 p-4 rounded-lg border border-neutral-100">
+                    <h4 className="font-bold text-sm text-charcoal mb-2">Cancellation Policy</h4>
+                    <ul className="text-sm text-neutral-600 space-y-1 list-disc list-inside">
+                      <li>Free cancellation up to 12 hours before trip (full refund)</li>
+                      <li>Cancellation within 12 hours → 5% fee</li>
+                      <li>Cancellation within 3 hours → no refund</li>
+                      <li className="font-medium text-amber-700">Deposits are non-refundable</li>
+                    </ul>
+                  </div>
+                </Card>
+              )}
             </div>
 
             {/* Price Summary */}
@@ -378,12 +429,12 @@ const ReviewConfirm = () => {
                     smooth and reliable travel experience.
                   </p>
                   <div className="border-t pt-3 flex justify-between">
-                    <span className="font-bold">{isDepositOnly ? "Deposit to Pay" : "Total"}</span>
+                    <span className="font-bold">{(isCarpool && paymentOption === "deposit") ? "Deposit to Pay" : "Total"}</span>
                     <span className="font-bold text-primary text-xl">
                       ₦{amountToPay.toLocaleString()}
                     </span>
                   </div>
-                  {isDepositOnly && (
+                  {(isCarpool && paymentOption === "deposit") && (
                     <p className="text-[10px] text-neutral-500 mt-1 italic">
                       Balance of ₦{(total - amountToPay).toLocaleString()} to be paid directly to the driver.
                     </p>

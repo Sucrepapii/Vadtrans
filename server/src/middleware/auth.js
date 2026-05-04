@@ -23,10 +23,15 @@ exports.protect = async (req, res, next) => {
 
   try {
     // Verify token
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET || "vadtrans_secret_key",
-    );
+    if (!process.env.JWT_SECRET) {
+      console.error("CRITICAL: JWT_SECRET is not defined in environment variables");
+      return res.status(500).json({
+        success: false,
+        message: "Internal server configuration error",
+      });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
     // Get user from token
     req.user = await User.findByPk(decoded.id);

@@ -15,7 +15,7 @@ if (databaseUrl) {
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false,
+        rejectUnauthorized: isProduction, // Strict in production, permissive in dev if needed
       },
     },
     logging: false,

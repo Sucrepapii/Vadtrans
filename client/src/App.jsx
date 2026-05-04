@@ -137,7 +137,7 @@ const App = () => {
         <Route
           path="/offer-ride"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute allowedRoles={["company"]}>
               <OfferRide />
             </ProtectedRoute>
           }

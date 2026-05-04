@@ -83,9 +83,8 @@ const TicketsManagement = () => {
     timeWindowEnd: "",
     minSeats: 1,
     departureDeadline: "",
-    depositAmount: 0,
-    cancellationWindow: 12,
-    confirmationWindow: 2,
+    vehiclePlateNumber: "",
+    pickupAddress: "",
   });
 
   const { states, getCitiesForState } = useLocationsAPI();
@@ -309,9 +308,8 @@ const TicketsManagement = () => {
       timeWindowEnd: ticket.timeWindowEnd || "",
       minSeats: ticket.minSeats || 1,
       departureDeadline: ticket.departureDeadline || "",
-      depositAmount: ticket.depositAmount || 0,
-      cancellationWindow: ticket.cancellationWindow || 12,
-      confirmationWindow: ticket.confirmationWindow || 2,
+      vehiclePlateNumber: ticket.vehiclePlateNumber || "",
+      pickupAddress: ticket.pickupAddress || "",
     });
     setIsModalOpen(true);
   };
@@ -379,17 +377,32 @@ const TicketsManagement = () => {
         // Save new cascading fields if international
         fromCountry: formData.transportType === "international" ? formData.fromCountry : "Nigeria",
         toCountry: formData.transportType === "international" ? formData.toCountry : "Nigeria",
-        fromState: formData.transportType === "international" ? formData.fromState : (formData.transportType === "inter-state" ? formData.state : null),
-        toState: formData.transportType === "international" ? formData.toState : (formData.transportType === "inter-state" ? formData.toState : null),
+        fromState: formData.transportType === "international" ? formData.fromState : ((formData.transportType === "inter-state" || formData.transportType === "carpooling") ? formData.state : null),
+        toState: formData.transportType === "international" ? formData.toState : (formData.transportType === "inter-state" ? formData.toState : (formData.transportType === "carpooling" ? formData.state : null)),
         documentPrices: formData.documentPrices,
         timeWindowStart: formData.timeWindowStart || null,
         timeWindowEnd: formData.timeWindowEnd || null,
         minSeats: Number(formData.minSeats || 1),
         departureDeadline: formData.departureDeadline || null,
-        depositAmount: Number(formData.depositAmount || 0),
-        cancellationWindow: Number(formData.cancellationWindow || 12),
-        confirmationWindow: Number(formData.confirmationWindow || 2),
+        vehiclePlateNumber: formData.vehiclePlateNumber || null,
+        pickupAddress: formData.pickupAddress || null,
+        depositAmount: 5, // Reserve with 5% deposit
+        cancellationWindow: 12, // Free cancellation up to 12 hours
+        confirmationWindow: 2,
       };
+
+      if (formData.transportType === "carpooling") {
+        if (Number(formData.price) > 5000) {
+          toast.error("Carpooling price cannot exceed ₦5,000.");
+          setSaving(false);
+          return;
+        }
+        if (Number(formData.price) < 1500) {
+          toast.error("Carpooling price cannot be less than ₦1,500.");
+          setSaving(false);
+          return;
+        }
+      }
 
       if (editingTicket) {
         // Update existing trip
@@ -823,7 +836,7 @@ const TicketsManagement = () => {
               {/* Single State Selection for city-to-city trips */}
               <div>
                 <label className="block text-sm font-medium text-neutral-700 mb-2">
-                  State (for carpooling trip)
+                  Select State (for carpooling trip)
                 </label>
                 <select
                   value={formData.state}
@@ -851,7 +864,7 @@ const TicketsManagement = () => {
               {formData.state && (
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    From City
+                    Pickup City
                   </label>
                   <select
                     value={formData.from}
@@ -861,7 +874,7 @@ const TicketsManagement = () => {
                     className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                     disabled={saving}>
-                    <option value="">Select departure city</option>
+                    <option value="">Select pickup city</option>
                     {fromCities.map((city) => (
                       <option key={city} value={city}>
                         {city}
@@ -875,7 +888,7 @@ const TicketsManagement = () => {
               {formData.state && (
                 <div>
                   <label className="block text-sm font-medium text-neutral-700 mb-2">
-                    To City
+                    Destination City
                   </label>
                   <select
                     value={formData.to}
@@ -1245,17 +1258,27 @@ const TicketsManagement = () => {
           />
 
           <div className="grid grid-cols-2 gap-4">
-            <Input
-              label="Standard Price (₦)"
-              type="number"
-              placeholder="25000"
-              value={formData.price}
-              onChange={(e) =>
-                setFormData({ ...formData, price: e.target.value })
-              }
-              required
-              disabled={saving}
-            />
+            <div>
+              <Input
+                label="Standard Price (₦)"
+                type="number"
+                placeholder="25000"
+                value={formData.price}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
+                required
+                disabled={saving}
+              />
+              {formData.transportType === "carpooling" && (
+                <div className="mt-1">
+                  <p className="text-xs text-neutral-500 italic">
+                    Lower price → faster bookings<br/>
+                    Higher price → higher earnings per seat but slower fill
+                  </p>
+                </div>
+              )}
+            </div>
             <Input
               label="Total Seats"
               type="number"
@@ -1268,6 +1291,14 @@ const TicketsManagement = () => {
               disabled={saving}
             />
           </div>
+
+          {formData.transportType === "carpooling" && (
+            <div className="bg-blue-50 border border-blue-100 p-3 rounded-lg text-sm text-blue-800">
+              <p className="font-semibold mb-1">Price Recommendation</p>
+              <p>For Mainland ↔ Island routes, Morning & Evening hours:</p>
+              <p className="font-bold mt-1">Minimum: ₦1,500 | Maximum: ₦5,000</p>
+            </div>
+          )}
           
           {formData.transportType === "carpooling" && (
             <div className="space-y-4 pt-4 border-t">
@@ -1275,18 +1306,41 @@ const TicketsManagement = () => {
               
               <div className="grid grid-cols-2 gap-4">
                 <Input
-                  label="Time Window Start"
+                  label="Earliest Pickup Time"
                   type="time"
                   value={formData.timeWindowStart}
                   onChange={(e) => setFormData({ ...formData, timeWindowStart: e.target.value })}
                   disabled={saving}
+                  required
                 />
                 <Input
-                  label="Time Window End"
+                  label="Latest Pickup Time"
                   type="time"
                   value={formData.timeWindowEnd}
                   onChange={(e) => setFormData({ ...formData, timeWindowEnd: e.target.value })}
                   disabled={saving}
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <Input
+                  label="Vehicle Plate Number"
+                  type="text"
+                  placeholder="e.g. LAG-123-XY"
+                  value={formData.vehiclePlateNumber}
+                  onChange={(e) => setFormData({ ...formData, vehiclePlateNumber: e.target.value })}
+                  disabled={saving}
+                  required
+                />
+                <Input
+                  label="Pickup Address / Terminal"
+                  type="text"
+                  placeholder="e.g. Conoil filling station, Festac"
+                  value={formData.pickupAddress}
+                  onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
+                  disabled={saving}
+                  required
                 />
               </div>
 
@@ -1305,33 +1359,6 @@ const TicketsManagement = () => {
                   value={formData.departureDeadline}
                   onChange={(e) => setFormData({ ...formData, departureDeadline: e.target.value })}
                   disabled={saving}
-                />
-              </div>
-
-              <div className="grid grid-cols-3 gap-4">
-                <Input
-                  label="Deposit (₦)"
-                  type="number"
-                  value={formData.depositAmount}
-                  onChange={(e) => setFormData({ ...formData, depositAmount: e.target.value })}
-                  disabled={saving}
-                  placeholder="e.g. 1000"
-                />
-                <Input
-                  label="Cancel Window (hrs)"
-                  type="number"
-                  value={formData.cancellationWindow}
-                  onChange={(e) => setFormData({ ...formData, cancellationWindow: e.target.value })}
-                  disabled={saving}
-                  placeholder="e.g. 12"
-                />
-                <Input
-                  label="Confirm Window (hrs)"
-                  type="number"
-                  value={formData.confirmationWindow}
-                  onChange={(e) => setFormData({ ...formData, confirmationWindow: e.target.value })}
-                  disabled={saving}
-                  placeholder="e.g. 2"
                 />
               </div>
             </div>

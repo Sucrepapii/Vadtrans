@@ -3,8 +3,8 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { toast } from "react-toastify";
 
-const ProtectedRoute = ({ children, requireAdmin = false }) => {
-  const { isAuthenticated, isStaff, loading } = useAuth();
+const ProtectedRoute = ({ children, requireAdmin = false, allowedRoles = [] }) => {
+  const { isAuthenticated, isStaff, user, loading } = useAuth();
 
   if (loading) {
     return (
@@ -31,7 +31,15 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     );
   }
 
+  // Admin check
   if (requireAdmin && !isStaff) {
+    toast.error("Unauthorized: Admin access required");
+    return <Navigate to="/" replace />;
+  }
+
+  // Role-based check
+  if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
+    toast.error("Unauthorized: You do not have permission to access this page");
     return <Navigate to="/" replace />;
   }
 

@@ -167,9 +167,12 @@ User.prototype.comparePassword = async function (enteredPassword) {
 };
 
 User.prototype.generateToken = function () {
+  if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is not defined in environment variables");
+  }
   return jwt.sign(
     { id: this.id, role: this.role },
-    process.env.JWT_SECRET || "vadtrans_secret_key",
+    process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRE || "7d" },
   );
 };

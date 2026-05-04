@@ -14,14 +14,12 @@ exports.signup = async (req, res) => {
   try {
     const { name, email, password, phone, role } = req.body;
 
-    // Validate role
-    const validRoles = ["traveler", "company", "admin"];
-    const userRole = role && validRoles.includes(role) ? role : "traveler";
+    // Security: Only traveler or company role can be created via public signup
+    const userRole = (role === "company" || role === "traveler") ? role : "traveler";
 
     // Check if user already exists
     const userExists = await User.findOne({ where: { email } });
     if (userExists) {
-      // If user exists and is verified, return error
       if (userExists.isVerified) {
         return res.status(400).json({
           success: false,
@@ -29,32 +27,11 @@ exports.signup = async (req, res) => {
         });
       }
 
-      // If user exists but NOT verified, update their info and resend email
-      // Update basic info
+      // Update basic info for unverified user
       userExists.name = name;
-      userExists.password = password; // Will be hashed by model hook
+      userExists.password = password;
       userExists.phone = phone;
       userExists.role = userRole;
-
-      // Auto-verify admin only
-      if (userRole === "admin") {
-        userExists.isVerified = true;
-        userExists.verificationToken = null;
-        userExists.verificationTokenExpire = null;
-        await userExists.save();
-
-        return res.status(200).json({
-          success: true,
-          message: "Admin account updated successfully",
-          user: {
-            id: userExists.id,
-            name: userExists.name,
-            email: userExists.email,
-            phone: userExists.phone,
-            role: userExists.role,
-          },
-        });
-      }
 
       // Generate New Verification Token
       const verificationToken = crypto.randomBytes(20).toString("hex");
@@ -67,44 +44,28 @@ exports.signup = async (req, res) => {
       await userExists.save();
 
       // Send verification email
-      try {
-        const result = await sendVerificationEmail(
-          userExists,
-          verificationToken,
-        );
-        if (!result.success) {
-          return res.status(500).json({
-            success: false,
-            message: "Failed to send verification email. Check server logs.",
-            error: result.error,
-          });
-        }
-      } catch (err) {
-        console.error("Failed to send verification email:", err);
-      }
+      await sendVerificationEmail(userExists, verificationToken);
 
       return res.status(200).json({
         success: true,
-        message:
-          "Account updated. Please check your email for verification link!",
+        message: "Account updated. Please check your email for verification link!",
         user: {
           id: userExists.id,
           name: userExists.name,
           email: userExists.email,
-          phone: userExists.phone,
           role: userExists.role,
         },
       });
     }
 
-    // Create user
+    // Create new user
     const user = await User.create({
       name,
       email,
       password,
       phone,
       role: userRole,
-      role: userRole,
+      isVerified: false,
     });
 
     // Generate Verification Token
@@ -113,38 +74,12 @@ exports.signup = async (req, res) => {
       .createHash("sha256")
       .update(verificationToken)
       .digest("hex");
-    // Token expires in 24 hours
     user.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000;
-
-    // Auto-verify admin only
-    if (userRole === "admin") {
-      user.isVerified = true;
-      user.verificationToken = null;
-      user.verificationTokenExpire = null;
-    }
 
     await user.save();
 
-    // Send verification email (skip for admin)
-    if (userRole !== "admin") {
-      try {
-        const result = await sendVerificationEmail(user, verificationToken);
-        if (!result.success) {
-          return res.status(500).json({
-            success: false,
-            message: "Failed to send verification email. Check server logs.",
-            error: result.error,
-          });
-        }
-      } catch (err) {
-        console.error("Failed to send verification email:", err);
-      }
-    }
-
-    // Send welcome email (moved to verification)
-    // sendWelcomeEmail(user).catch((err) => {
-    //   console.error("Failed to send welcome email:", err);
-    // });
+    // Send verification email
+    await sendVerificationEmail(user, verificationToken);
 
     // Generate token
     const token = user.generateToken();
@@ -159,15 +94,14 @@ exports.signup = async (req, res) => {
         id: user.id,
         name: user.name,
         email: user.email,
-        phone: user.phone,
         role: user.role,
       },
     });
   } catch (error) {
-    console.error("Signup error:", error);
+    console.error("❌ Signup Error:", error);
     res.status(500).json({
       success: false,
-      message: "Error creating user",
+      message: "Server Error",
       error: error.message,
     });
   }

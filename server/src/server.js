@@ -1,6 +1,8 @@
 const express = require("express");
 const path = require("path");
 const cors = require("cors");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 const dotenv = require("dotenv");
 const { sequelize, testConnection, dbType } = require("./config/database");
 const { Op } = require("sequelize");
@@ -48,6 +50,22 @@ Object.values(models).forEach((model) => {
 // Initialize express
 const app = express();
 
+// Security middleware
+app.use(helmet());
+
+// Rate limiting for auth routes
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // limit each IP to 20 requests per windowMs
+  message: "Too many requests from this IP, please try again after 15 minutes",
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+app.use("/api/auth/login", authLimiter);
+app.use("/api/auth/signup", authLimiter);
+app.use("/api/auth/forgot-password", authLimiter);
+
 // Body parser middleware
 app.use(express.json({ limit: "15mb" }));
 app.use(express.urlencoded({ extended: true, limit: "15mb" }));
@@ -93,11 +111,8 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    // Check if origin is in allowed list or if it's a Vercel deployment
-    if (
-      allowedOrigins.indexOf(origin) !== -1 ||
-      origin.endsWith(".vercel.app")
-    ) {
+    // Check if origin is in allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
       console.log("✅ CORS allowed for:", origin);
       callback(null, true);
     } else {
@@ -201,256 +216,7 @@ app.use("/api/faqs", require("./routes/faqRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 app.use("/api/shipments", require("./routes/shipmentRoutes"));
 
-app.get("/api/fix-db-schema", async (req, res) => {
-  try {
-    console.log("🔄 Manually patching database schema...");
-    const report = [];
-
-    // Debug: List all tables
-    const [results] = await sequelize.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
-      WHERE table_schema = 'public';
-    `);
-    const tables = results.map((r) => r.table_name);
-    report.push(`Found tables: ${tables.join(", ")}`);
-
-    // Helper to safely add column
-    const addCol = async (tableName, colName, colDef, defaultValue = null) => {
-      // Check if table exists (case sensitive check)
-      if (
-        !tables.includes(tableName) &&
-        !tables.includes(tableName.toLowerCase())
-      ) {
-        report.push(`Skipping ${tableName}: Table not found`);
-        return;
-      }
-
-      // Try exact name first, then lowercase
-      const targetTable = tables.includes(tableName)
-        ? `"${tableName}"`
-        : `"${tableName.toLowerCase()}"`;
-
-      try {
-        // First try to add the column
-        await sequelize.query(`
-          ALTER TABLE ${targetTable} 
-          ADD COLUMN IF NOT EXISTS "${colName}" ${colDef};
-        `);
-
-        // If a default value is provided, update existing rows
-        if (defaultValue !== null) {
-          const formattedValue =
-            typeof defaultValue === "string"
-              ? `'${defaultValue}'`
-              : defaultValue;
-          await sequelize.query(`
-            UPDATE ${targetTable} 
-            SET "${colName}" = ${formattedValue} 
-            WHERE "${colName}" IS NULL;
-          `);
-          report.push(
-            `✅ Added ${colName} to ${targetTable} and set default to ${defaultValue}`,
-          );
-        } else {
-          report.push(`✅ Added ${colName} to ${targetTable}`);
-        }
-      } catch (e) {
-        report.push(
-          `⚠️ Failed to add/update ${colName} in ${targetTable}: ${e.message}`,
-        );
-      }
-    };
-
-    // Patch Users
-    await addCol("Users", "bookingCount", "INTEGER DEFAULT 0");
-    // SQLite/Postgres compatible JSON storage (Text for SQLite, JSON for PG)
-    // Using TEXT to be safe across both, Sequelize will parse it
-    await addCol("Users", "documents", "TEXT");
-
-    // Patch FAQs
-    await addCol("FAQs", "category", "VARCHAR(255) DEFAULT 'General'");
-
-    // Patch Trips
-    await addCol("Trips", "vehicleType", "VARCHAR(255) DEFAULT 'Bus'");
-    await addCol("Trips", "terminal", "VARCHAR(255)");
-    await addCol("Trips", "city", "VARCHAR(255)");
-    await addCol("Trips", "state", "VARCHAR(255)");
-    await addCol("Trips", "documentPrices", "TEXT");
-    await addCol("Trips", "bookedSeats", "TEXT", "[]");
-
-    // Patch Shipments (Ensure table exists and has critical columns)
-    try {
-      await Shipment.sync({ alter: true });
-      report.push("✅ Synced Shipments table (alter: true)");
-    } catch (e) {
-      report.push(`⚠️ Failed to sync Shipments table: ${e.message}`);
-    }
-
-    // Patch Notifications
-    try {
-      await Notification.sync({ alter: true });
-      report.push("✅ Synced Notifications table (alter: true)");
-    } catch (e) {
-      report.push(`⚠️ Failed to sync Notifications table: ${e.message}`);
-    }
-
-    // Patch Bookings
-    await addCol("Bookings", "totalAmount", "FLOAT", 0);
-    await addCol("Bookings", "vat", "FLOAT", 0);
-    await addCol("Bookings", "serviceFee", "FLOAT", 0);
-
-    // Patch ENUM for Bookings (PostgreSQL only)
-    try {
-      if (sequelize.getDialect() === "postgres") {
-        await sequelize.query(
-          `ALTER TYPE "enum_Bookings_bookingStatus" ADD VALUE IF NOT EXISTS 'pending';`,
-        );
-        report.push(`✅ Added 'pending' to enum_Bookings_bookingStatus`);
-
-        // Add new roles to Users role ENUM
-        await sequelize.query(
-          `ALTER TYPE "enum_Users_role" ADD VALUE IF NOT EXISTS 'finance';`,
-        );
-        await sequelize.query(
-          `ALTER TYPE "enum_Users_role" ADD VALUE IF NOT EXISTS 'moderator';`,
-        );
-        report.push(`✅ Added 'finance' and 'moderator' to enum_Users_role`);
-      }
-    } catch (e) {
-      report.push(`⚠️ Failed to add 'pending' to enum: ${e.message}`);
-    }
-
-    // Diagnostic: Check actual columns for Bookings and Trips
-    try {
-      const dbStats = {
-        dialect: sequelize.getDialect(),
-        nodeEnv: process.env.NODE_ENV,
-        dbFile: process.env.DB_FILE || "unknown",
-      };
-
-      // Get DB version
-      if (dbStats.dialect === "postgres") {
-        const [version] = await sequelize.query("SELECT version()");
-        dbStats.version = version[0].version;
-      }
-
-      report.push(`DB Info: ${JSON.stringify(dbStats)}`);
-
-      const [bookingCols] = await sequelize.query(`
-        SELECT column_name, data_type 
-        FROM information_schema.columns 
-        WHERE table_name = 'Bookings' OR table_name = 'bookings'
-        ORDER BY column_name;
-      `);
-      report.push(
-        `Bookings Columns: ${bookingCols.map((c) => `${c.column_name}(${c.data_type})`).join(", ")}`,
-      );
-
-      const [tripCols] = await sequelize.query(`
-        SELECT column_name, data_type 
-        FROM information_schema.columns 
-        WHERE table_name = 'Trips' OR table_name = 'trips'
-        ORDER BY column_name;
-      `);
-      report.push(
-        `Trips Columns: ${tripCols.map((c) => `${c.column_name}(${c.data_type})`).join(", ")}`,
-      );
-    } catch (e) {
-      report.push(`⚠️ Diagnostic failed: ${e.message}`);
-    }
-
-    // 2. Explicitly sync all models (Sequelize's built-in schema update)
-    try {
-      await sequelize.sync({ alter: true });
-      report.push("✅ Full database synchronization completed (alter: true)");
-    } catch (e) {
-      report.push(`⚠️ Sync (alter: true) failed: ${e.message}`);
-    }
-
-    // 3. Explicitly sync Reviews table fallback
-    try {
-      await Review.sync({ alter: true });
-      report.push("✅ Synced Reviews table separately");
-    } catch (e) {
-      report.push(`⚠️ Failed to sync Reviews table: ${e.message}`);
-    }
-
-    // 4. Backfill calculated totalAmount for legacy bookings
-    try {
-      const bookingsToUpdate = await Booking.findAll({
-        where: {
-          [Op.or]: [{ totalAmount: 0 }, { totalAmount: null }],
-        },
-        include: [{ model: Trip, as: "trip" }], // Needs Trip pricing info
-      });
-
-      let updatedCount = 0;
-      for (const booking of bookingsToUpdate) {
-        if (booking.trip && booking.passengers) {
-          let subtotal = 0;
-          const passengers =
-            typeof booking.passengers === "string"
-              ? JSON.parse(booking.passengers)
-              : booking.passengers;
-          const docPrices =
-            typeof booking.trip.documentPrices === "string" &&
-            booking.trip.documentPrices !== "undefined"
-              ? JSON.parse(booking.trip.documentPrices)
-              : booking.trip.documentPrices || {};
-
-          const isInternational =
-            booking.trip.transportType === "international";
-
-          if (Array.isArray(passengers)) {
-            passengers.forEach((passenger) => {
-              const docType = passenger.documentType || "No Document";
-              const specificPrice = docPrices[docType];
-
-              if (
-                isInternational &&
-                specificPrice &&
-                Number(specificPrice) > 0
-              ) {
-                subtotal += Number(specificPrice);
-              } else {
-                subtotal += Number(booking.trip.price);
-              }
-            });
-
-            const serviceFee = Math.round(subtotal * 0.05);
-            const vat = Math.round(serviceFee * 0.075);
-            const bookingTotalAmount = subtotal + serviceFee + vat;
-
-            booking.totalAmount = bookingTotalAmount;
-            booking.serviceFee = serviceFee;
-            booking.vat = vat;
-            await booking.save();
-            updatedCount++;
-          }
-        }
-      }
-      report.push(
-        `✅ Backfilled totalAmount for ${updatedCount} legacy bookings`,
-      );
-    } catch (e) {
-      report.push(`⚠️ Failed to backfill legacy bookings: ${e.message}`);
-    }
-
-    res.json({
-      success: true,
-      message: "Database patch attempted",
-      report,
-      activeDialect: dbType,
-    });
-  } catch (err) {
-    console.error("❌ Manual patch failed:", err);
-    res.status(500).json({
-      success: false,
-      error: err.message,
-    });
-  }
-});
+// Routes mounted below...
 
 // Health check route
 app.get("/api/health", (req, res) => {
