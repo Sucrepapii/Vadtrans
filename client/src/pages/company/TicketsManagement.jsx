@@ -679,9 +679,14 @@ const TicketsManagement = () => {
                   disabled={saving}
                   className="text-primary focus:ring-primary h-4 w-4"
                 />
-                <span className="text-sm font-medium text-neutral-700">
-                  Passenger Transport
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-neutral-700">
+                    Offer a Ride
+                  </span>
+                  <span className="text-[10px] text-neutral-500 italic -mt-0.5">
+                    Help others and save on fuel costs
+                  </span>
+                </div>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input
@@ -698,9 +703,14 @@ const TicketsManagement = () => {
                   disabled={saving}
                   className="text-primary focus:ring-primary h-4 w-4"
                 />
-                <span className="text-sm font-medium text-neutral-700">
-                  Freight Transport
-                </span>
+                <div className="flex flex-col">
+                  <span className="text-sm font-bold text-neutral-700">
+                    Freight Trip
+                  </span>
+                  <span className="text-[10px] text-neutral-500 italic -mt-0.5">
+                    Fast and reliable cargo delivery
+                  </span>
+                </div>
               </label>
             </div>
           </div>
