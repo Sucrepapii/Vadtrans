@@ -62,7 +62,7 @@ const TicketsManagement = () => {
     minCharge: "",
     maxWeightCapacity: "",
     seats: 18,
-    serviceCategory: "passenger",
+    serviceCategory: "carpooling",
     freightType: "",
 
     state: "", // For carpooling: the selected state for city-to-city trips
@@ -161,7 +161,7 @@ const TicketsManagement = () => {
         availableSeats: trip.availableSeats,
         status: trip.status,
         duration: trip.duration || "",
-        serviceCategory: trip.serviceCategory || "passenger",
+        serviceCategory: trip.serviceCategory || "carpooling",
         freightType: trip.freightType || "",
         vehicleType: trip.vehicleType || "Hiace Bus (18 seater)",
         terminal: trip.terminal || "",
@@ -208,7 +208,7 @@ const TicketsManagement = () => {
     setFormData({
       from: "",
       to: "",
-      transportType: "inter-state",
+      transportType: "carpooling",
       departureTimes: [""],
       operatingDays: [],
       duration: "",
@@ -218,7 +218,7 @@ const TicketsManagement = () => {
       minCharge: "",
       maxWeightCapacity: "",
       seats: 18,
-      serviceCategory: "passenger",
+      serviceCategory: "carpooling",
       freightType: "",
 
       state: "",
@@ -289,7 +289,7 @@ const TicketsManagement = () => {
       minCharge: ticket.minCharge || "",
       maxWeightCapacity: ticket.maxWeightCapacity || "",
       seats: ticket.seats || 18,
-      serviceCategory: ticket.serviceCategory || "passenger",
+      serviceCategory: ticket.serviceCategory || "carpooling",
       freightType: ticket.freightType || "",
       state: ticket.state || "",
       toState: ticket.toState || "",
@@ -639,7 +639,7 @@ const TicketsManagement = () => {
               Service Category
             </label>
             <div className="flex gap-4 mb-4">
-              <label className="flex items-center gap-2 cursor-pointer">
+              {/* <label className="flex items-center gap-2 cursor-pointer">
                 <input
                   type="radio"
                   name="serviceCategory"
@@ -656,6 +656,26 @@ const TicketsManagement = () => {
                 />
                 <span className="text-sm font-medium text-neutral-700">
                   Passenger Transport
+                </span>
+              </label> */}
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="serviceCategory"
+                  value="carpooling"
+                  checked={formData.serviceCategory === "carpooling"}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      serviceCategory: e.target.value,
+                      transportType: "carpooling", // Automatically set transportType for carpooling
+                    })
+                  }
+                  disabled={saving}
+                  className="text-primary focus:ring-primary h-4 w-4"
+                />
+                <span className="text-sm font-medium text-neutral-700">
+                  Carpooling
                 </span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
@@ -680,35 +700,34 @@ const TicketsManagement = () => {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Transport Type
-            </label>
-            <select
-              value={formData.transportType}
-              onChange={(e) => {
-                setFormData({
-                  ...formData,
-                  transportType: e.target.value,
-                  from: "",
-                  to: "",
-                  state: "",
-                });
-              }}
-              className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-              disabled={saving}>
-              <option value="carpooling">
-                Carpooling (City-to-City)
-              </option>
-              <option value="inter-state">
-                Nigeria (State-to-State)
-              </option>
-              <option value="international">
-                International (West Africa)
-              </option>
-            </select>
-          </div>
+          {formData.serviceCategory !== "carpooling" && (
+            <div>
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Transport Type
+              </label>
+              <select
+                value={formData.transportType}
+                onChange={(e) => {
+                  setFormData({
+                    ...formData,
+                    transportType: e.target.value,
+                    from: "",
+                    to: "",
+                    state: "",
+                  });
+                }}
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+                disabled={saving}>
+                <option value="inter-state">
+                  Nigeria (State-to-State)
+                </option>
+                <option value="international">
+                  International (West Africa)
+                </option>
+              </select>
+            </div>
+          )}
 
           {formData.serviceCategory === "freight" ? (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
