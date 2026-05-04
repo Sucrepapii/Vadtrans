@@ -10,6 +10,11 @@ const { Op } = require("sequelize");
 // Load env vars
 dotenv.config();
 
+// Bypass self-signed certs in development
+if (process.env.NODE_ENV !== "production") {
+  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
+}
+
 // Route files
 const authRoutes = require("./routes/auth");
 const tripRoutes = require("./routes/trips");
