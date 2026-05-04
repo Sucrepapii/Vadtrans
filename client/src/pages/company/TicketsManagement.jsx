@@ -1471,51 +1471,76 @@ const TicketsManagement = () => {
       <Modal
         isOpen={showTypeSelection}
         onClose={() => setShowTypeSelection(false)}
-        title="What kind of trip would you like to add?"
+        title={null} // Remove default title for custom styling
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-4">
-          <div 
-            onClick={() => handleSelectTripType("carpooling")}
-            className="group cursor-pointer border-2 border-neutral-100 hover:border-primary rounded-xl p-6 transition-all hover:bg-primary/5 flex flex-col items-center text-center space-y-4 shadow-sm hover:shadow-md"
-          >
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-              <FaCar size={32} />
+        <div className="bg-charcoal -mx-6 -mt-6 p-8 text-white rounded-t-lg mb-6">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center">
+              <FaPlus className="text-2xl text-white" />
             </div>
             <div>
-              <h3 className="font-raleway font-bold text-lg text-charcoal">Offer a Ride</h3>
-              <p className="text-sm text-neutral-600 mt-1">Passenger transport & carpooling (City-to-City)</p>
-            </div>
-            <div className="w-full pt-4 border-t border-neutral-100 group-hover:border-primary/20">
-              <span className="text-primary font-medium text-sm flex items-center justify-center gap-1">
-                Select <FaPlus size={10} />
-              </span>
-            </div>
-          </div>
-
-          <div 
-            onClick={() => handleSelectTripType("freight")}
-            className="group cursor-pointer border-2 border-neutral-100 hover:border-primary rounded-xl p-6 transition-all hover:bg-primary/5 flex flex-col items-center text-center space-y-4 shadow-sm hover:shadow-md"
-          >
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
-              <FaTruck size={32} />
-            </div>
-            <div>
-              <h3 className="font-raleway font-bold text-lg text-charcoal">Freight Trip</h3>
-              <p className="text-sm text-neutral-600 mt-1">Cargo, logistics & parcel delivery</p>
-            </div>
-            <div className="w-full pt-4 border-t border-neutral-100 group-hover:border-primary/20">
-              <span className="text-primary font-medium text-sm flex items-center justify-center gap-1">
-                Select <FaPlus size={10} />
-              </span>
+              <h2 className="text-2xl font-bold font-raleway">Add New Trip</h2>
+              <p className="text-neutral-400 text-sm">Select the type of service you want to offer</p>
             </div>
           </div>
         </div>
-        <div className="mt-4 text-center">
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-2">
+          {/* Carpool Option */}
+          <div 
+            onClick={() => handleSelectTripType("carpooling")}
+            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col"
+          >
+            <div className="p-6 flex-1">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <FaCar size={24} />
+                </div>
+                <div>
+                  <h3 className="font-raleway font-bold text-lg text-charcoal">Offer a Ride</h3>
+                  <p className="text-xs text-neutral-500 italic">Help others and save on fuel costs</p>
+                </div>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Post city-to-city trips for passengers. Ideal for cars and small buses.
+              </p>
+            </div>
+            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
+              <span className="font-bold text-sm">SELECT PASSENGER</span>
+            </div>
+          </div>
+
+          {/* Freight Option */}
+          <div 
+            onClick={() => handleSelectTripType("freight")}
+            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col"
+          >
+            <div className="p-6 flex-1">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <FaTruck size={24} />
+                </div>
+                <div>
+                  <h3 className="font-raleway font-bold text-lg text-charcoal">Freight Trip</h3>
+                  <p className="text-xs text-neutral-500 italic">Fast and reliable cargo delivery</p>
+                </div>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Post logistics routes for cargo and parcels. Ideal for vans and trucks.
+              </p>
+            </div>
+            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
+              <span className="font-bold text-sm">SELECT FREIGHT</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center border-t border-neutral-100 pt-6">
           <button 
             onClick={() => setShowTypeSelection(false)}
-            className="text-neutral-500 hover:text-charcoal text-sm font-medium transition-colors"
+            className="text-neutral-500 hover:text-charcoal text-sm font-medium transition-colors underline"
           >
-            Go Back
+            Cancel and Close
           </button>
         </div>
       </Modal>
