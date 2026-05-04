@@ -1,0 +1,10 @@
+node_modules
+npm-debug.log
+database.sqlite
+.env
+.env.local
+.env.development
+.env.production
+.env.staging
+.env*.local
+*.log
