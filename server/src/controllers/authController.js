@@ -336,6 +336,7 @@ exports.login = async (req, res) => {
     });
   } catch (error) {
     console.error("Login error:", error);
+    require('fs').appendFileSync('error.log', new Date().toISOString() + ': ' + error.message + '\n' + error.stack + '\n\n');
     res.status(500).json({
       success: false,
       message: "Error logging in",
