@@ -60,13 +60,9 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                 <div className="flex items-center gap-2 group">
                   <div className="flex flex-col justify-center">
                     <img
-                      src={
-                        user?.role === "company"
-                          ? "/logo_transport.png"
-                          : "/logo_traveller.png"
-                      }
+                      src="/logo_new.png"
                       alt="VadTrans"
-                      className="h-16 md:h-28 w-auto object-contain mix-blend-multiply transition-all"
+                      className="h-16 md:h-28 w-auto object-contain transition-all"
                     />
                   </div>
                 </div>
