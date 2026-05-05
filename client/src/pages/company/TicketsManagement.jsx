@@ -31,6 +31,7 @@ import {
   FaMinus,
   FaUsers,
   FaInfoCircle,
+  FaMoneyBillWave,
 } from "react-icons/fa";
 import { MaterialTimePicker } from "../../components/MaterialDatePicker";
 import MaterialDatePicker from "../../components/MaterialDatePicker";
@@ -676,91 +677,7 @@ const TicketsManagement = () => {
           </>
         }>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Service Category
-            </label>
-            <div className="flex gap-4 mb-4">
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="serviceCategory"
-                  value="passenger"
-                  checked={formData.serviceCategory === "passenger"}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      serviceCategory: e.target.value,
-                    })
-                  }
-                  disabled={saving}
-                  className="text-primary focus:ring-primary h-4 w-4"
-                />
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-neutral-700">
-                    Offer a Ride
-                  </span>
-                  <span className="text-[10px] text-neutral-500 italic -mt-0.5">
-                    Help others and save on fuel costs
-                  </span>
-                </div>
-              </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="serviceCategory"
-                  value="freight"
-                  checked={formData.serviceCategory === "freight"}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      serviceCategory: e.target.value,
-                    })
-                  }
-                  disabled={saving}
-                  className="text-primary focus:ring-primary h-4 w-4"
-                />
-                <div className="flex flex-col">
-                  <span className="text-sm font-bold text-neutral-700">
-                    Freight Trip
-                  </span>
-                  <span className="text-[10px] text-neutral-500 italic -mt-0.5">
-                    Fast and reliable cargo delivery
-                  </span>
-                </div>
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-neutral-700 mb-2">
-              Transport Type
-            </label>
-            <select
-              value={formData.transportType}
-              onChange={(e) => {
-                setFormData({
-                  ...formData,
-                  transportType: e.target.value,
-                  from: "",
-                  to: "",
-                  state: "",
-                });
-              }}
-              className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-              disabled={saving}>
-              <option value="carpooling">
-                Carpooling (City-to-City)
-              </option>
-              <option value="inter-state">
-                Nigeria (State-to-State)
-              </option>
-              <option value="international">
-                International (West Africa)
-              </option>
-            </select>
-          </div>
+          {/* Simplified Modal Content - Matches Offer a Ride Flow */}
           {formData.transportType === "carpooling" ? (
             <div className="space-y-6 animate-fadeIn">
               {/* Route Information */}
@@ -912,41 +829,61 @@ const TicketsManagement = () => {
                 </div>
               </div>
 
-              {/* Capacity & Pricing */}
-              <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
-                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                  <FaUsers className="text-primary" /> Capacity & Pricing
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="Available Seats"
-                    type="number"
-                    min="1"
-                    value={formData.seats}
-                    onChange={(e) => setFormData({ ...formData, seats: e.target.value })}
-                    required
-                    disabled={saving}
-                  />
-                  <Input
-                    label="Price per Seat (₦)"
-                    type="number"
-                    placeholder="e.g. 1500"
-                    value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    required
-                    disabled={saving}
-                  />
-                </div>
-                <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl flex gap-3 items-start">
-                  <FaInfoCircle className="text-blue-500 mt-1 flex-shrink-0" size={14} />
-                  <div>
-                    <p className="text-xs font-semibold text-blue-800 mb-1">Price Recommendation</p>
-                    <p className="text-[10px] text-blue-700 leading-relaxed">
-                      Mainland ↔ Island: ₦1,500 - ₦5,000
-                    </p>
-                  </div>
-                </div>
-              </div>
+               {/* Capacity */}
+               <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
+                 <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                   <FaUsers className="text-primary" /> Capacity
+                 </h3>
+                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                   <Input
+                     label="Available Seats"
+                     type="number"
+                     min="1"
+                     max="7"
+                     value={formData.seats}
+                     onChange={(e) => setFormData({ ...formData, seats: e.target.value })}
+                     required
+                     disabled={saving}
+                   />
+                   <Input
+                     label="Min Seats to start"
+                     type="number"
+                     min="1"
+                     max={formData.seats}
+                     value={formData.minSeats}
+                     onChange={(e) => setFormData({ ...formData, minSeats: e.target.value })}
+                     required
+                     disabled={saving}
+                   />
+                 </div>
+               </div>
+
+               {/* Pricing */}
+               <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
+                 <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                   <FaMoneyBillWave className="text-primary" /> Pricing
+                 </h3>
+                 <div>
+                   <Input
+                     label="Price per Seat (₦)"
+                     type="number"
+                     placeholder="e.g. 1500"
+                     value={formData.price}
+                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                     required
+                     disabled={saving}
+                   />
+                   <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex gap-3 items-start">
+                     <FaInfoCircle className="text-blue-500 mt-1 flex-shrink-0" size={14} />
+                     <div>
+                       <p className="text-xs font-semibold text-blue-800 mb-0.5">Price Recommendation</p>
+                       <p className="text-[10px] text-blue-700 leading-relaxed">
+                         Mainland ↔ Island, Peak hours: ₦1,500 - ₦5,000
+                       </p>
+                     </div>
+                   </div>
+                 </div>
+               </div>
             </div>
           ) : (
             <div className="space-y-4">

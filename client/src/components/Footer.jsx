@@ -6,7 +6,6 @@ import {
   FaWhatsapp,
 } from "react-icons/fa";
 import { FaXTwitter } from "react-icons/fa6";
-import Logo from "./Logo";
 
 const Footer = () => {
   return (
@@ -14,9 +13,10 @@ const Footer = () => {
       <div className="container-custom py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <Logo 
-              variant="white" 
-              className="h-12 mb-4" 
+            <img
+              src="/logo_traveller_white.png"
+              alt="Vad Transportation Limited"
+              className="h-16 w-auto object-contain mb-4 mix-blend-screen"
             />
             <p className="text-neutral-300 text-sm">
               Your trusted transportation booking platform. Travel with ease and

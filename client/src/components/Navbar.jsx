@@ -12,7 +12,6 @@ import {
   FaBus,
 } from "react-icons/fa";
 import Button from "./Button";
-import Logo from "./Logo";
 
 const Navbar = ({ variant = "desktop", portalLabel }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -60,16 +59,15 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
               <Link to="/" className="flex flex-col items-start px-2">
                 <div className="flex items-center gap-2 group">
                   <div className="flex flex-col justify-center">
-                    <Logo 
-                      className="h-12 md:h-16" 
+                    <img
+                      src={
+                        user?.role === "company"
+                          ? "/logo_transport.png"
+                          : "/logo_traveller.png"
+                      }
+                      alt="VadTrans"
+                      className="h-16 md:h-28 w-auto object-contain mix-blend-multiply transition-all"
                     />
-                    {portalLabel && (
-                      <div className="ml-2 pl-2 border-l border-neutral-200">
-                        <span className="text-[10px] md:text-xs font-bold text-primary uppercase tracking-tighter leading-none block">
-                          {portalLabel}
-                        </span>
-                      </div>
-                    )}
                   </div>
                 </div>
               </Link>
@@ -315,15 +313,15 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <Logo 
-              variant="white" 
-              className="h-10" 
+            <img
+              src={
+                user?.role === "company"
+                  ? "/logo_transport_white.png"
+                  : "/logo_traveller_white.png"
+              }
+              alt="VadTrans"
+              className="h-14 w-auto object-contain mix-blend-screen"
             />
-            {portalLabel && (
-              <span className="text-[10px] font-bold text-primary uppercase tracking-tighter ml-2">
-                {portalLabel}
-              </span>
-            )}
           </Link>
 
           <button
