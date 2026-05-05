@@ -82,7 +82,7 @@ const Sidebar = () => {
                   <img
                     src="/logo_new_white.png"
                     alt="VadTrans"
-                    className="h-12 w-auto object-contain mix-blend-screen"
+                    className="h-16 w-auto object-contain"
                   />
               </div>
             </div>

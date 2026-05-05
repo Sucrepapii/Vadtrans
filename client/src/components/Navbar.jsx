@@ -62,7 +62,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                     <img
                       src="/logo_new.png"
                       alt="VadTrans"
-                      className="h-16 md:h-28 w-auto object-contain mix-blend-multiply transition-all"
+                      className="h-20 md:h-32 w-auto object-contain transition-all"
                     />
                     {portalLabel && (
                       <div className="ml-2 pl-2 border-l border-neutral-200">
@@ -319,7 +319,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
             <img
               src="/logo_new_white.png"
               alt="VadTrans"
-              className="h-14 w-auto object-contain mix-blend-screen"
+              className="h-16 w-auto object-contain"
             />
             {portalLabel && (
               <span className="text-[10px] font-bold text-primary uppercase tracking-tighter ml-2">
