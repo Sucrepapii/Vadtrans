@@ -16,7 +16,7 @@ const Footer = () => {
             <img
               src="/logo_new_white.png"
               alt="Vad Transportation Limited"
-              className="h-16 w-auto object-contain mb-4"
+              className="h-16 w-auto object-contain mb-4 mix-blend-screen"
             />
             <p className="text-neutral-300 text-sm">
               Your trusted transportation booking platform. Travel with ease and
