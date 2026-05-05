@@ -12,6 +12,7 @@ import {
   FaBus,
 } from "react-icons/fa";
 import Button from "./Button";
+import Logo from "./Logo";
 
 const Navbar = ({ variant = "desktop", portalLabel }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -59,10 +60,8 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
               <Link to="/" className="flex flex-col items-start px-2">
                 <div className="flex items-center gap-2 group">
                   <div className="flex flex-col justify-center">
-                    <img
-                      src="/logo_new.png"
-                      alt="VadTrans"
-                      className="h-20 md:h-32 w-auto object-contain transition-all"
+                    <Logo 
+                      className="h-20 md:h-32" 
                     />
                     {portalLabel && (
                       <div className="ml-2 pl-2 border-l border-neutral-200">
@@ -316,10 +315,9 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">
-            <img
-              src="/logo_new_white.png"
-              alt="VadTrans"
-              className="h-16 w-auto object-contain"
+            <Logo 
+              variant="white" 
+              className="h-16" 
             />
             {portalLabel && (
               <span className="text-[10px] font-bold text-primary uppercase tracking-tighter ml-2">
