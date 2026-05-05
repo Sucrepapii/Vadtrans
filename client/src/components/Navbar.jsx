@@ -132,15 +132,25 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                   Carpool
                 </NavLink>
                 {user?.role === "company" && (
-                  <NavLink
-                    to="/offer-ride"
-                    className={({ isActive }) =>
-                      isActive
-                        ? "text-primary font-bold transition-colors"
-                        : "text-charcoal hover:text-primary transition-colors font-medium"
-                    }>
-                    Offer a Ride
-                  </NavLink>
+                  <Link
+                    to="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      // This is a bit of a hack since Navbar is global, 
+                      // but we want to trigger the modal if we're on the tickets page.
+                      // If not on tickets page, we just go to /company/tickets?action=add
+                      if (window.location.pathname === "/company/tickets") {
+                        const btn = document.getElementById("add-trip-btn");
+                        if (btn) btn.click();
+                      } else {
+                        navigate("/company/tickets?action=add");
+                      }
+                    }}
+                    className="px-6 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-dark transition-all flex items-center gap-2 shadow-lg shadow-primary/20"
+                  >
+                    <FaPlus />
+                    <span>Offer a Ride</span>
+                  </Link>
                 )}
                 <NavLink
                   to="/signup?role=company"

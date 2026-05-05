@@ -138,6 +138,14 @@ const TicketsManagement = () => {
   // Fetch trips on component mount
   useEffect(() => {
     fetchTrips();
+    
+    // Check for action in query param
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('action') === 'add') {
+      handleAddTicket();
+      // Clear the param to avoid re-opening
+      window.history.replaceState({}, document.title, window.location.pathname);
+    }
   }, []);
 
   const fetchTrips = async () => {
@@ -589,16 +597,20 @@ const TicketsManagement = () => {
                 Manage your transportation tickets
               </p>
             </div>
-            <Button
-              variant="primary"
+            <button
+              id="add-trip-btn"
               onClick={handleAddTicket}
               disabled={loading}
-              className="w-full sm:w-auto">
-              <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <FaPlus />
-                <span>Add Trip</span>
+              className="w-full sm:w-auto px-6 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all flex flex-col items-center sm:items-start shadow-lg shadow-primary/20 group"
+            >
+              <div className="flex items-center gap-2">
+                <FaPlus className="group-hover:rotate-90 transition-transform" />
+                <span>Offer a Ride</span>
               </div>
-            </Button>
+              <span className="text-[10px] opacity-80 font-normal">
+                Help others and save on fuel costs
+              </span>
+            </button>
           </div>
 
           <Card>
@@ -612,12 +624,15 @@ const TicketsManagement = () => {
             ) : tickets.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-neutral-600 mb-4">No trips yet</p>
-                <Button variant="primary" onClick={handleAddTicket}>
+                <button 
+                  onClick={handleAddTicket}
+                  className="px-8 py-3 bg-primary text-white rounded-xl font-bold hover:bg-primary-dark transition-all shadow-lg shadow-primary/20"
+                >
                   <div className="flex items-center gap-2">
                     <FaPlus />
-                    <span>Add Your First Trip</span>
+                    <span>Offer Your First Ride</span>
                   </div>
-                </Button>
+                </button>
               </div>
             ) : (
               <>
