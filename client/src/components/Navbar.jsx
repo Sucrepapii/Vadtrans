@@ -61,7 +61,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                 <div className="flex items-center gap-2 group">
                   <div className="flex flex-col justify-center">
                     <Logo 
-                      className="h-20 md:h-32" 
+                      className="h-12 md:h-16" 
                     />
                     {portalLabel && (
                       <div className="ml-2 pl-2 border-l border-neutral-200">
@@ -317,7 +317,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
           <Link to="/" className="flex items-center gap-2">
             <Logo 
               variant="white" 
-              className="h-16" 
+              className="h-10" 
             />
             {portalLabel && (
               <span className="text-[10px] font-bold text-primary uppercase tracking-tighter ml-2">

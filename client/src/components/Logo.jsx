@@ -1,6 +1,6 @@
 import React from "react";
 
-const Logo = ({ className = "h-16 md:h-28", variant = "default" }) => {
+const Logo = ({ className = "h-10 md:h-12", variant = "default" }) => {
   const primaryColor = "#E11D48"; // Vibrant Red
   const secondaryColor = variant === "white" ? "#FFFFFF" : "#262626"; // Charcoal or White
 
@@ -25,7 +25,7 @@ const Logo = ({ className = "h-16 md:h-28", variant = "default" }) => {
       </svg>
       <div className="flex flex-col">
         <span 
-          className="text-2xl md:text-4xl font-bold tracking-tighter"
+          className="text-lg md:text-xl font-bold tracking-tighter"
           style={{ color: secondaryColor, fontFamily: "Raleway, sans-serif" }}
         >
           <span style={{ color: primaryColor }}>Vad</span>Trans

@@ -82,7 +82,7 @@ const Sidebar = () => {
               <div>
                   <Logo 
                     variant="white" 
-                    className="h-16" 
+                    className="h-10" 
                   />
               </div>
             </div>

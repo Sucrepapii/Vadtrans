@@ -16,7 +16,7 @@ const Footer = () => {
           <div>
             <Logo 
               variant="white" 
-              className="h-20 mb-4" 
+              className="h-12 mb-4" 
             />
             <p className="text-neutral-300 text-sm">
               Your trusted transportation booking platform. Travel with ease and
