@@ -14,10 +14,12 @@ const Footer = () => {
       <div className="container-custom py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <Logo 
-              variant="white" 
-              className="h-16 mb-4" 
-            />
+            <div className="bg-black p-4 rounded-2xl inline-block mb-4 border border-white/10">
+              <Logo 
+                variant="white" 
+                className="h-16" 
+              />
+            </div>
             <p className="text-neutral-300 text-sm">
               Your trusted transportation booking platform. Travel with ease and
               comfort.
