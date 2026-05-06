@@ -17,6 +17,7 @@ import {
   FaUserShield,
 } from "react-icons/fa";
 import NotificationBell from "./NotificationBell";
+import BrandLogo from "../BrandLogo";
 
 const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -79,10 +80,9 @@ const Sidebar = () => {
                 <FaTachometerAlt className="text-sm text-primary" />
               </div>
               <div>
-                  <img
-                    src="/logo_transport_white.png"
-                    alt="VadTrans"
-                    className="h-10 w-auto object-contain"
+                  <BrandLogo 
+                    variant="white" 
+                    className="h-10" 
                   />
               </div>
             </div>
