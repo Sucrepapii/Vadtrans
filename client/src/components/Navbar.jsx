@@ -66,8 +66,15 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                           : "/logo_traveller.png"
                       }
                       alt="VadTrans"
-                      className="h-16 md:h-28 w-auto object-contain mix-blend-multiply transition-all"
+                      className="h-12 md:h-16 w-auto object-contain mix-blend-multiply transition-all"
                     />
+                    {portalLabel && (
+                      <div className="ml-2 pl-2 border-l border-neutral-200">
+                        <span className="text-[10px] md:text-xs font-bold text-primary uppercase tracking-tighter leading-none block">
+                          {portalLabel}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Link>
@@ -320,8 +327,13 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                   : "/logo_traveller_white.png"
               }
               alt="VadTrans"
-              className="h-14 w-auto object-contain mix-blend-screen"
+              className="h-10 w-auto object-contain mix-blend-screen"
             />
+            {portalLabel && (
+              <span className="text-[10px] font-bold text-primary uppercase tracking-tighter ml-2">
+                {portalLabel}
+              </span>
+            )}
           </Link>
 
           <button
