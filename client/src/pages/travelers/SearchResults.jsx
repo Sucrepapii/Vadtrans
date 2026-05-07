@@ -116,7 +116,7 @@ const SearchResults = () => {
 
       if (searchParams.transportType && searchParams.transportType !== "all") {
         foundTrips = foundTrips.filter((trip) =>
-          trip.transportType.includes(searchParams.transportType),
+          trip.transportType?.toLowerCase().includes(searchParams.transportType.toLowerCase()),
         );
       }
 
@@ -160,6 +160,7 @@ const SearchResults = () => {
 
   const getTransportIcon = (trip) => {
     if (trip?.serviceCategory === "freight") return FaTruck;
+    if (trip?.transportType === "carpooling") return FaCar;
     return FaBus;
   };
 
@@ -217,8 +218,8 @@ const SearchResults = () => {
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isFreight ? 'bg-red-50' : 'bg-blue-50'}`}>
-                  <Icon className={`text-2xl ${isFreight ? 'text-red-600' : 'text-blue-600'}`} />
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${isFreight ? 'bg-red-50' : trip.transportType === 'carpooling' ? 'bg-green-50' : 'bg-blue-50'}`}>
+                  <Icon className={`text-2xl ${isFreight ? 'text-red-600' : trip.transportType === 'carpooling' ? 'text-green-600' : 'text-blue-600'}`} />
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-lg text-charcoal truncate">
@@ -239,6 +240,11 @@ const SearchResults = () => {
                     <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider">
                       {trip.company?.name || "VadTrans Company"}
                     </p>
+                    {trip.transportType === "carpooling" && (
+                      <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
+                        Carpool
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
@@ -410,7 +416,7 @@ const SearchResults = () => {
                   </span>
                 </div>
               )}
-                    {searchParams.transportType !== "all" && (
+              {searchParams.transportType !== "all" && (
                 <div className="flex items-center gap-2">
                   <span className="text-neutral-300 hidden sm:inline">|</span>
                   <span className="bg-primary/10 text-primary px-3 py-0.5 rounded-full text-xs font-semibold capitalize">

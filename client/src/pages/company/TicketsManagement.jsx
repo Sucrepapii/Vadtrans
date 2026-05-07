@@ -244,12 +244,19 @@ const TicketsManagement = () => {
     setShowTypeSelection(false);
     
     if (type === "carpooling") {
+      const today = new Date();
+      const year = today.getFullYear();
+      const month = String(today.getMonth() + 1).padStart(2, "0");
+      const day = String(today.getDate()).padStart(2, "0");
+      const formattedDate = `${year}-${month}-${day}`;
+
       setFormData(prev => ({
         ...prev,
         transportType: "carpooling",
         serviceCategory: "passenger",
         vehicleType: "Sedan (small car)",
-        seats: 4
+        seats: 4,
+        departureDate: formattedDate
       }));
     } else if (type === "freight") {
       setFormData(prev => ({
@@ -371,7 +378,11 @@ const TicketsManagement = () => {
         to: formData.to,
         transportType: formData.transportType,
         departureTime: formData.departureTime,
-        departureDate: formData.departureDate || null,
+        departureDate: formData.departureDate 
+          ? (typeof formData.departureDate === 'object' 
+              ? new Date(formData.departureDate.getTime() - (formData.departureDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0]
+              : formData.departureDate)
+          : null,
         operatingDays:
           formData.operatingDays.length > 0
             ? formData.operatingDays.join(",")
