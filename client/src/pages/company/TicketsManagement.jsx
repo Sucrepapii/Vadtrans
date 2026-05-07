@@ -168,6 +168,7 @@ const TicketsManagement = () => {
         serviceCategory: trip.serviceCategory || "passenger",
         freightType: trip.freightType || "",
         vehicleType: trip.vehicleType || "Hiace Bus (18 seater)",
+        vehicleName: trip.vehicleName || "",
         terminal: trip.terminal || "",
         city: trip.city || "",
         state: trip.state || "",
@@ -228,6 +229,7 @@ const TicketsManagement = () => {
       state: "",
       toState: "",
       vehicleType: "Hiace Bus (18 seater)",
+      vehicleName: "",
       city: "",
       documentPrices: {
         "Regular Passport": "",
@@ -411,6 +413,7 @@ const TicketsManagement = () => {
 
         seats: Number(formData.seats),
         vehicleType: formData.vehicleType,
+        vehicleName: formData.vehicleName || null,
         terminal: formData.terminal,
         city: formData.city,
         // Save new cascading fields if international
@@ -1004,6 +1007,20 @@ const TicketsManagement = () => {
                     <option value="Sedan (small car)">Sedan (small car)</option>
                   </select>
                 </div>
+
+                <div className="md:col-span-1">
+                  <Input
+                    label="Vehicle Name / Model"
+                    type="text"
+                    placeholder="e.g. Toyota Corolla, Nissan, Lexus 360"
+                    value={formData.vehicleName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, vehicleName: e.target.value })
+                    }
+                    disabled={saving}
+                    required
+                  />
+                </div>
               )}
 
               {/* FROM/TO LOCATION */}
@@ -1427,6 +1444,24 @@ const TicketsManagement = () => {
                           },
                         })
                       }
+                      disabled={saving}
+                    />
+                  </div>
+                </div>
+
+                {/* Vehicle Name */}
+                <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
+                  <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                    <FaBus className="text-primary" /> Vehicle Details
+                  </h3>
+                  <div>
+                    <Input
+                      label="Vehicle Name / Model"
+                      type="text"
+                      placeholder="e.g. Toyota Corolla, Nissan"
+                      value={formData.vehicleName}
+                      onChange={(e) => setFormData({ ...formData, vehicleName: e.target.value })}
+                      required
                       disabled={saving}
                     />
                   </div>

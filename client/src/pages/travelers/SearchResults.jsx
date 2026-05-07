@@ -302,11 +302,18 @@ const SearchResults = () => {
 
                 <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-100">
                   <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Vehicle</p>
-                  <div className="flex items-center gap-1.5">
-                    <FaTruck className="text-neutral-400 text-xs" />
-                    <p className="font-bold text-charcoal text-sm capitalize truncate">
-                      {trip.vehicleType || (isFreight ? "Truck" : "Bus")}
-                    </p>
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <FaCar className="text-neutral-400 text-xs" />
+                      <p className="font-bold text-charcoal text-sm capitalize truncate">
+                        {trip.vehicleName || (isFreight ? "Carrier" : "Bus/Car")}
+                      </p>
+                    </div>
+                    {trip.vehicleName && (
+                      <p className="text-[10px] text-neutral-500 font-medium">
+                        {trip.vehicleType}
+                      </p>
+                    )}
                   </div>
                 </div>
               </div>

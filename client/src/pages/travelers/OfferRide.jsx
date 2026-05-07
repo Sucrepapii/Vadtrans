@@ -38,6 +38,7 @@ const OfferRide = () => {
     depositAmount: 0,
     cancellationWindow: 12,
     confirmationWindow: 2,
+    vehicleName: "",
   });
 
   const [cities, setCities] = useState([]);
@@ -85,6 +86,7 @@ const OfferRide = () => {
         depositAmount: 5,
         cancellationWindow: 12,
         confirmationWindow: 2,
+        vehicleName: formData.vehicleName,
       };
 
       const response = await tripAPI.createTrip(tripData);
@@ -230,7 +232,18 @@ const OfferRide = () => {
                   <h2 className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                     <FaCar className="text-primary" /> Vehicle & Terminal
                   </h2>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Vehicle Name / Model</label>
+                      <input 
+                        type="text"
+                        placeholder="e.g. Toyota Corolla, Nissan"
+                        value={formData.vehicleName}
+                        onChange={(e) => setFormData({...formData, vehicleName: e.target.value})}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                        required
+                      />
+                    </div>
                     <div>
                       <label className="block text-sm font-medium text-charcoal mb-1">Vehicle Plate Number</label>
                       <input 

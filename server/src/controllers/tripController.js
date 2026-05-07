@@ -156,6 +156,7 @@ exports.createTrip = async (req, res) => {
       price,
       seats,
       vehicleType,
+      vehicleName,
       terminal,
       city,
       state,
@@ -210,6 +211,7 @@ exports.createTrip = async (req, res) => {
       seats: seats || 0,
       availableSeats: seats || 0,
       vehicleType: vehicleType || "Bus",
+      vehicleName: vehicleName || null,
       terminal: terminal || null,
       city: city || null,
       state: state || null,
@@ -284,6 +286,7 @@ exports.updateTrip = async (req, res) => {
       seats,
       status,
       vehicleType,
+      vehicleName,
       terminal,
       city,
       state,
@@ -316,6 +319,7 @@ exports.updateTrip = async (req, res) => {
     if (duration !== undefined) trip.duration = duration;
     if (price !== undefined) trip.price = price;
     if (vehicleType !== undefined) trip.vehicleType = vehicleType;
+    if (vehicleName !== undefined) trip.vehicleName = vehicleName;
     if (terminal !== undefined) trip.terminal = terminal;
     if (city !== undefined) trip.city = city;
     if (state !== undefined) trip.state = state;

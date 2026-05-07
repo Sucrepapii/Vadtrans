@@ -52,6 +52,11 @@ const Trip = sequelize.define(
       allowNull: false,
       defaultValue: "Bus",
     },
+    vehicleName: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Specific name/model of the vehicle (e.g. Toyota Corolla)",
+    },
     freightType: {
       type: DataTypes.ENUM("Small Parcel", "Medium Cargo", "Large/Bulk Cargo"),
       allowNull: true,
