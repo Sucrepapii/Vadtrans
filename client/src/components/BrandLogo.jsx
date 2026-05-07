@@ -9,7 +9,7 @@ const BrandLogo = ({ className = "h-10 md:h-12", variant = "default" }) => {
       <img
         src={variant === "white" ? "/logo_traveller_white.png" : "/logo_traveller.png"}
         alt="VadTrans"
-        className="h-full w-auto object-contain"
+        className={`h-full w-auto object-contain ${variant === "white" ? "mix-blend-screen" : "mix-blend-multiply"}`}
       />
     </div>
   );
