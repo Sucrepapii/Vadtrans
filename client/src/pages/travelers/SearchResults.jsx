@@ -454,6 +454,44 @@ const SearchResults = () => {
             </div>
           </div>
 
+          {/* Filter Buttons */}
+          <div className="mb-6 flex flex-wrap items-center gap-2">
+            <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest mr-2 flex items-center gap-2">
+              <FaFilter size={12} /> Filter by type:
+            </span>
+            {[
+              { id: "all", label: "All" },
+              { id: "inter-state", label: "Inter-State" },
+              { id: "intra-state", label: "Intra-State" },
+              { id: "carpooling", label: "Carpooling" },
+              { id: "international", label: "International" },
+            ].map((filter) => (
+              <button
+                key={filter.id}
+                onClick={() => {
+                  setActiveFilter(filter.id);
+                  setCurrentPage(1);
+                }}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${
+                  activeFilter === filter.id
+                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20 scale-105"
+                    : "bg-white text-neutral-600 border-neutral-200 hover:border-primary/30 hover:bg-primary/5"
+                }`}>
+                {filter.label}
+              </button>
+            ))}
+            {activeFilter !== "all" && (
+              <button
+                onClick={() => {
+                  setActiveFilter("all");
+                  setCurrentPage(1);
+                }}
+                className="flex items-center gap-1.5 text-xs font-bold text-neutral-400 hover:text-primary transition-colors ml-2">
+                <FaSyncAlt size={10} /> Clear
+              </button>
+            )}
+          </div>
+
           {loading ? (
             <div className="flex items-center justify-center py-16">
               <div className="text-center">
@@ -490,43 +528,7 @@ const SearchResults = () => {
                 </div>
               )}
 
-              {/* Filter Buttons */}
-              <div className="mb-6 flex flex-wrap items-center gap-2">
-                <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest mr-2 flex items-center gap-2">
-                  <FaFilter size={12} /> Filter by type:
-                </span>
-                {[
-                  { id: "all", label: "All" },
-                  { id: "inter-state", label: "Inter-State" },
-                  { id: "intra-state", label: "Intra-State" },
-                  { id: "carpooling", label: "Carpooling" },
-                  { id: "international", label: "International" },
-                ].map((filter) => (
-                  <button
-                    key={filter.id}
-                    onClick={() => {
-                      setActiveFilter(filter.id);
-                      setCurrentPage(1);
-                    }}
-                    className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${
-                      activeFilter === filter.id
-                        ? "bg-primary text-white border-primary shadow-md shadow-primary/20 scale-105"
-                        : "bg-white text-neutral-600 border-neutral-200 hover:border-primary/30 hover:bg-primary/5"
-                    }`}>
-                    {filter.label}
-                  </button>
-                ))}
-                {activeFilter !== "all" && (
-                  <button
-                    onClick={() => {
-                      setActiveFilter("all");
-                      setCurrentPage(1);
-                    }}
-                    className="flex items-center gap-1.5 text-xs font-bold text-neutral-400 hover:text-primary transition-colors ml-2">
-                    <FaSyncAlt size={10} /> Clear
-                  </button>
-                )}
-              </div>
+
 
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
                 <p className="text-sm sm:text-base text-neutral-600">
@@ -601,7 +603,7 @@ const SearchResults = () => {
               </div>
 
               {/* Pagination Controls */}
-              {totalPages > 0 && (
+              {filteredTrips.length > 0 && (
                 <div className="mt-8">
                   <Pagination
                     currentPage={currentPage}
