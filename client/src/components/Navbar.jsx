@@ -64,8 +64,8 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                       className="h-10 md:h-12" 
                     />
                     {portalLabel && (
-                      <div className="ml-3">
-                        <span className="px-2 py-0.5 rounded-full bg-neutral-100 text-[9px] md:text-[10px] font-black text-neutral-500 uppercase tracking-widest border border-neutral-200 leading-none">
+                      <div className="ml-3 pl-3 border-l border-neutral-200">
+                        <span className="text-[9px] md:text-[10px] font-black text-primary uppercase tracking-widest leading-none">
                           {portalLabel}
                         </span>
                       </div>
@@ -320,7 +320,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
               className="h-10" 
             />
             {portalLabel && (
-              <span className="px-2 py-0.5 rounded-full bg-white/10 text-[8px] font-black text-white/80 uppercase tracking-widest border border-white/10 ml-2">
+              <span className="text-[8px] font-black text-white/60 uppercase tracking-widest ml-2 pl-2 border-l border-white/20">
                 {portalLabel}
               </span>
             )}
