@@ -91,7 +91,7 @@ const Pagination = ({
             onChange={(e) => onItemsPerPageChange(Number(e.target.value))}
             className="border border-neutral-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-primary">
             <option value={10}>10</option>
-            <option value={25}>25</option>
+            <option value={20}>20</option>
             <option value={50}>50</option>
             <option value={100}>100</option>
           </select>

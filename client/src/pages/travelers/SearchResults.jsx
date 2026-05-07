@@ -6,6 +6,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
+import Pagination from "../../components/Pagination";
 import { tripAPI } from "../../services/api";
 import {
   FaBus,
@@ -48,8 +49,9 @@ const SearchResults = () => {
   const [exactMatch, setExactMatch] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [tripsPerPage, setTripsPerPage] = useState(10);
+  const [activeTypeFilter, setActiveTypeFilter] = useState("all");
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const tripsPerPage = 10;
 
   // Trigger login redirect for company booking links
   useEffect(() => {
@@ -182,17 +184,27 @@ const SearchResults = () => {
     }
   };
 
-  // Search filtering logic
+  // Search and Type filtering logic
   const filteredTrips = trips.filter((trip) => {
-    if (!searchTerm.trim()) return true;
+    // Search term filter
     const term = searchTerm.toLowerCase().trim();
-    return (
+    const matchesSearch = !term || (
       (trip.from && trip.from.toLowerCase().includes(term)) ||
       (trip.to && trip.to.toLowerCase().includes(term)) ||
       (trip.company?.name && trip.company.name.toLowerCase().includes(term)) ||
       (trip.terminal && trip.terminal.toLowerCase().includes(term)) ||
       (trip.vehicleType && trip.vehicleType.toLowerCase().includes(term))
     );
+
+    if (!matchesSearch) return false;
+
+    // Type filter
+    if (activeTypeFilter === "all") return true;
+    if (activeTypeFilter === "carpooling") return trip.transportType === "carpooling";
+    if (activeTypeFilter === "inter-state") return trip.transportType === "inter-state" && trip.fromState !== trip.toState;
+    if (activeTypeFilter === "intra-state") return trip.transportType === "inter-state" && trip.fromState === trip.toState;
+    
+    return true;
   });
 
   // Pagination logic
@@ -348,222 +360,154 @@ const SearchResults = () => {
         </div>
       </Card>
     );
-  };
-  return (
+   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
       <Navbar variant="desktop" />
 
       <div className="flex-1 py-8 px-4">
-        <div className="container-custom max-w-6xl">
-          {/* Header with Back Button */}
-          <div className="mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Button
-                variant="secondary"
-                onClick={() => navigate("/")}
-                className="flex items-center gap-2 text-sm">
-                <FaArrowLeft />
-                <span>Back to Search</span>
-              </Button>
-            </div>
-            <h1 className="text-2xl font-raleway font-bold text-charcoal mb-2">
-              {searchParams.companyId ? "Direct Booking Page" : "Search Results"}
-            </h1>
-
-            {searchParams.companyId && trips.length > 0 && (
-              <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 flex items-center gap-4">
-                {trips[0].company?.avatar ? (
-                  <img
-                    src={trips[0].company.avatar}
-                    alt={trips[0].company.name}
-                    className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xl font-bold border-2 border-white shadow-sm">
-                    {trips[0].company?.name?.charAt(0) || "C"}
+        <div className="max-w-6xl mx-auto">
+          {/* Header Section */}
+          <div className="mb-8">
+            <button
+              onClick={() => navigate("/")}
+              className="flex items-center gap-2 text-neutral-500 hover:text-primary mb-4 transition-colors font-semibold">
+              <FaArrowLeft size={14} />
+              Back to search
+            </button>
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-neutral-200">
+              <h1 className="text-2xl sm:text-3xl font-black text-charcoal mb-2">
+                {searchParams.companyId ? "Direct Booking Page" : "Search Results"}
+              </h1>
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-neutral-500 font-medium">
+                <div className="flex items-center gap-2">
+                  <FaMapMarkerAlt className="text-primary" />
+                  <span>
+                    {searchParams.from || "Any Location"}
+                  </span>
+                  <span className="mx-1 text-neutral-300">→</span>
+                  <span>
+                    {searchParams.to || "Any Destination"}
+                  </span>
+                </div>
+                {searchParams.date && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-neutral-300 hidden sm:inline">|</span>
+                    <FaClock className="text-primary" />
+                    <span>
+                      {new Date(searchParams.date).toLocaleDateString()}
+                    </span>
                   </div>
                 )}
-                <div>
-                  <h2 className="text-xl font-bold text-charcoal leading-tight">
-                    {trips[0].company?.name}
-                  </h2>
-                  <p className="text-sm text-neutral-600 mt-1 flex items-center gap-1">
-                    <FaCheckCircle className="text-green-500" /> Verified Transport Provider
-                  </p>
-                </div>
+                {searchParams.transportType !== "all" && (
+                  <div className="flex items-center gap-2">
+                    <span className="text-neutral-300 hidden sm:inline">|</span>
+                    <span className="bg-primary/10 text-primary px-3 py-0.5 rounded-full text-xs font-semibold capitalize">
+                      {searchParams.transportType}
+                    </span>
+                  </div>
+                )}
               </div>
-            )}
-
-            <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-neutral-600">
-              <div className="flex items-center gap-2">
-                <FaMapMarkerAlt className="text-primary" />
-                <span className="font-medium">
-                  {searchParams.transportType === "international" && searchParams.fromCountry ? (
-                    `${searchParams.fromState ? searchParams.fromState + ", " : ""}${searchParams.fromCountry}`
-                  ) : searchParams.from || "Any"}
-                  {" → "}
-                  {searchParams.transportType === "international" && searchParams.toCountry ? (
-                    `${searchParams.toState ? searchParams.toState + ", " : ""}${searchParams.toCountry}`
-                  ) : searchParams.to || "Any"}
-                </span>
-              </div>
-              {searchParams.date && (
-                <div className="flex items-center gap-2">
-                  <span className="text-neutral-300 hidden sm:inline">|</span>
-                  <FaClock className="text-primary" />
-                  <span>
-                    {new Date(searchParams.date).toLocaleDateString()}
-                  </span>
-                </div>
-              )}
-              {searchParams.transportType !== "all" && (
-                <div className="flex items-center gap-2">
-                  <span className="text-neutral-300 hidden sm:inline">|</span>
-                  <span className="bg-primary/10 text-primary px-3 py-0.5 rounded-full text-xs font-semibold capitalize">
-                    {searchParams.transportType === "international" ? "International" : "Local"}
-                  </span>
-                </div>
-              )}
             </div>
           </div>
 
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="text-center">
-                <FaSpinner className="animate-spin text-5xl text-primary mx-auto mb-4" />
-                <p className="text-neutral-600">Searching for trips...</p>
+          {/* Quick Filter Bar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="text-sm font-bold text-neutral-400 uppercase tracking-widest mr-2">Quick Filter:</span>
+              {[
+                { id: 'all', label: 'All Trips' },
+                { id: 'inter-state', label: 'Inter-state' },
+                { id: 'intra-state', label: 'Intra-state' },
+                { id: 'carpooling', label: 'Carpooling' }
+              ].map((filter) => (
+                <button
+                  key={filter.id}
+                  onClick={() => {
+                    setActiveTypeFilter(filter.id);
+                    setCurrentPage(1);
+                  }}
+                  className={`px-4 py-2 rounded-full text-xs font-bold transition-all border-2 ${
+                    activeTypeFilter === filter.id
+                      ? "bg-primary border-primary text-white shadow-lg shadow-primary/20 scale-105"
+                      : "bg-white border-neutral-200 text-neutral-500 hover:border-primary/30 hover:text-primary"
+                  }`}>
+                  {filter.label}
+                </button>
+              ))}
+            </div>
+
+            <div className="w-full md:w-80 relative">
+              <input
+                type="text"
+                placeholder="Filter results..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="w-full pl-10 pr-4 py-2.5 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary shadow-sm text-sm"
+              />
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
+                <FaBus size={14} />
               </div>
             </div>
-          ) : trips.length === 0 ? (
-            <Card>
-              <div className="text-center py-16">
-                <p className="text-neutral-600 mb-4 text-lg">No trips found</p>
-                <div className="flex justify-center">
+          </div>
+
+          {/* Main Results Area */}
+          {loading ? (
+            <div className="flex items-center justify-center py-24">
+              <div className="text-center">
+                <FaSpinner className="animate-spin text-5xl text-primary mx-auto mb-4" />
+                <p className="text-neutral-600 font-medium">Finding the best trips for you...</p>
+              </div>
+            </div>
+          ) : filteredTrips.length === 0 ? (
+            <Card className="p-12 text-center bg-white border border-neutral-200 shadow-sm">
+              <div className="max-w-md mx-auto">
+                <div className="w-20 h-20 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-400 mx-auto mb-6">
+                  <FaBus size={32} />
+                </div>
+                <h2 className="text-xl font-bold text-charcoal mb-3">No matching trips found</h2>
+                <p className="text-neutral-500 mb-8 leading-relaxed">
+                  We couldn't find any trips that match your current filters. Try adjusting your criteria.
+                </p>
+                <div className="flex justify-center gap-4">
+                  <Button variant="secondary" onClick={() => {
+                    setActiveTypeFilter('all');
+                    setSearchTerm('');
+                  }}>
+                    Reset Filters
+                  </Button>
                   <Button variant="primary" onClick={() => navigate("/")}>
-                    Search Other Routes
+                    New Search
                   </Button>
                 </div>
               </div>
             </Card>
           ) : (
-            <>
-              {!exactMatch && (
-                <div className="bg-orange-50 border-l-4 border-orange-400 p-4 mb-6 rounded-r-lg">
-                  <div className="flex">
-                    <div className="ml-3">
-                      <h3 className="text-sm font-medium text-orange-800">
-                        No exact matches found
-                      </h3>
-                      <p className="text-sm text-orange-700 mt-1">
-                        We couldn't find exact routes for your search. Here are
-                        all available {searchParams.serviceCategory} trips.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-                <p className="text-sm sm:text-base text-neutral-600">
-                  Showing {filteredTrips.length} active trip
-                  {filteredTrips.length !== 1 ? "s" : ""}
-                </p>
-                <div className="w-full sm:w-80 relative">
-                  <input
-                    type="text"
-                    placeholder="Filter results..."
-                    value={searchTerm}
-                    onChange={(e) => {
-                      setSearchTerm(e.target.value);
-                      setCurrentPage(1);
-                    }}
-                    className="w-full pl-10 pr-4 py-3 border border-neutral-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary shadow-sm text-sm"
-                  />
-                  <div className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400">
-                    <svg stroke="currentColor" fill="currentColor" strokeWidth="0" viewBox="0 0 512 512" height="1em" width="1em" xmlns="http://www.w3.org/2000/svg"><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"></path></svg>
-                  </div>
-                </div>
+            <div className="space-y-6">
+              <div className="space-y-4">
+                {currentTrips.map((trip) => renderTripCard(trip))}
               </div>
 
-              {filteredTrips.length === 0 && searchTerm && (
-                <div className="text-center py-12 bg-white rounded-xl border border-neutral-200 shadow-sm mb-6">
-                  <p className="text-neutral-500 text-lg mb-2">No results matched your search: "{searchTerm}"</p>
-                  <Button variant="secondary" onClick={() => { setSearchTerm(""); setCurrentPage(1); }}>
-                    Clear Search
-                  </Button>
-                </div>
-              )}
-
-              <div className="space-y-8">
-                {filteredTrips.length === 0 && !searchTerm && (
-                  <div className="text-center py-12 sm:py-16 bg-white rounded-xl border border-neutral-200 shadow-sm flex flex-col items-center justify-center px-4">
-                    <div className="w-16 h-16 sm:w-20 sm:h-20 bg-neutral-100 rounded-full flex items-center justify-center text-neutral-400 mb-4">
-                      <FaBus size={32} />
-                    </div>
-                    <h3 className="text-lg sm:text-xl font-bold text-charcoal mb-2 text-center">
-                      No Trips Available
-                    </h3>
-                    <p className="text-sm text-neutral-500 max-w-sm mx-auto text-center leading-relaxed">
-                      {searchParams.companyId 
-                        ? "This provider currently has no scheduled trips. Please check back later."
-                        : "No trips found matching your route and date. Try adjusting your search criteria."}
-                    </p>
-                    <Button 
-                      variant="primary" 
-                      className="mt-6 font-bold"
-                      onClick={() => navigate("/")}
-                    >
-                      Back to Search
-                    </Button>
-                  </div>
-                )}
-
-                {Object.entries(groupedTrips).map(
-                  ([categoryName, categoryTrips]) => {
-                    if (categoryTrips.length === 0) return null;
-                    return (
-                      <div key={categoryName}>
-                        <h2 className="text-lg sm:text-xl font-bold text-charcoal mb-4 pb-2 border-b border-neutral-200">
-                          {categoryName}
-                        </h2>
-                        <div className="space-y-4">
-                          {categoryTrips.map((trip) => renderTripCard(trip))}
-                        </div>
-                      </div>
-                    );
-                  },
-                )}
+              {/* Advanced Pagination */}
+              <div className="mt-12 bg-white rounded-2xl shadow-sm border border-neutral-200 overflow-hidden">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={(page) => {
+                    setCurrentPage(page);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                  }}
+                  itemsPerPage={tripsPerPage}
+                  totalItems={filteredTrips.length}
+                  onItemsPerPageChange={(val) => {
+                    setTripsPerPage(val);
+                    setCurrentPage(1);
+                  }}
+                />
               </div>
-
-              {/* Pagination Controls */}
-              {totalPages > 1 && (
-                <div className="flex justify-center items-center gap-2 sm:gap-4 mt-8 pt-4 border-t border-neutral-200">
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setCurrentPage((prev) => Math.max(prev - 1, 1));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    disabled={currentPage === 1}>
-                    Previous
-                  </Button>
-                  <span className="text-xs sm:text-sm text-neutral-600 font-medium whitespace-nowrap">
-                    Page {currentPage} of {totalPages}
-                  </span>
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    onClick={() => {
-                      setCurrentPage((prev) => Math.min(prev + 1, totalPages));
-                      window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                    disabled={currentPage === totalPages}>
-                    Next
-                  </Button>
-                </div>
-              )}
-            </>
+            </div>
           )}
         </div>
       </div>
