@@ -63,13 +63,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                     <BrandLogo 
                       className="h-10 md:h-12" 
                     />
-                    {portalLabel && (
-                      <div className="ml-3">
-                        <span className="px-2 py-0.5 rounded-full bg-neutral-100 text-[9px] md:text-[10px] font-black text-neutral-500 uppercase tracking-widest border border-neutral-200 leading-none">
-                          {portalLabel}
-                        </span>
-                      </div>
-                    )}
+
                   </div>
                 </div>
               </Link>
@@ -319,11 +313,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
               variant="white" 
               className="h-10" 
             />
-            {portalLabel && (
-              <span className="px-2 py-0.5 rounded-full bg-white/10 text-[8px] font-black text-white/80 uppercase tracking-widest border border-white/10 ml-2">
-                {portalLabel}
-              </span>
-            )}
+
           </Link>
 
           <button
