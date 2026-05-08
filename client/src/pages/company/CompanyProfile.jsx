@@ -42,6 +42,7 @@ import DocumentsTab from "../../components/company/DocumentsTab";
 import PassengersTab from "../../components/company/PassengersTab";
 import ShipmentsTab from "../../components/company/ShipmentsTab";
 import { FaUsers } from "react-icons/fa";
+import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 
 const CompanyProfile = () => {
   const { user, updateUser } = useAuth();
@@ -1681,6 +1682,27 @@ const CompanyProfile = () => {
               disabled={saving}
             />
           </div>
+
+          {/* Price Summary Breakdown */}
+          <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2">
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-blue-700">Standard Ticket Price</span>
+              <span className="font-semibold text-blue-900">₦{Number(formData.price || 0).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-blue-700">Service Fee (5%)</span>
+              <span className="font-semibold text-blue-900">₦{calculateServiceFee(Number(formData.price || 0)).toLocaleString()}</span>
+            </div>
+            <div className="flex justify-between items-center text-sm">
+              <span className="text-blue-700">VAT (7.5%)</span>
+              <span className="font-semibold text-blue-900">₦{calculateVAT(calculateServiceFee(Number(formData.price || 0))).toLocaleString()}</span>
+            </div>
+            <div className="pt-2 border-t border-blue-200 flex justify-between items-center">
+              <span className="font-bold text-blue-900">Total Customer Pays</span>
+              <span className="font-bold text-primary text-lg">₦{(Number(formData.price || 0) + calculateServiceFee(Number(formData.price || 0)) + calculateVAT(calculateServiceFee(Number(formData.price || 0)))).toLocaleString()}</span>
+            </div>
+          </div>
+
 
           {formData.serviceCategory === "freight" && (
             <div className="mt-4">

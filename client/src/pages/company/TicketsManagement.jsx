@@ -34,7 +34,7 @@ import {
   FaMoneyBillWave,
 } from "react-icons/fa";
 import { MaterialTimePicker } from "../../components/MaterialDatePicker";
-import MaterialDatePicker from "../../components/MaterialDatePicker";
+import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 
 const TicketsManagement = () => {
   const { user } = useAuth(); // Get user for verification status check
@@ -986,16 +986,34 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}
                   />
-                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex gap-3 items-start">
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-blue-700">Standard Seat Price</span>
+                      <span className="font-semibold text-blue-900">₦{Number(formData.price || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-blue-700">Service Fee (5%)</span>
+                      <span className="font-semibold text-blue-900">₦{calculateServiceFee(Number(formData.price || 0)).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-blue-700">VAT (7.5%)</span>
+                      <span className="font-semibold text-blue-900">₦{calculateVAT(calculateServiceFee(Number(formData.price || 0))).toLocaleString()}</span>
+                    </div>
+                    <div className="pt-2 border-t border-blue-200 flex justify-between items-center">
+                      <span className="font-bold text-blue-900">Total Customer Pays</span>
+                      <span className="font-bold text-primary text-lg">₦{(Number(formData.price || 0) + calculateServiceFee(Number(formData.price || 0)) + calculateVAT(calculateServiceFee(Number(formData.price || 0)))).toLocaleString()}</span>
+                    </div>
+                  </div>
+                  <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex gap-3 items-start">
                     <FaInfoCircle
-                      className="text-blue-500 mt-1 flex-shrink-0"
+                      className="text-amber-500 mt-1 flex-shrink-0"
                       size={14}
                     />
                     <div>
-                      <p className="text-xs font-semibold text-blue-800 mb-0.5">
+                      <p className="text-xs font-semibold text-amber-800 mb-0.5">
                         Price Recommendation
                       </p>
-                      <p className="text-[10px] text-blue-700 leading-relaxed">
+                      <p className="text-[10px] text-amber-700 leading-relaxed">
                         Mainland ↔ Island, Peak hours: ₦1,500 - ₦5,000
                       </p>
                     </div>
@@ -1538,6 +1556,26 @@ const TicketsManagement = () => {
                   required
                   disabled={saving}
                 />
+              </div>
+
+              {/* Price Summary Breakdown */}
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2">
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-blue-700">Standard Ticket Price</span>
+                  <span className="font-semibold text-blue-900">₦{Number(formData.price || 0).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-blue-700">Service Fee (5%)</span>
+                  <span className="font-semibold text-blue-900">₦{calculateServiceFee(Number(formData.price || 0)).toLocaleString()}</span>
+                </div>
+                <div className="flex justify-between items-center text-sm">
+                  <span className="text-blue-700">VAT (7.5%)</span>
+                  <span className="font-semibold text-blue-900">₦{calculateVAT(calculateServiceFee(Number(formData.price || 0))).toLocaleString()}</span>
+                </div>
+                <div className="pt-2 border-t border-blue-200 flex justify-between items-center">
+                  <span className="font-bold text-blue-900">Total Customer Pays</span>
+                  <span className="font-bold text-primary text-lg">₦{(Number(formData.price || 0) + calculateServiceFee(Number(formData.price || 0)) + calculateVAT(calculateServiceFee(Number(formData.price || 0)))).toLocaleString()}</span>
+                </div>
               </div>
 
               {formData.transportType === "international" && (

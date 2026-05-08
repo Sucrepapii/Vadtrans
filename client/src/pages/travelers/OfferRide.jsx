@@ -17,6 +17,7 @@ import {
   FaMoneyBillWave,
   FaInfoCircle,
 } from "react-icons/fa";
+import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 
 const OfferRide = () => {
   const navigate = useNavigate();
@@ -312,14 +313,33 @@ const OfferRide = () => {
                       </p>
                     </div>
                   </div>
-                  <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl flex gap-3 items-start">
-                    <FaInfoCircle className="text-blue-500 mt-1 flex-shrink-0" />
+                  <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-blue-700">Standard Seat Price</span>
+                      <span className="font-semibold text-blue-900">₦{Number(formData.price || 0).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-blue-700">Service Fee (5%)</span>
+                      <span className="font-semibold text-blue-900">₦{calculateServiceFee(Number(formData.price || 0)).toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="text-blue-700">VAT (7.5%)</span>
+                      <span className="font-semibold text-blue-900">₦{calculateVAT(calculateServiceFee(Number(formData.price || 0))).toLocaleString()}</span>
+                    </div>
+                    <div className="pt-2 border-t border-blue-200 flex justify-between items-center">
+                      <span className="font-bold text-blue-900">Total Customer Pays</span>
+                      <span className="font-bold text-primary text-lg">₦{(Number(formData.price || 0) + calculateServiceFee(Number(formData.price || 0)) + calculateVAT(calculateServiceFee(Number(formData.price || 0)))).toLocaleString()}</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-4 p-4 bg-amber-50 border border-amber-100 rounded-xl flex gap-3 items-start">
+                    <FaInfoCircle className="text-amber-500 mt-1 flex-shrink-0" />
                     <div>
-                      <p className="text-sm font-semibold text-blue-800 mb-1">Price Recommendation</p>
-                      <p className="text-xs text-blue-700 leading-relaxed">
+                      <p className="text-sm font-semibold text-amber-800 mb-1">Price Recommendation</p>
+                      <p className="text-xs text-amber-700 leading-relaxed">
                         For Mainland ↔ Island routes, Morning & Evening hours:
                       </p>
-                      <p className="text-xs font-bold text-blue-800 mt-1">Minimum: ₦1,500 | Maximum: ₦5,000</p>
+                      <p className="text-xs font-bold text-amber-800 mt-1">Minimum: ₦1,500 | Maximum: ₦5,000</p>
                     </div>
                   </div>
                 </div>
