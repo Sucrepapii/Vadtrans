@@ -257,9 +257,14 @@ const BookingConfirmation = () => {
                       <p className="text-sm text-neutral-600">
                         {finalBookingId}
                       </p>
-                      <p className="text-sm text-neutral-600 font-medium mt-1">
-                        Vehicle: {finalTrip.vehicleType || "Bus"}
-                      </p>
+                      <div className="mt-1">
+                        <p className="text-sm text-neutral-600 font-bold">
+                          Vehicle: {finalTrip.vehicleName || "Assigned Vehicle"}
+                        </p>
+                        <p className="text-[10px] text-neutral-500 font-medium">
+                          Type: {finalTrip.vehicleType || "Bus"}
+                        </p>
+                      </div>
                     </div>
                   </div>
 

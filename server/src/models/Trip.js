@@ -91,10 +91,6 @@ const Trip = sequelize.define(
       allowNull: true,
       defaultValue: 1,
     },
-    departureDeadline: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
     depositAmount: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: true,

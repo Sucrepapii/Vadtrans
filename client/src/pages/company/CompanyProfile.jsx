@@ -127,7 +127,6 @@ const CompanyProfile = () => {
     timeWindowStart: "",
     timeWindowEnd: "",
     minSeats: 1,
-    departureDeadline: "",
     depositAmount: 0,
     cancellationWindow: 12,
     confirmationWindow: 2,
@@ -271,7 +270,6 @@ const CompanyProfile = () => {
         timeWindowStart: formData.timeWindowStart || null,
         timeWindowEnd: formData.timeWindowEnd || null,
         minSeats: Number(formData.minSeats || 1),
-        departureDeadline: formData.departureDeadline || null,
         depositAmount: Number(formData.depositAmount || 0),
         cancellationWindow: Number(formData.cancellationWindow || 12),
         confirmationWindow: Number(formData.confirmationWindow || 2),
@@ -312,7 +310,6 @@ const CompanyProfile = () => {
         timeWindowStart: "",
         timeWindowEnd: "",
         minSeats: 1,
-        departureDeadline: "",
         depositAmount: 0,
         cancellationWindow: 12,
         confirmationWindow: 2,
@@ -1701,19 +1698,11 @@ const CompanyProfile = () => {
                   disabled={saving}
                 />
               </div>
-              <div className="grid grid-cols-2 gap-4">
                 <Input
                   label="Min Seats for Departure"
                   type="number"
                   value={formData.minSeats}
                   onChange={(e) => setFormData({ ...formData, minSeats: e.target.value })}
-                  disabled={saving}
-                />
-                <Input
-                  label="Departure Deadline"
-                  type="time"
-                  value={formData.departureDeadline}
-                  onChange={(e) => setFormData({ ...formData, departureDeadline: e.target.value })}
                   disabled={saving}
                 />
               </div>

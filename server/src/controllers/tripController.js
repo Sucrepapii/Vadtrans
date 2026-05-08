@@ -174,7 +174,6 @@ exports.createTrip = async (req, res) => {
       timeWindowStart,
       timeWindowEnd,
       minSeats,
-      departureDeadline,
       depositAmount,
       cancellationWindow,
       confirmationWindow,
@@ -229,7 +228,6 @@ exports.createTrip = async (req, res) => {
       timeWindowStart: timeWindowStart || null,
       timeWindowEnd: timeWindowEnd || null,
       minSeats: minSeats || 1,
-      departureDeadline: departureDeadline || null,
       depositAmount: depositAmount || 0,
       cancellationWindow: cancellationWindow || 12,
       confirmationWindow: confirmationWindow || 2,
@@ -304,7 +302,6 @@ exports.updateTrip = async (req, res) => {
       timeWindowStart,
       timeWindowEnd,
       minSeats,
-      departureDeadline,
       depositAmount,
       cancellationWindow,
       confirmationWindow,
@@ -337,7 +334,6 @@ exports.updateTrip = async (req, res) => {
     if (timeWindowStart !== undefined) trip.timeWindowStart = timeWindowStart;
     if (timeWindowEnd !== undefined) trip.timeWindowEnd = timeWindowEnd;
     if (minSeats !== undefined) trip.minSeats = minSeats;
-    if (departureDeadline !== undefined) trip.departureDeadline = departureDeadline;
     if (depositAmount !== undefined) trip.depositAmount = depositAmount;
     if (cancellationWindow !== undefined) trip.cancellationWindow = cancellationWindow;
     if (confirmationWindow !== undefined) trip.confirmationWindow = confirmationWindow;

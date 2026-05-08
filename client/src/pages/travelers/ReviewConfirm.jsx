@@ -16,6 +16,8 @@ import {
   FaCheckCircle,
   FaArrowLeft,
   FaSpinner,
+  FaBus,
+  FaMapMarkerAlt,
 } from "react-icons/fa";
 
 const ReviewConfirm = () => {
@@ -274,6 +276,37 @@ const ReviewConfirm = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div className="lg:col-span-2 space-y-6">
+              {/* Trip Summary */}
+              <Card>
+                <div className="flex items-center gap-2 mb-4">
+                  <FaBus className="text-primary" />
+                  <h3 className="font-semibold">Trip Summary</h3>
+                </div>
+                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100">
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="text-lg font-bold text-charcoal">
+                        {tripData?.from} → {tripData?.to}
+                      </p>
+                      <p className="text-sm text-neutral-600">
+                        {searchDate || tripData?.departureDate || "Scheduled Date"} • {tripData?.departureTime}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs font-bold text-neutral-400 uppercase tracking-widest mb-1">Vehicle</p>
+                      <p className="font-bold text-charcoal">{tripData?.vehicleName || "Assigned Vehicle"}</p>
+                      <p className="text-[10px] text-neutral-500">{tripData?.vehicleType}</p>
+                    </div>
+                  </div>
+                  {tripData?.terminal && (
+                    <div className="flex items-center gap-2 pt-3 border-t border-neutral-200">
+                      <FaMapMarkerAlt className="text-primary text-xs" />
+                      <p className="text-xs text-neutral-600 font-medium">{tripData.terminal}</p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+
               {/* Passenger Information */}
               <Card>
                 <div className="flex items-center gap-2 mb-4">

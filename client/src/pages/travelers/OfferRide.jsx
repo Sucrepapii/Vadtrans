@@ -34,7 +34,6 @@ const OfferRide = () => {
     seats: 3,
     price: "",
     departureTime: "07:00", // Will be set to timeWindowStart
-    departureDeadline: "07:15",
     depositAmount: 0,
     cancellationWindow: 12,
     confirmationWindow: 2,
@@ -210,16 +209,6 @@ const OfferRide = () => {
                         type="time"
                         value={formData.timeWindowEnd}
                         onChange={(e) => setFormData({...formData, timeWindowEnd: e.target.value})}
-                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
-                        required
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">Departure Deadline</label>
-                      <input 
-                        type="time"
-                        value={formData.departureDeadline}
-                        onChange={(e) => setFormData({...formData, departureDeadline: e.target.value})}
                         className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                         required
                       />
