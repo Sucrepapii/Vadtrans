@@ -237,7 +237,7 @@ const OfferRide = () => {
                       <label className="block text-sm font-medium text-charcoal mb-1">Vehicle Name / Model</label>
                       <input 
                         type="text"
-                        placeholder="e.g. Toyota Corolla, Nissan"
+                        placeholder="e.g. Toyota Corolla, Nissan, Lexus 360"
                         value={formData.vehicleName}
                         onChange={(e) => setFormData({...formData, vehicleName: e.target.value})}
                         className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"

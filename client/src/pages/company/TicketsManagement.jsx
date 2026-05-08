@@ -821,7 +821,16 @@ const TicketsManagement = () => {
                 <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
                   <FaCar className="text-primary" /> Vehicle & Terminal
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <Input
+                    label="Vehicle Name / Model"
+                    type="text"
+                    placeholder="e.g. Toyota Corolla, Nissan, Lexus 360"
+                    value={formData.vehicleName}
+                    onChange={(e) => setFormData({ ...formData, vehicleName: e.target.value })}
+                    disabled={saving}
+                    required
+                  />
                   <Input
                     label="Vehicle Plate Number"
                     type="text"
