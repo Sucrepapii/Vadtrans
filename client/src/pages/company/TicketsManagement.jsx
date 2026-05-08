@@ -776,47 +776,73 @@ const TicketsManagement = () => {
 
               {/* Time & Schedule */}
               <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
-                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                  <FaClock className="text-primary" /> Time & Schedule
+                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center">
+                </h3>
+
+              {/* Vehicle Information - Standard across all trip types */}
+              <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200">
+                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2 mb-4">
+                  <FaCar className="text-primary" /> Vehicle Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <MaterialDatePicker
-                      label="Departure Date"
-                      value={formData.departureDate}
-                      onChange={(date) => {
-                        if (date) {
-                          const year = date.getFullYear();
-                          const month = String(date.getMonth() + 1).padStart(2, "0");
-                          const day = String(date.getDate()).padStart(2, "0");
-                          const dateStr = `${year}-${month}-${day}`;
-                          setFormData({ ...formData, departureDate: dateStr });
-                        } else {
-                          setFormData({ ...formData, departureDate: "" });
+                  <div>
+                    <label className="block text-sm font-medium text-neutral-700 mb-2">
+                      {formData.serviceCategory === "freight" ? "Carrier / Vehicle Type" : "Vehicle Category"}
+                    </label>
+                    {formData.serviceCategory === "freight" ? (
+                      <select
+                        value={formData.vehicleType}
+                        onChange={(e) =>
+                          setFormData({ ...formData, vehicleType: e.target.value })
                         }
-                      }}
-                      minDate={new Date()}
-                      className="w-full"
+                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        disabled={saving}>
+                        <option value="Mini Van">Mini Van</option>
+                        <option value="Delivery Van">Delivery Van</option>
+                        <option value="Box Truck">Box Truck</option>
+                        <option value="Heavy Duty Truck">Heavy Duty Truck</option>
+                        <option value="Refrigerated Truck">Refrigerated Truck</option>
+                      </select>
+                    ) : (
+                      <select
+                        value={formData.vehicleType}
+                        onChange={(e) => {
+                          const vehicleType = e.target.value;
+                          let seats = formData.seats;
+                          if (vehicleType.includes("18 seater")) seats = 18;
+                          else if (vehicleType.includes("32 seater")) seats = 32;
+                          else if (vehicleType.includes("52 seater")) seats = 52;
+                          else if (vehicleType === "Mini Buses (7 seater)") seats = 7;
+                          else if (vehicleType === "Sienna car (7 seats)") seats = 7;
+                          else if (vehicleType === "Sedan (small car)") seats = 4;
+                          setFormData({ ...formData, vehicleType, seats });
+                        }}
+                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                        disabled={saving}>
+                        <option value="Hiace Bus (18 seater)">Hiace Bus (18 seater)</option>
+                        <option value="Coaster Bus (32 seater)">Coaster Bus (32 seater)</option>
+                        <option value="Luxirious Bus (52 seater)">Luxirious Bus (52 seater)</option>
+                        <option value="Mini Buses (7 seater)">Mini Buses (7 seater)</option>
+                        <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
+                        <option value="Sedan (small car)">Sedan (small car)</option>
+                      </select>
+                    )}
+                  </div>
+                  <div>
+                    <Input
+                      label="Vehicle Name / Model"
+                      type="text"
+                      placeholder="e.g. Toyota Corolla, Nissan, Lexus 360"
+                      value={formData.vehicleName}
+                      onChange={(e) =>
+                        setFormData({ ...formData, vehicleName: e.target.value })
+                      }
+                      disabled={saving}
+                      required
                     />
                   </div>
-                  <Input
-                    label="Earliest Pickup Time"
-                    type="time"
-                    value={formData.timeWindowStart}
-                    onChange={(e) => setFormData({ ...formData, timeWindowStart: e.target.value })}
-                    disabled={saving}
-                    required
-                  />
-                  <Input
-                    label="Latest Pickup Time"
-                    type="time"
-                    value={formData.timeWindowEnd}
-                    onChange={(e) => setFormData({ ...formData, timeWindowEnd: e.target.value })}
-                    disabled={saving}
-                    required
-                  />
                 </div>
-              </div>
+              </div></div>
 
               {/* Vehicle & Terminal */}
               <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
@@ -824,15 +850,6 @@ const TicketsManagement = () => {
                   <FaCar className="text-primary" /> Vehicle & Terminal
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Input
-                    label="Vehicle Name / Model"
-                    type="text"
-                    placeholder="e.g. Toyota Corolla, Nissan, Lexus 360"
-                    value={formData.vehicleName}
-                    onChange={(e) => setFormData({ ...formData, vehicleName: e.target.value })}
-                    disabled={saving}
-                    required
-                  />
                   <Input
                     label="Vehicle Plate Number"
                     type="text"
@@ -848,6 +865,14 @@ const TicketsManagement = () => {
                     placeholder="e.g. Conoil filling station, Festac"
                     value={formData.pickupAddress}
                     onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
+                    disabled={saving}
+                    required
+                  />
+                  <Input
+                    label="Earliest Pickup Time"
+                    type="time"
+                    value={formData.timeWindowStart}
+                    onChange={(e) => setFormData({ ...formData, timeWindowStart: e.target.value })}
                     disabled={saving}
                     required
                   />
@@ -913,14 +938,14 @@ const TicketsManagement = () => {
           ) : (
             <div className="space-y-4">
               {/* Vehicle Information */}
-              <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
-                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+              <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200">
+                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2 mb-4">
                   <FaCar className="text-primary" /> Vehicle Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
-                      Vehicle Type
+                      {formData.serviceCategory === "freight" ? "Carrier / Vehicle Type" : "Vehicle Category"}
                     </label>
                     {formData.serviceCategory === "freight" ? (
                       <select
@@ -929,12 +954,12 @@ const TicketsManagement = () => {
                           setFormData({ ...formData, vehicleType: e.target.value })
                         }
                         className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                        disabled={saving}
-                        required>
-                        <option value="Bike">Bike</option>
-                        <option value="Car">Car</option>
-                        <option value="Van">Van</option>
-                        <option value="Truck">Truck</option>
+                        disabled={saving}>
+                        <option value="Mini Van">Mini Van</option>
+                        <option value="Delivery Van">Delivery Van</option>
+                        <option value="Box Truck">Box Truck</option>
+                        <option value="Heavy Duty Truck">Heavy Duty Truck</option>
+                        <option value="Refrigerated Truck">Refrigerated Truck</option>
                       </select>
                     ) : (
                       <select

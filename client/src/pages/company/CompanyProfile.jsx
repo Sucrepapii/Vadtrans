@@ -1238,67 +1238,70 @@ const CompanyProfile = () => {
             </select>
           </div>
 
-          {formData.serviceCategory === "freight" ? (
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Freight Type
-              </label>
-              <select
-                value={formData.freightType}
-                onChange={(e) =>
-                  setFormData({ ...formData, freightType: e.target.value })
-                }
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                disabled={saving}
-                required>
-                <option value="">Select Freight Type</option>
-                <option value="Small Parcel">Small Parcel</option>
-                <option value="Medium Cargo">Medium Cargo</option>
-                <option value="Large/Bulk Cargo">Large/Bulk Cargo</option>
-              </select>
+          {/* Vehicle Information - Standard across all trip types */}
+          <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200 mb-4">
+            <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2 mb-4">
+              <FaCar className="text-primary" /> Vehicle Information
+            </h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-neutral-700 mb-2">
+                  {formData.serviceCategory === "freight" ? "Carrier / Vehicle Type" : "Vehicle Category"}
+                </label>
+                {formData.serviceCategory === "freight" ? (
+                  <select
+                    value={formData.vehicleType}
+                    onChange={(e) =>
+                      setFormData({ ...formData, vehicleType: e.target.value })
+                    }
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    disabled={saving}>
+                    <option value="Mini Van">Mini Van</option>
+                    <option value="Delivery Van">Delivery Van</option>
+                    <option value="Box Truck">Box Truck</option>
+                    <option value="Heavy Duty Truck">Heavy Duty Truck</option>
+                    <option value="Refrigerated Truck">Refrigerated Truck</option>
+                  </select>
+                ) : (
+                  <select
+                    value={formData.vehicleType}
+                    onChange={(e) => {
+                      const vehicleType = e.target.value;
+                      let seats = formData.seats;
+                      if (vehicleType.includes("18 seater")) seats = 18;
+                      else if (vehicleType.includes("32 seater")) seats = 32;
+                      else if (vehicleType.includes("52 seater")) seats = 52;
+                      else if (vehicleType === "Mini Buses (7 seater)") seats = 7;
+                      else if (vehicleType === "Sienna car (7 seats)") seats = 7;
+                      else if (vehicleType === "Sedan (small car)") seats = 4;
+                      setFormData({ ...formData, vehicleType, seats });
+                    }}
+                    className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                    disabled={saving}>
+                    <option value="Hiace Bus (18 seater)">Hiace Bus (18 seater)</option>
+                    <option value="Coaster Bus (32 seater)">Coaster Bus (32 seater)</option>
+                    <option value="Luxirious Bus (52 seater)">Luxirious Bus (52 seater)</option>
+                    <option value="Mini Buses (7 seater)">Mini Buses (7 seater)</option>
+                    <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
+                    <option value="Sedan (small car)">Sedan (small car)</option>
+                  </select>
+                )}
+              </div>
+              <div>
+                <Input
+                  label="Vehicle Name / Model"
+                  type="text"
+                  placeholder="e.g. Toyota Corolla, Nissan, Lexus 360"
+                  value={formData.vehicleName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, vehicleName: e.target.value })
+                  }
+                  disabled={saving}
+                  required
+                />
+              </div>
             </div>
-          ) : (
-            <div>
-              <label className="block text-sm font-medium text-neutral-700 mb-2">
-                Vehicle Type
-              </label>
-              <select
-                value={formData.vehicleType}
-                onChange={(e) => {
-                  const vehicleType = e.target.value;
-                  let seats = formData.seats;
-
-                  // Auto-set seats based on vehicle type
-                  if (vehicleType.includes("18 seater")) seats = 18;
-                  else if (vehicleType.includes("32 seater")) seats = 32;
-                  else if (vehicleType.includes("52 seater")) seats = 52;
-                  else if (vehicleType === "Mini Buses (7 seater)") seats = 7;
-                  else if (vehicleType === "Sienna car (7 seats)") seats = 7;
-                  else if (vehicleType === "Sedan (small car)") seats = 4;
-
-                  setFormData({ ...formData, vehicleType, seats });
-                }}
-                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                disabled={saving}>
-                <option value="Hiace Bus (18 seater)">
-                  Hiace Bus (18 seater)
-                </option>
-                <option value="Coaster Bus (32 seater)">
-                  Coaster Bus (32 seater)
-                </option>
-                <option value="Luxirious Bus (52 seater)">
-                  Luxirious Bus (52 seater)
-                </option>
-                <option value="Mini Buses (7 seater)">
-                  Mini Buses (7 seater)
-                </option>
-                <option value="Sienna car (7 seats)">
-                  Sienna car (7 seats)
-                </option>
-                <option value="Sedan (small car)">Sedan (small car)</option>
-              </select>
-            </div>
-          )}
+          </div>
 
           {/* FROM/TO LOCATION */}
           {formData.transportType === "carpooling" ? (
@@ -1678,6 +1681,27 @@ const CompanyProfile = () => {
               disabled={saving}
             />
           </div>
+
+          {formData.serviceCategory === "freight" && (
+            <div className="mt-4">
+              <label className="block text-sm font-medium text-neutral-700 mb-2">
+                Freight Type
+              </label>
+              <select
+                value={formData.freightType}
+                onChange={(e) =>
+                  setFormData({ ...formData, freightType: e.target.value })
+                }
+                className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={saving}
+                required>
+                <option value="">Select Freight Type</option>
+                <option value="Small Parcel">Small Parcel</option>
+                <option value="Medium Cargo">Medium Cargo</option>
+                <option value="Large/Bulk Cargo">Large/Bulk Cargo</option>
+              </select>
+            </div>
+          )}
 
           {formData.transportType === "carpooling" && (
             <div className="space-y-4 pt-4 border-t">
