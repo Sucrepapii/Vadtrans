@@ -1729,7 +1729,7 @@ const CompanyProfile = () => {
                   onChange={(e) => setFormData({ ...formData, minSeats: e.target.value })}
                   disabled={saving}
                 />
-              </div>
+
               <div className="grid grid-cols-3 gap-4">
                 <Input
                   label="Deposit (₦)"

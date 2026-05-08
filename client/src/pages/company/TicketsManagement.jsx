@@ -776,8 +776,47 @@ const TicketsManagement = () => {
 
               {/* Time & Schedule */}
               <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
-                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center">
+                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                  <FaClock className="text-primary" /> Time & Schedule
                 </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="md:col-span-2">
+                    <MaterialDatePicker
+                      label="Departure Date"
+                      value={formData.departureDate}
+                      onChange={(date) => {
+                        if (date) {
+                          const year = date.getFullYear();
+                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const day = String(date.getDate()).padStart(2, "0");
+                          const dateStr = `${year}-${month}-${day}`;
+                          setFormData({ ...formData, departureDate: dateStr });
+                        } else {
+                          setFormData({ ...formData, departureDate: "" });
+                        }
+                      }}
+                      minDate={new Date()}
+                      className="w-full"
+                    />
+                  </div>
+                  <Input
+                    label="Earliest Pickup Time"
+                    type="time"
+                    value={formData.timeWindowStart}
+                    onChange={(e) => setFormData({ ...formData, timeWindowStart: e.target.value })}
+                    disabled={saving}
+                    required
+                  />
+                  <Input
+                    label="Latest Pickup Time"
+                    type="time"
+                    value={formData.timeWindowEnd}
+                    onChange={(e) => setFormData({ ...formData, timeWindowEnd: e.target.value })}
+                    disabled={saving}
+                    required
+                  />
+                </div>
+              </div>
 
               {/* Vehicle Information - Standard across all trip types */}
               <div className="bg-neutral-50 p-4 rounded-2xl border border-neutral-200">
@@ -842,7 +881,7 @@ const TicketsManagement = () => {
                     />
                   </div>
                 </div>
-              </div></div>
+              </div>
 
               {/* Vehicle & Terminal */}
               <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
@@ -1475,8 +1514,6 @@ const TicketsManagement = () => {
                       disabled={saving}
                     />
                   </div>
-                </div>
-
                 </div>
               )}
             </div>
