@@ -97,34 +97,39 @@ const TicketsManagement = () => {
 
   useEffect(() => {
     let isMounted = true;
-    const stateToFetch = formData.transportType === "carpooling" || formData.transportType === "inter-state" 
-      ? formData.state 
-      : null;
+    const stateToFetch =
+      formData.transportType === "carpooling" ||
+      formData.transportType === "inter-state"
+        ? formData.state
+        : null;
 
     if (stateToFetch) {
-      getCitiesForState(stateToFetch).then(fetchedCities => {
+      getCitiesForState(stateToFetch).then((fetchedCities) => {
         if (isMounted) setApiFromCities(fetchedCities || []);
       });
     } else {
       setApiFromCities([]);
     }
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [formData.transportType, formData.state, getCitiesForState]);
 
   useEffect(() => {
     let isMounted = true;
-    const stateToFetch = formData.transportType === "inter-state" 
-      ? formData.toState 
-      : null;
+    const stateToFetch =
+      formData.transportType === "inter-state" ? formData.toState : null;
 
     if (stateToFetch) {
-      getCitiesForState(stateToFetch).then(fetchedCities => {
+      getCitiesForState(stateToFetch).then((fetchedCities) => {
         if (isMounted) setApiToCities(fetchedCities || []);
       });
     } else {
       setApiToCities([]);
     }
-    return () => { isMounted = false; };
+    return () => {
+      isMounted = false;
+    };
   }, [formData.transportType, formData.toState, getCitiesForState]);
 
   // Determine location options based on transport type
@@ -132,7 +137,7 @@ const TicketsManagement = () => {
     if (formData.transportType === "international") {
       return westAfricanCountries;
     }
-    return states.map(s => s.name);
+    return states.map((s) => s.name);
   }, [formData.transportType, states]);
 
   const fromCities = useMemo(() => apiFromCities, [apiFromCities]);
@@ -152,7 +157,10 @@ const TicketsManagement = () => {
       const transformedTrips = response.data.trips.map((trip) => ({
         id: trip.id,
         route: `${trip.from} - ${trip.to}`,
-        transportType: trip.transportType === "intra-state" ? "carpooling" : trip.transportType,
+        transportType:
+          trip.transportType === "intra-state"
+            ? "carpooling"
+            : trip.transportType,
         departureTime: trip.departureTime,
         departureDate: trip.departureDate,
         operatingDays: trip.operatingDays ? trip.operatingDays.split(",") : [],
@@ -242,7 +250,7 @@ const TicketsManagement = () => {
 
   const handleSelectTripType = (type) => {
     setShowTypeSelection(false);
-    
+
     if (type === "carpooling") {
       const today = new Date();
       const year = today.getFullYear();
@@ -250,23 +258,23 @@ const TicketsManagement = () => {
       const day = String(today.getDate()).padStart(2, "0");
       const formattedDate = `${year}-${month}-${day}`;
 
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         transportType: "carpooling",
         serviceCategory: "passenger",
         vehicleType: "Sedan (small car)",
         seats: 4,
-        departureDate: formattedDate
+        departureDate: formattedDate,
       }));
     } else if (type === "freight") {
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
         transportType: "inter-state",
         serviceCategory: "freight",
-        vehicleType: "Van"
+        vehicleType: "Van",
       }));
     }
-    
+
     setIsModalOpen(true);
   };
 
@@ -378,10 +386,15 @@ const TicketsManagement = () => {
         to: formData.to,
         transportType: formData.transportType,
         departureTime: formData.departureTime,
-        departureDate: formData.departureDate 
-          ? (typeof formData.departureDate === 'object' 
-              ? new Date(formData.departureDate.getTime() - (formData.departureDate.getTimezoneOffset() * 60000)).toISOString().split('T')[0]
-              : formData.departureDate)
+        departureDate: formData.departureDate
+          ? typeof formData.departureDate === "object"
+            ? new Date(
+                formData.departureDate.getTime() -
+                  formData.departureDate.getTimezoneOffset() * 60000,
+              )
+                .toISOString()
+                .split("T")[0]
+            : formData.departureDate
           : null,
         operatingDays:
           formData.operatingDays.length > 0
@@ -415,10 +428,29 @@ const TicketsManagement = () => {
         terminal: formData.terminal,
         city: formData.city,
         // Save new cascading fields if international
-        fromCountry: formData.transportType === "international" ? formData.fromCountry : "Nigeria",
-        toCountry: formData.transportType === "international" ? formData.toCountry : "Nigeria",
-        fromState: formData.transportType === "international" ? formData.fromState : ((formData.transportType === "inter-state" || formData.transportType === "carpooling") ? formData.state : null),
-        toState: formData.transportType === "international" ? formData.toState : (formData.transportType === "inter-state" ? formData.toState : (formData.transportType === "carpooling" ? formData.state : null)),
+        fromCountry:
+          formData.transportType === "international"
+            ? formData.fromCountry
+            : "Nigeria",
+        toCountry:
+          formData.transportType === "international"
+            ? formData.toCountry
+            : "Nigeria",
+        fromState:
+          formData.transportType === "international"
+            ? formData.fromState
+            : formData.transportType === "inter-state" ||
+                formData.transportType === "carpooling"
+              ? formData.state
+              : null,
+        toState:
+          formData.transportType === "international"
+            ? formData.toState
+            : formData.transportType === "inter-state"
+              ? formData.toState
+              : formData.transportType === "carpooling"
+                ? formData.state
+                : null,
         documentPrices: formData.documentPrices,
         timeWindowStart: formData.timeWindowStart || null,
         timeWindowEnd: formData.timeWindowEnd || null,
@@ -447,16 +479,17 @@ const TicketsManagement = () => {
         // Update existing trip
         const updateData = {
           ...tripData,
-          departureTime: formData.transportType === "carpooling" 
-            ? formData.timeWindowStart 
-            : formData.departureTimes[0],
+          departureTime:
+            formData.transportType === "carpooling"
+              ? formData.timeWindowStart
+              : formData.departureTimes[0],
         };
         await tripAPI.updateTrip(editingTicket.id, updateData);
         toast.success("Trip updated successfully!");
       } else {
         // Create new trip(s)
         let validTimes = [];
-        
+
         if (formData.transportType === "carpooling") {
           if (!formData.timeWindowStart) {
             toast.error("Please set the earliest pickup time");
@@ -526,7 +559,9 @@ const TicketsManagement = () => {
           <span className="font-medium text-sm text-charcoal">
             {value || "Not Set"}
           </span>
-          <span className="text-[10px] text-neutral-500">{row.vehicleType}</span>
+          <span className="text-[10px] text-neutral-500">
+            {row.vehicleType}
+          </span>
         </div>
       ),
     },
@@ -710,7 +745,9 @@ const TicketsManagement = () => {
                 </h3>
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-charcoal mb-1">Select State</label>
+                    <label className="block text-sm font-medium text-charcoal mb-1">
+                      Select State
+                    </label>
                     <select
                       value={formData.state}
                       onChange={(e) =>
@@ -735,7 +772,9 @@ const TicketsManagement = () => {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">Pickup City</label>
+                      <label className="block text-sm font-medium text-charcoal mb-1">
+                        Pickup City
+                      </label>
                       <select
                         value={formData.from}
                         onChange={(e) =>
@@ -753,7 +792,9 @@ const TicketsManagement = () => {
                       </select>
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-charcoal mb-1">Destination City</label>
+                      <label className="block text-sm font-medium text-charcoal mb-1">
+                        Destination City
+                      </label>
                       <select
                         value={formData.to}
                         onChange={(e) =>
@@ -787,7 +828,10 @@ const TicketsManagement = () => {
                       onChange={(date) => {
                         if (date) {
                           const year = date.getFullYear();
-                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const month = String(date.getMonth() + 1).padStart(
+                            2,
+                            "0",
+                          );
                           const day = String(date.getDate()).padStart(2, "0");
                           const dateStr = `${year}-${month}-${day}`;
                           setFormData({ ...formData, departureDate: dateStr });
@@ -803,7 +847,12 @@ const TicketsManagement = () => {
                     label="Earliest Pickup Time"
                     type="time"
                     value={formData.timeWindowStart}
-                    onChange={(e) => setFormData({ ...formData, timeWindowStart: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        timeWindowStart: e.target.value,
+                      })
+                    }
                     disabled={saving}
                     required
                   />
@@ -811,7 +860,12 @@ const TicketsManagement = () => {
                     label="Latest Pickup Time"
                     type="time"
                     value={formData.timeWindowEnd}
-                    onChange={(e) => setFormData({ ...formData, timeWindowEnd: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        timeWindowEnd: e.target.value,
+                      })
+                    }
                     disabled={saving}
                     required
                   />
@@ -824,49 +878,7 @@ const TicketsManagement = () => {
                   <FaCar className="text-primary" /> Vehicle Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-neutral-700 mb-2">
-                      {formData.serviceCategory === "freight" ? "Carrier / Vehicle Type" : "Vehicle Category"}
-                    </label>
-                    {formData.serviceCategory === "freight" ? (
-                      <select
-                        value={formData.vehicleType}
-                        onChange={(e) =>
-                          setFormData({ ...formData, vehicleType: e.target.value })
-                        }
-                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                        disabled={saving}>
-                        <option value="Mini Van">Mini Van</option>
-                        <option value="Delivery Van">Delivery Van</option>
-                        <option value="Box Truck">Box Truck</option>
-                        <option value="Heavy Duty Truck">Heavy Duty Truck</option>
-                        <option value="Refrigerated Truck">Refrigerated Truck</option>
-                      </select>
-                    ) : (
-                      <select
-                        value={formData.vehicleType}
-                        onChange={(e) => {
-                          const vehicleType = e.target.value;
-                          let seats = formData.seats;
-                          if (vehicleType.includes("18 seater")) seats = 18;
-                          else if (vehicleType.includes("32 seater")) seats = 32;
-                          else if (vehicleType.includes("52 seater")) seats = 52;
-                          else if (vehicleType === "Mini Buses (7 seater)") seats = 7;
-                          else if (vehicleType === "Sienna car (7 seats)") seats = 7;
-                          else if (vehicleType === "Sedan (small car)") seats = 4;
-                          setFormData({ ...formData, vehicleType, seats });
-                        }}
-                        className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                        disabled={saving}>
-                        <option value="Hiace Bus (18 seater)">Hiace Bus (18 seater)</option>
-                        <option value="Coaster Bus (32 seater)">Coaster Bus (32 seater)</option>
-                        <option value="Luxirious Bus (52 seater)">Luxirious Bus (52 seater)</option>
-                        <option value="Mini Buses (7 seater)">Mini Buses (7 seater)</option>
-                        <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
-                        <option value="Sedan (small car)">Sedan (small car)</option>
-                      </select>
-                    )}
-                  </div>
+
                   <div>
                     <Input
                       label="Vehicle Name / Model"
@@ -874,7 +886,10 @@ const TicketsManagement = () => {
                       placeholder="e.g. Toyota Corolla, Nissan, Lexus 360"
                       value={formData.vehicleName}
                       onChange={(e) =>
-                        setFormData({ ...formData, vehicleName: e.target.value })
+                        setFormData({
+                          ...formData,
+                          vehicleName: e.target.value,
+                        })
                       }
                       disabled={saving}
                       required
@@ -894,7 +909,12 @@ const TicketsManagement = () => {
                     type="text"
                     placeholder="e.g. LAG-123-XY"
                     value={formData.vehiclePlateNumber}
-                    onChange={(e) => setFormData({ ...formData, vehiclePlateNumber: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        vehiclePlateNumber: e.target.value,
+                      })
+                    }
                     disabled={saving}
                     required
                   />
@@ -903,76 +923,85 @@ const TicketsManagement = () => {
                     type="text"
                     placeholder="e.g. Conoil filling station, Festac"
                     value={formData.pickupAddress}
-                    onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        pickupAddress: e.target.value,
+                      })
+                    }
                     disabled={saving}
                     required
                   />
+
+                </div>
+              </div>
+
+              {/* Capacity */}
+              <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
+                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                  <FaUsers className="text-primary" /> Capacity
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
-                    label="Earliest Pickup Time"
-                    type="time"
-                    value={formData.timeWindowStart}
-                    onChange={(e) => setFormData({ ...formData, timeWindowStart: e.target.value })}
-                    disabled={saving}
+                    label="Available Seats"
+                    type="number"
+                    min="1"
+                    max="7"
+                    value={formData.seats}
+                    onChange={(e) =>
+                      setFormData({ ...formData, seats: e.target.value })
+                    }
                     required
+                    disabled={saving}
+                  />
+                  <Input
+                    label="Min Seats to start"
+                    type="number"
+                    min="1"
+                    max={formData.seats}
+                    value={formData.minSeats}
+                    onChange={(e) =>
+                      setFormData({ ...formData, minSeats: e.target.value })
+                    }
+                    required
+                    disabled={saving}
                   />
                 </div>
               </div>
 
-               {/* Capacity */}
-               <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
-                 <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                   <FaUsers className="text-primary" /> Capacity
-                 </h3>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                   <Input
-                     label="Available Seats"
-                     type="number"
-                     min="1"
-                     max="7"
-                     value={formData.seats}
-                     onChange={(e) => setFormData({ ...formData, seats: e.target.value })}
-                     required
-                     disabled={saving}
-                   />
-                   <Input
-                     label="Min Seats to start"
-                     type="number"
-                     min="1"
-                     max={formData.seats}
-                     value={formData.minSeats}
-                     onChange={(e) => setFormData({ ...formData, minSeats: e.target.value })}
-                     required
-                     disabled={saving}
-                   />
-                 </div>
-               </div>
-
-               {/* Pricing */}
-               <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
-                 <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                   <FaMoneyBillWave className="text-primary" /> Pricing
-                 </h3>
-                 <div>
-                   <Input
-                     label="Price per Seat (₦)"
-                     type="number"
-                     placeholder="e.g. 1500"
-                     value={formData.price}
-                     onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                     required
-                     disabled={saving}
-                   />
-                   <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex gap-3 items-start">
-                     <FaInfoCircle className="text-blue-500 mt-1 flex-shrink-0" size={14} />
-                     <div>
-                       <p className="text-xs font-semibold text-blue-800 mb-0.5">Price Recommendation</p>
-                       <p className="text-[10px] text-blue-700 leading-relaxed">
-                         Mainland ↔ Island, Peak hours: ₦1,500 - ₦5,000
-                       </p>
-                     </div>
-                   </div>
-                 </div>
-               </div>
+              {/* Pricing */}
+              <div className="bg-neutral-50 p-4 rounded-2xl space-y-4 border border-neutral-200">
+                <h3 className="text-xs font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                  <FaMoneyBillWave className="text-primary" /> Pricing
+                </h3>
+                <div>
+                  <Input
+                    label="Price per Seat (₦)"
+                    type="number"
+                    placeholder="e.g. 1500"
+                    value={formData.price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                    required
+                    disabled={saving}
+                  />
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-100 rounded-xl flex gap-3 items-start">
+                    <FaInfoCircle
+                      className="text-blue-500 mt-1 flex-shrink-0"
+                      size={14}
+                    />
+                    <div>
+                      <p className="text-xs font-semibold text-blue-800 mb-0.5">
+                        Price Recommendation
+                      </p>
+                      <p className="text-[10px] text-blue-700 leading-relaxed">
+                        Mainland ↔ Island, Peak hours: ₦1,500 - ₦5,000
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : (
             <div className="space-y-4">
@@ -984,21 +1013,30 @@ const TicketsManagement = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-neutral-700 mb-2">
-                      {formData.serviceCategory === "freight" ? "Carrier / Vehicle Type" : "Vehicle Category"}
+                      {formData.serviceCategory === "freight"
+                        ? "Carrier / Vehicle Type"
+                        : "Vehicle Category"}
                     </label>
                     {formData.serviceCategory === "freight" ? (
                       <select
                         value={formData.vehicleType}
                         onChange={(e) =>
-                          setFormData({ ...formData, vehicleType: e.target.value })
+                          setFormData({
+                            ...formData,
+                            vehicleType: e.target.value,
+                          })
                         }
                         className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         disabled={saving}>
                         <option value="Mini Van">Mini Van</option>
                         <option value="Delivery Van">Delivery Van</option>
                         <option value="Box Truck">Box Truck</option>
-                        <option value="Heavy Duty Truck">Heavy Duty Truck</option>
-                        <option value="Refrigerated Truck">Refrigerated Truck</option>
+                        <option value="Heavy Duty Truck">
+                          Heavy Duty Truck
+                        </option>
+                        <option value="Refrigerated Truck">
+                          Refrigerated Truck
+                        </option>
                       </select>
                     ) : (
                       <select
@@ -1007,21 +1045,38 @@ const TicketsManagement = () => {
                           const vehicleType = e.target.value;
                           let seats = formData.seats;
                           if (vehicleType.includes("18 seater")) seats = 18;
-                          else if (vehicleType.includes("32 seater")) seats = 32;
-                          else if (vehicleType.includes("52 seater")) seats = 52;
-                          else if (vehicleType === "Mini Buses (7 seater)") seats = 7;
-                          else if (vehicleType === "Sienna car (7 seats)") seats = 7;
-                          else if (vehicleType === "Sedan (small car)") seats = 4;
+                          else if (vehicleType.includes("32 seater"))
+                            seats = 32;
+                          else if (vehicleType.includes("52 seater"))
+                            seats = 52;
+                          else if (vehicleType === "Mini Buses (7 seater)")
+                            seats = 7;
+                          else if (vehicleType === "Sienna car (7 seats)")
+                            seats = 7;
+                          else if (vehicleType === "Sedan (small car)")
+                            seats = 4;
                           setFormData({ ...formData, vehicleType, seats });
                         }}
                         className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         disabled={saving}>
-                        <option value="Hiace Bus (18 seater)">Hiace Bus (18 seater)</option>
-                        <option value="Coaster Bus (32 seater)">Coaster Bus (32 seater)</option>
-                        <option value="Luxirious Bus (52 seater)">Luxirious Bus (52 seater)</option>
-                        <option value="Mini Buses (7 seater)">Mini Buses (7 seater)</option>
-                        <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
-                        <option value="Sedan (small car)">Sedan (small car)</option>
+                        <option value="Hiace Bus (18 seater)">
+                          Hiace Bus (18 seater)
+                        </option>
+                        <option value="Coaster Bus (32 seater)">
+                          Coaster Bus (32 seater)
+                        </option>
+                        <option value="Luxirious Bus (52 seater)">
+                          Luxirious Bus (52 seater)
+                        </option>
+                        <option value="Mini Buses (7 seater)">
+                          Mini Buses (7 seater)
+                        </option>
+                        <option value="Sienna car (7 seats)">
+                          Sienna car (7 seats)
+                        </option>
+                        <option value="Sedan (small car)">
+                          Sedan (small car)
+                        </option>
                       </select>
                     )}
                   </div>
@@ -1032,7 +1087,10 @@ const TicketsManagement = () => {
                       placeholder="e.g. Toyota Corolla, Nissan, Lexus 360"
                       value={formData.vehicleName}
                       onChange={(e) =>
-                        setFormData({ ...formData, vehicleName: e.target.value })
+                        setFormData({
+                          ...formData,
+                          vehicleName: e.target.value,
+                        })
                       }
                       disabled={saving}
                       required
@@ -1081,7 +1139,10 @@ const TicketsManagement = () => {
                     type="number"
                     value={formData.maxWeightCapacity}
                     onChange={(e) =>
-                      setFormData({ ...formData, maxWeightCapacity: e.target.value })
+                      setFormData({
+                        ...formData,
+                        maxWeightCapacity: e.target.value,
+                      })
                     }
                     placeholder="e.g. 500"
                     disabled={saving}
@@ -1092,7 +1153,9 @@ const TicketsManagement = () => {
 
               {/* FROM/TO LOCATION */}
               <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold text-neutral-800">Route Selection</h3>
+                <h3 className="text-sm font-semibold text-neutral-800">
+                  Route Selection
+                </h3>
                 <button
                   type="button"
                   onClick={handleSwapLocations}
@@ -1112,7 +1175,11 @@ const TicketsManagement = () => {
                     <select
                       value={formData.state}
                       onChange={(e) =>
-                        setFormData({ ...formData, state: e.target.value, from: "" })
+                        setFormData({
+                          ...formData,
+                          state: e.target.value,
+                          from: "",
+                        })
                       }
                       className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                       required
@@ -1156,7 +1223,11 @@ const TicketsManagement = () => {
                     <select
                       value={formData.toState}
                       onChange={(e) =>
-                        setFormData({ ...formData, toState: e.target.value, to: "" })
+                        setFormData({
+                          ...formData,
+                          toState: e.target.value,
+                          to: "",
+                        })
                       }
                       className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                       required
@@ -1203,7 +1274,12 @@ const TicketsManagement = () => {
                       <select
                         value={formData.fromCountry}
                         onChange={(e) =>
-                          setFormData({ ...formData, fromCountry: e.target.value, fromState: "", city: "" })
+                          setFormData({
+                            ...formData,
+                            fromCountry: e.target.value,
+                            fromState: "",
+                            city: "",
+                          })
                         }
                         className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         required
@@ -1224,17 +1300,23 @@ const TicketsManagement = () => {
                       <select
                         value={formData.fromState}
                         onChange={(e) =>
-                          setFormData({ ...formData, fromState: e.target.value, from: e.target.value })
+                          setFormData({
+                            ...formData,
+                            fromState: e.target.value,
+                            from: e.target.value,
+                          })
                         }
                         className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         required
                         disabled={saving || !formData.fromCountry}>
                         <option value="">Select state/region</option>
-                        {westAfricanStates[formData.fromCountry]?.map((state) => (
-                          <option key={state} value={state}>
-                            {state}
-                          </option>
-                        ))}
+                        {westAfricanStates[formData.fromCountry]?.map(
+                          (state) => (
+                            <option key={state} value={state}>
+                              {state}
+                            </option>
+                          ),
+                        )}
                       </select>
                     </div>
                   </div>
@@ -1247,7 +1329,12 @@ const TicketsManagement = () => {
                       <select
                         value={formData.toCountry}
                         onChange={(e) =>
-                          setFormData({ ...formData, toCountry: e.target.value, toState: "", to: "" })
+                          setFormData({
+                            ...formData,
+                            toCountry: e.target.value,
+                            toState: "",
+                            to: "",
+                          })
                         }
                         className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         required
@@ -1268,7 +1355,11 @@ const TicketsManagement = () => {
                       <select
                         value={formData.toState}
                         onChange={(e) =>
-                          setFormData({ ...formData, toState: e.target.value, to: e.target.value })
+                          setFormData({
+                            ...formData,
+                            toState: e.target.value,
+                            to: e.target.value,
+                          })
                         }
                         className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
                         required
@@ -1300,9 +1391,9 @@ const TicketsManagement = () => {
                     disabled={saving}
                   />
                 </div>
-                
+
                 <div className="md:col-span-2 space-y-3">
-                  <label className="block text-sm font-bold text-neutral-800 mb-1 flex items-center justify-between">
+                  <label className="block text-sm font-bold text-neutral-800 mb-1 items-center justify-between">
                     <span>Departure Time Slots</span>
                     {!editingTicket && (
                       <button
@@ -1321,18 +1412,21 @@ const TicketsManagement = () => {
                           <MaterialTimePicker
                             label={`Slot ${index + 1}`}
                             value={time}
-                            onChange={(timeStr) => handleTimeSlotChange(index, timeStr)}
+                            onChange={(timeStr) =>
+                              handleTimeSlotChange(index, timeStr)
+                            }
                           />
                         </div>
-                        {!editingTicket && formData.departureTimes.length > 1 && (
-                          <button
-                            type="button"
-                            onClick={() => handleRemoveTimeSlot(index)}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Remove time slot">
-                            <FaMinus />
-                          </button>
-                        )}
+                        {!editingTicket &&
+                          formData.departureTimes.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTimeSlot(index)}
+                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Remove time slot">
+                              <FaMinus />
+                            </button>
+                          )}
                       </div>
                     ))}
                   </div>
@@ -1350,7 +1444,10 @@ const TicketsManagement = () => {
                   onChange={(date) => {
                     if (date) {
                       const year = date.getFullYear();
-                      const month = String(date.getMonth() + 1).padStart(2, "0");
+                      const month = String(date.getMonth() + 1).padStart(
+                        2,
+                        "0",
+                      );
                       const day = String(date.getDate()).padStart(2, "0");
                       const dateStr = `${year}-${month}-${day}`;
                       setFormData({
@@ -1533,29 +1630,35 @@ const TicketsManagement = () => {
             </div>
             <div>
               <h2 className="text-2xl font-bold font-raleway">Add New Trip</h2>
-              <p className="text-neutral-400 text-sm">Select the type of service you want to offer</p>
+              <p className="text-neutral-400 text-sm">
+                Select the type of service you want to offer
+              </p>
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-2">
           {/* Carpool Option */}
-          <div 
+          <div
             onClick={() => handleSelectTripType("carpooling")}
-            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col"
-          >
+            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col">
             <div className="p-6 flex-1">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                   <FaCar size={24} />
                 </div>
                 <div>
-                  <h3 className="font-raleway font-bold text-lg text-charcoal">Offer a Ride</h3>
-                  <p className="text-xs text-neutral-500 italic">Help others and save on fuel costs</p>
+                  <h3 className="font-raleway font-bold text-lg text-charcoal">
+                    Offer a Ride
+                  </h3>
+                  <p className="text-xs text-neutral-500 italic">
+                    Help others and save on fuel costs
+                  </p>
                 </div>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed">
-                Post city-to-city trips for passengers. Ideal for cars and small buses.
+                Post city-to-city trips for passengers. Ideal for cars and small
+                buses.
               </p>
             </div>
             <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
@@ -1564,22 +1667,26 @@ const TicketsManagement = () => {
           </div>
 
           {/* Freight Option */}
-          <div 
+          <div
             onClick={() => handleSelectTripType("freight")}
-            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col"
-          >
+            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col">
             <div className="p-6 flex-1">
               <div className="flex items-center gap-4 mb-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                   <FaTruck size={24} />
                 </div>
                 <div>
-                  <h3 className="font-raleway font-bold text-lg text-charcoal">Freight Trip</h3>
-                  <p className="text-xs text-neutral-500 italic">Fast and reliable cargo delivery</p>
+                  <h3 className="font-raleway font-bold text-lg text-charcoal">
+                    Freight Trip
+                  </h3>
+                  <p className="text-xs text-neutral-500 italic">
+                    Fast and reliable cargo delivery
+                  </p>
                 </div>
               </div>
               <p className="text-sm text-neutral-600 leading-relaxed">
-                Post logistics routes for cargo and parcels. Ideal for vans and trucks.
+                Post logistics routes for cargo and parcels. Ideal for vans and
+                trucks.
               </p>
             </div>
             <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
@@ -1589,10 +1696,9 @@ const TicketsManagement = () => {
         </div>
 
         <div className="mt-8 text-center border-t border-neutral-100 pt-6">
-          <button 
+          <button
             onClick={() => setShowTypeSelection(false)}
-            className="text-neutral-500 hover:text-charcoal text-sm font-medium transition-colors underline"
-          >
+            className="text-neutral-500 hover:text-charcoal text-sm font-medium transition-colors underline">
             Cancel and Close
           </button>
         </div>
