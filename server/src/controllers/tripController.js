@@ -65,6 +65,9 @@ exports.getAllTrips = async (req, res) => {
             [Op.like]: `%${dayName}%`, // Matches operating day
           },
         },
+        {
+          transportType: "carpooling", // Carpooling trips are daily by default
+        },
       ];
     }
 
@@ -86,10 +89,20 @@ exports.getAllTrips = async (req, res) => {
       limit: 100, // Safety limit
     });
 
+    // For carpooling trips, if we are searching for a specific date,
+    // we want them to appear as if they are for that date.
+    const transformedTrips = trips.map((trip) => {
+      const tripJson = trip.toJSON();
+      if (tripJson.transportType === "carpooling" && date) {
+        tripJson.departureDate = date;
+      }
+      return tripJson;
+    });
+
     res.status(200).json({
       success: true,
-      count: trips.length,
-      trips: trips,
+      count: transformedTrips.length,
+      trips: transformedTrips,
     });
   } catch (error) {
     console.error("Get trips error:", error);

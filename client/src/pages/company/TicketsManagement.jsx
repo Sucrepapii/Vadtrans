@@ -599,6 +599,7 @@ const TicketsManagement = () => {
       label: "Date / Days",
       sortable: true,
       render: (value, row) => {
+        if (row.transportType === "carpooling") return "Daily (Every Day)";
         if (value) return value;
         if (row.operatingDays && row.operatingDays.length > 0) {
           return row.operatingDays.join(", ");
