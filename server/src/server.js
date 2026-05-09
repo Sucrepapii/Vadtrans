@@ -142,6 +142,39 @@ const initializeDatabase = async () => {
     // Explicitly sync Shipment and Notification to ensure they exist
     await Shipment.sync({ alter: true });
     await Notification.sync({ alter: true });
+    await Booking.sync({ alter: true });
+
+    // Force add missing columns for Bookings (for production environments where alter:true might fail)
+    const queryInterface = sequelize.getQueryInterface();
+    const tableInfo = await queryInterface.describeTable("Bookings");
+
+    if (!tableInfo.paidAmount) {
+      console.log("ℹ️ Adding missing column 'paidAmount' to Bookings...");
+      await queryInterface.addColumn("Bookings", "paidAmount", {
+        type: DataTypes.FLOAT,
+        defaultValue: 0,
+      });
+    }
+    if (!tableInfo.isDeposit) {
+      console.log("ℹ️ Adding missing column 'isDeposit' to Bookings...");
+      await queryInterface.addColumn("Bookings", "isDeposit", {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      });
+    }
+    if (!tableInfo.serviceFee) {
+      console.log("ℹ️ Adding missing column 'serviceFee' to Bookings...");
+      await queryInterface.addColumn("Bookings", "serviceFee", {
+        type: DataTypes.FLOAT,
+      });
+    }
+    if (!tableInfo.vat) {
+      console.log("ℹ️ Adding missing column 'vat' to Bookings...");
+      await queryInterface.addColumn("Bookings", "vat", {
+        type: DataTypes.FLOAT,
+      });
+    }
+
     console.log("✅ Database models synchronized");
 
     // Check if any users exist, if not create default admin

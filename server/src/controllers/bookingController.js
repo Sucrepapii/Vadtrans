@@ -160,8 +160,10 @@ exports.createBooking = async (req, res) => {
       success: false,
       message: "Error creating booking",
       error: error.message,
+      name: error.name,
       stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
-      detail: error.name === "SequelizeDatabaseError" ? error.parent?.message : error.name,
+      detail: error.parent?.message || error.original?.message || error.name,
+      receivedBody: { tripId: req.body.tripId, passengersCount: req.body.passengers?.length }
     });
   }
 };
@@ -366,7 +368,7 @@ exports.cancelBooking = async (req, res) => {
       trip.bookedSeats = bookedSeats.filter(
         (seat) => !selectedSeats.includes(seat),
       );
-      trip.availableSeats = trip.availableSeats + selectedSeats.length;
+      trip.availableSeats = Number(trip.availableSeats) + Number(selectedSeats.length);
       await trip.save({ transaction });
     }
 

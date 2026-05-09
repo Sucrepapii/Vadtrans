@@ -187,6 +187,10 @@ User.associate = (models) => {
     foreignKey: "userId",
     as: "notifications",
   });
+  User.hasMany(models.Booking, {
+    foreignKey: "userId",
+    as: "bookings",
+  });
 };
 
 module.exports = User;
