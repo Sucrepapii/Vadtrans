@@ -43,7 +43,13 @@ const Booking = sequelize.define(
       allowNull: false,
     },
     paymentStatus: {
-      type: DataTypes.ENUM("pending", "paid", "failed", "refunded"),
+      type: DataTypes.ENUM(
+        "pending",
+        "paid",
+        "failed",
+        "refunded",
+        "partially_refunded",
+      ),
       defaultValue: "pending",
     },
     paymentReference: {
@@ -58,6 +64,10 @@ const Booking = sequelize.define(
     },
     vat: {
       type: DataTypes.FLOAT,
+    },
+    refundAmount: {
+      type: DataTypes.FLOAT,
+      defaultValue: 0,
     },
     paidAmount: {
       type: DataTypes.FLOAT,

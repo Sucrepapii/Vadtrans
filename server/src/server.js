@@ -174,6 +174,13 @@ const initializeDatabase = async () => {
         type: DataTypes.FLOAT,
       });
     }
+    if (!tableInfo.refundAmount) {
+      console.log("ℹ️ Adding missing column 'refundAmount' to Bookings...");
+      await queryInterface.addColumn("Bookings", "refundAmount", {
+        type: DataTypes.FLOAT,
+        defaultValue: 0,
+      });
+    }
 
     console.log("✅ Database models synchronized");
 

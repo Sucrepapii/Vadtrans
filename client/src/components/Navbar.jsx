@@ -28,7 +28,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
   // Desktop navbar with top contact bar
   if (variant === "desktop") {
     return (
-      <nav>
+      <nav className="sticky top-0 z-50 w-full shadow-sm">
         {/* Top contact bar - Hidden on mobile */}
         <div className="hidden md:block bg-black text-white py-2">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -305,7 +305,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
 
   // Mobile variant (existing)
   return (
-    <nav className="bg-charcoal text-white">
+    <nav className="bg-charcoal text-white sticky top-0 z-50 w-full shadow-md">
       <div className="container-custom">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2">

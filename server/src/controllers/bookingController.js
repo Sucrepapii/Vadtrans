@@ -331,13 +331,27 @@ exports.cancelBooking = async (req, res) => {
 
     const timeToDeparture = (departureDate - currentDate) / (1000 * 60 * 60);
 
-    if (timeToDeparture < cancellationWindow) {
-      // Within penalty window
-      booking.paymentStatus = "failed"; // Simplified for now
+    if (booking.isDeposit) {
+      // Deposits are non-refundable as per policy
+      booking.paymentStatus = "failed";
+      booking.refundAmount = 0;
+      booking.bookingStatus = "cancelled";
+    } else if (timeToDeparture > 12) {
+      // Free cancellation up to 12 hours before trip (full refund)
+      booking.paymentStatus = "refunded";
+      booking.refundAmount = booking.paidAmount || booking.totalAmount;
+      booking.bookingStatus = "cancelled";
+    } else if (timeToDeparture >= 3) {
+      // Cancellation within 12 hours -> 5% fee (95% refund)
+      // Note: Using partially_refunded if supported, otherwise just refunded with logged amount
+      booking.paymentStatus = "refunded"; 
+      const total = booking.totalAmount;
+      booking.refundAmount = Math.round(total * 0.95);
       booking.bookingStatus = "cancelled";
     } else {
-      // Outside penalty window - full refund
-      booking.paymentStatus = "refunded";
+      // Cancellation within 3 hours -> no refund
+      booking.paymentStatus = "failed";
+      booking.refundAmount = 0;
       booking.bookingStatus = "cancelled";
     }
 
