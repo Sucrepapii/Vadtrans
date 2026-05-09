@@ -268,12 +268,28 @@ const TicketsManagement = () => {
         seats: 4,
         departureDate: formattedDate,
       }));
+    } else if (type === "inter-state") {
+      setFormData((prev) => ({
+        ...prev,
+        transportType: "inter-state",
+        serviceCategory: "passenger",
+        vehicleType: "Hiace Bus (18 seater)",
+        seats: 18,
+      }));
+    } else if (type === "international") {
+      setFormData((prev) => ({
+        ...prev,
+        transportType: "international",
+        serviceCategory: "passenger",
+        vehicleType: "Luxirious Bus (52 seater)",
+        seats: 52,
+      }));
     } else if (type === "freight") {
       setFormData((prev) => ({
         ...prev,
         transportType: "inter-state",
         serviceCategory: "freight",
-        vehicleType: "Van",
+        vehicleType: "Delivery Van",
       }));
     }
 
@@ -1703,6 +1719,60 @@ const TicketsManagement = () => {
             </div>
             <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
               <span className="font-bold text-sm">SELECT PASSENGER</span>
+            </div>
+          </div>
+
+          {/* Inter-state Option */}
+          <div
+            onClick={() => handleSelectTripType("inter-state")}
+            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col">
+            <div className="p-6 flex-1">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <FaBus size={24} />
+                </div>
+                <div>
+                  <h3 className="font-raleway font-bold text-lg text-charcoal">
+                    Inter-state Trip
+                  </h3>
+                  <p className="text-xs text-neutral-500 italic">
+                    Reliable travel between states
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Regular bus services between different states in Nigeria.
+              </p>
+            </div>
+            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
+              <span className="font-bold text-sm">SELECT INTER-STATE</span>
+            </div>
+          </div>
+
+          {/* International Option */}
+          <div
+            onClick={() => handleSelectTripType("international")}
+            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col">
+            <div className="p-6 flex-1">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                  <FaBus size={24} className="rotate-12" />
+                </div>
+                <div>
+                  <h3 className="font-raleway font-bold text-lg text-charcoal">
+                    International Trip
+                  </h3>
+                  <p className="text-xs text-neutral-500 italic">
+                    Travel across West African borders
+                  </p>
+                </div>
+              </div>
+              <p className="text-sm text-neutral-600 leading-relaxed">
+                Cross-border transport services to neighboring countries.
+              </p>
+            </div>
+            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
+              <span className="font-bold text-sm">SELECT INTERNATIONAL</span>
             </div>
           </div>
 
