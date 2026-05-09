@@ -137,8 +137,8 @@ app.options("*", cors(corsOptions)); // Enable pre-flight for all routes
 const initializeDatabase = async () => {
   try {
     await testConnection();
-    // Sync all models with database (alter: true updates schema)
-    await sequelize.sync({ alter: true });
+    // Sync all models with database (alter: false for production speed, manual migration handles columns)
+    await sequelize.sync({ alter: false });
     // Explicitly sync Shipment and Notification to ensure they exist
     await Shipment.sync({ alter: true });
     await Notification.sync({ alter: true });

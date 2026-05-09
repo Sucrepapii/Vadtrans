@@ -19,6 +19,7 @@ exports.getAllTrips = async (req, res) => {
       toCountry,
       fromState,
       toState,
+      date
     } = req.query;
 
     const where = {};
@@ -30,16 +31,21 @@ exports.getAllTrips = async (req, res) => {
     // Filter by from location
     if (fromCountry) where.fromCountry = fromCountry;
     if (fromState) where.fromState = fromState;
-    if (from) where.from = from;
+    if (from) where.from = { [Op.like]: `%${from}%` };
 
     // Filter by to location
     if (toCountry) where.toCountry = toCountry;
     if (toState) where.toState = toState;
-    if (to) where.to = to;
+    if (to) where.to = { [Op.like]: `%${to}%` };
 
-    // Filter by departureDate if provided (handles both specific dates and recurring trips)
-    if (req.query.date) {
-      const searchDate = new Date(req.query.date);
+    // Filter by transportType in DB
+    if (transportType && transportType !== "all") {
+      where.transportType = transportType;
+    }
+
+    // Filter by departureDate if provided
+    if (date) {
+      const searchDate = new Date(date);
       const daysOfWeek = [
         "Sunday",
         "Monday",
@@ -52,7 +58,7 @@ exports.getAllTrips = async (req, res) => {
       const dayName = daysOfWeek[searchDate.getUTCDay()];
 
       where[Op.or] = [
-        { departureDate: req.query.date }, // Matches exact date
+        { departureDate: date }, // Matches exact date
         {
           departureDate: null,
           operatingDays: {
@@ -65,6 +71,8 @@ exports.getAllTrips = async (req, res) => {
     // Filter by status (default to active only)
     where.status = status || "active";
 
+    console.log("Fetching trips with where clause:", where);
+
     const trips = await Trip.findAll({
       where,
       order: [["createdAt", "DESC"]],
@@ -75,24 +83,13 @@ exports.getAllTrips = async (req, res) => {
           attributes: ["id", "name", "email", "avatar"],
         },
       ],
+      limit: 100, // Safety limit
     });
-
-    // Additional filtering for transportType (includes partial match)
-    let filteredTrips = trips;
-    if (transportType && transportType !== "all") {
-      filteredTrips = trips.filter(
-        (trip) =>
-          trip.transportType &&
-          trip.transportType
-            .toLowerCase()
-            .includes(transportType.toLowerCase()),
-      );
-    }
 
     res.status(200).json({
       success: true,
-      count: filteredTrips.length,
-      trips: filteredTrips,
+      count: trips.length,
+      trips: trips,
     });
   } catch (error) {
     console.error("Get trips error:", error);
