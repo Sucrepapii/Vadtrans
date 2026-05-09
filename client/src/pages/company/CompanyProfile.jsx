@@ -35,8 +35,9 @@ import {
   westAfricanCities,
 } from "../../data/locations";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
-import { MaterialTimePicker } from "../../components/MaterialDatePicker";
-import MaterialDatePicker from "../../components/MaterialDatePicker";
+import MaterialDatePicker, {
+  MaterialTimePicker,
+} from "../../components/MaterialDatePicker";
 import { nigerianBanks } from "../../data/banks";
 import DocumentsTab from "../../components/company/DocumentsTab";
 import PassengersTab from "../../components/company/PassengersTab";

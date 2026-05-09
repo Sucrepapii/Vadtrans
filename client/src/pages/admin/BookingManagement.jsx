@@ -136,7 +136,9 @@ const BookingManagement = () => {
       sortable: true,
       render: (value, row) => (
         <div className="flex flex-col">
-          <span className="font-bold">₦{parseFloat(value || 0).toLocaleString()}</span>
+          <span className="font-bold">
+            ₦{parseFloat(value || 0).toLocaleString()}
+          </span>
           {row.isDeposit && (
             <span className="text-[10px] bg-blue-100 text-blue-700 px-1.5 py-0.5 rounded-full w-fit mt-1 font-bold">
               5% DEPOSIT
@@ -148,15 +150,23 @@ const BookingManagement = () => {
     {
       key: "paidAmount",
       label: "Paid",
-      render: (value) => <span className="text-green-600 font-medium">₦{parseFloat(value || 0).toLocaleString()}</span>,
+      render: (value) => (
+        <span className="text-green-600 font-medium">
+          ₦{parseFloat(value || 0).toLocaleString()}
+        </span>
+      ),
     },
     {
       key: "refundAmount",
       label: "Refund",
-      render: (value, row) => 
+      render: (value, row) =>
         row.bookingStatus === "cancelled" ? (
-          <span className="text-red-600 font-bold">₦{parseFloat(value || 0).toLocaleString()}</span>
-        ) : "-",
+          <span className="text-red-600 font-bold">
+            ₦{parseFloat(value || 0).toLocaleString()}
+          </span>
+        ) : (
+          "-"
+        ),
     },
     {
       key: "bookingStatus",
@@ -374,15 +384,13 @@ const BookingManagement = () => {
                 <span className="text-neutral-500">Amount Paid</span>
                 <span className="font-bold text-green-600">
                   ₦
-                  {parseFloat(
-                    selectedBooking.paidAmount || 0,
-                  ).toLocaleString()}
+                  {parseFloat(selectedBooking.paidAmount || 0).toLocaleString()}
                   {selectedBooking.isDeposit && " (5% Deposit)"}
                 </span>
               </div>
               {selectedBooking.bookingStatus === "cancelled" && (
                 <div className="flex justify-between border-b pb-2">
-                  <span className="text-neutral-500 font-bold text-red-600">Refund Due</span>
+                  <span className="text-neutral-500 font-bold">Refund Due</span>
                   <span className="font-bold text-red-600">
                     ₦
                     {parseFloat(

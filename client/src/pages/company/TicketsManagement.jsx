@@ -33,7 +33,9 @@ import {
   FaInfoCircle,
   FaMoneyBillWave,
 } from "react-icons/fa";
-import { MaterialTimePicker } from "../../components/MaterialDatePicker";
+import MaterialDatePicker, {
+  MaterialTimePicker,
+} from "../../components/MaterialDatePicker";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 
 const TicketsManagement = () => {
