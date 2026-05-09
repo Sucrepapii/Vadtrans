@@ -482,8 +482,8 @@ const TicketsManagement = () => {
       };
 
       if (formData.transportType === "carpooling") {
-        if (Number(formData.price) > 5000) {
-          toast.error("Carpooling price cannot exceed ₦5,000.");
+        if (Number(formData.price) > 50000) {
+          toast.error("Carpooling price cannot exceed ₦50,000.");
           setSaving(false);
           return;
         }
@@ -898,7 +898,6 @@ const TicketsManagement = () => {
                   <FaCar className="text-primary" /> Vehicle Information
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-
                   <div>
                     <Input
                       label="Vehicle Name / Model"
@@ -952,7 +951,6 @@ const TicketsManagement = () => {
                     disabled={saving}
                     required
                   />
-
                 </div>
               </div>
 
@@ -1009,19 +1007,42 @@ const TicketsManagement = () => {
                   <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2">
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-blue-700">Standard Seat Price</span>
-                      <span className="font-semibold text-blue-900">₦{Number(formData.price || 0).toLocaleString()}</span>
+                      <span className="font-semibold text-blue-900">
+                        ₦{Number(formData.price || 0).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-blue-700">Service Fee (5%)</span>
-                      <span className="font-semibold text-blue-900">₦{calculateServiceFee(Number(formData.price || 0)).toLocaleString()}</span>
+                      <span className="font-semibold text-blue-900">
+                        ₦
+                        {calculateServiceFee(
+                          Number(formData.price || 0),
+                        ).toLocaleString()}
+                      </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
                       <span className="text-blue-700">VAT (7.5%)</span>
-                      <span className="font-semibold text-blue-900">₦{calculateVAT(calculateServiceFee(Number(formData.price || 0))).toLocaleString()}</span>
+                      <span className="font-semibold text-blue-900">
+                        ₦
+                        {calculateVAT(
+                          calculateServiceFee(Number(formData.price || 0)),
+                        ).toLocaleString()}
+                      </span>
                     </div>
                     <div className="pt-2 border-t border-blue-200 flex justify-between items-center">
-                      <span className="font-bold text-blue-900">Total Customer Pays</span>
-                      <span className="font-bold text-primary text-lg">₦{(Number(formData.price || 0) + calculateServiceFee(Number(formData.price || 0)) + calculateVAT(calculateServiceFee(Number(formData.price || 0)))).toLocaleString()}</span>
+                      <span className="font-bold text-blue-900">
+                        Total Customer Pays
+                      </span>
+                      <span className="font-bold text-primary text-lg">
+                        ₦
+                        {(
+                          Number(formData.price || 0) +
+                          calculateServiceFee(Number(formData.price || 0)) +
+                          calculateVAT(
+                            calculateServiceFee(Number(formData.price || 0)),
+                          )
+                        ).toLocaleString()}
+                      </span>
                     </div>
                   </div>
                   <div className="mt-4 p-3 bg-amber-50 border border-amber-100 rounded-xl flex gap-3 items-start">
@@ -1034,7 +1055,7 @@ const TicketsManagement = () => {
                         Price Recommendation
                       </p>
                       <p className="text-[10px] text-amber-700 leading-relaxed">
-                        Mainland ↔ Island, Peak hours: ₦1,500 - ₦5,000
+                        Mainland ↔ Island, Peak hours: ₦1,500 - ₦7,000
                       </p>
                     </div>
                   </div>
@@ -1091,10 +1112,8 @@ const TicketsManagement = () => {
                             seats = 7;
                           else if (vehicleType === "Sienna car (7 seats)")
                             seats = 7;
-                          else if (vehicleType.includes("SUV"))
-                            seats = 5;
-                          else if (vehicleType === "Luxury Car")
-                            seats = 4;
+                          else if (vehicleType.includes("SUV")) seats = 5;
+                          else if (vehicleType === "Luxury Car") seats = 4;
                           else if (vehicleType === "Sedan (small car)")
                             seats = 4;
                           setFormData({ ...formData, vehicleType, seats });
@@ -1590,19 +1609,42 @@ const TicketsManagement = () => {
               <div className="mt-4 p-4 bg-blue-50 border border-blue-100 rounded-xl space-y-2">
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-blue-700">Standard Ticket Price</span>
-                  <span className="font-semibold text-blue-900">₦{Number(formData.price || 0).toLocaleString()}</span>
+                  <span className="font-semibold text-blue-900">
+                    ₦{Number(formData.price || 0).toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-blue-700">Service Fee (5%)</span>
-                  <span className="font-semibold text-blue-900">₦{calculateServiceFee(Number(formData.price || 0)).toLocaleString()}</span>
+                  <span className="font-semibold text-blue-900">
+                    ₦
+                    {calculateServiceFee(
+                      Number(formData.price || 0),
+                    ).toLocaleString()}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-blue-700">VAT (7.5%)</span>
-                  <span className="font-semibold text-blue-900">₦{calculateVAT(calculateServiceFee(Number(formData.price || 0))).toLocaleString()}</span>
+                  <span className="font-semibold text-blue-900">
+                    ₦
+                    {calculateVAT(
+                      calculateServiceFee(Number(formData.price || 0)),
+                    ).toLocaleString()}
+                  </span>
                 </div>
                 <div className="pt-2 border-t border-blue-200 flex justify-between items-center">
-                  <span className="font-bold text-blue-900">Total Customer Pays</span>
-                  <span className="font-bold text-primary text-lg">₦{(Number(formData.price || 0) + calculateServiceFee(Number(formData.price || 0)) + calculateVAT(calculateServiceFee(Number(formData.price || 0)))).toLocaleString()}</span>
+                  <span className="font-bold text-blue-900">
+                    Total Customer Pays
+                  </span>
+                  <span className="font-bold text-primary text-lg">
+                    ₦
+                    {(
+                      Number(formData.price || 0) +
+                      calculateServiceFee(Number(formData.price || 0)) +
+                      calculateVAT(
+                        calculateServiceFee(Number(formData.price || 0)),
+                      )
+                    ).toLocaleString()}
+                  </span>
                 </div>
               </div>
 
