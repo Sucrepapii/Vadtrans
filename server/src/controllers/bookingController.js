@@ -11,6 +11,7 @@ exports.createBooking = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
+    console.log("Creating booking with body:", JSON.stringify(req.body, null, 2));
     const { tripId, passengers, selectedSeats, paymentMethod, totalAmount, paidAmount, isDeposit } =
       req.body;
 
@@ -22,16 +23,19 @@ exports.createBooking = async (req, res) => {
       !paymentMethod ||
       !totalAmount
     ) {
+      console.log("Validation failed: Missing required fields");
       await transaction.rollback();
       return res.status(400).json({
         success: false,
         message: "Please provide all required fields",
+        received: { tripId, passengers: !!passengers, selectedSeats: !!selectedSeats, paymentMethod, totalAmount }
       });
     }
 
     // Find trip
     const trip = await Trip.findByPk(tripId, { transaction });
     if (!trip) {
+      console.log(`Trip not found: ${tripId}`);
       await transaction.rollback();
       return res.status(404).json({
         success: false,
@@ -40,12 +44,23 @@ exports.createBooking = async (req, res) => {
     }
 
     // Check if seats are available
-    const bookedSeats = trip.bookedSeats || [];
+    let bookedSeats = [];
+    if (Array.isArray(trip.bookedSeats)) {
+      bookedSeats = trip.bookedSeats;
+    } else if (typeof trip.bookedSeats === "string") {
+      try {
+        bookedSeats = JSON.parse(trip.bookedSeats || "[]");
+      } catch (e) {
+        bookedSeats = [];
+      }
+    }
+
     const unavailableSeats = selectedSeats.filter((seat) =>
       bookedSeats.includes(seat),
     );
 
     if (unavailableSeats.length > 0) {
+      console.log(`Seats unavailable: ${unavailableSeats.join(", ")}`);
       await transaction.rollback();
       return res.status(400).json({
         success: false,
@@ -55,6 +70,7 @@ exports.createBooking = async (req, res) => {
 
     // Check if enough seats available
     if (selectedSeats.length > trip.availableSeats) {
+      console.log(`Not enough seats: requested ${selectedSeats.length}, available ${trip.availableSeats}`);
       await transaction.rollback();
       return res.status(400).json({
         success: false,
@@ -71,18 +87,27 @@ exports.createBooking = async (req, res) => {
       const docType = passenger.documentType || "No Document";
       const specificPrice = docPrices[docType];
 
-      if (isInternational && specificPrice && Number(specificPrice) > 0) {
-        subtotal += Number(specificPrice);
+      // Handle both decimal strings from Postgres and numbers
+      if (isInternational && specificPrice && parseFloat(specificPrice) > 0) {
+        subtotal += parseFloat(specificPrice);
       } else {
-        subtotal += Number(trip.price);
+        subtotal += parseFloat(trip.price || 0);
       }
     });
+
+    if (isNaN(subtotal)) {
+      console.error("Subtotal calculation resulted in NaN", { subtotal, tripPrice: trip.price });
+      subtotal = parseFloat(totalAmount) || 0; // Fallback to frontend total if calculation fails
+    }
+
     const serviceFee = Math.round(subtotal * 0.05);
     const vat = Math.round(serviceFee * 0.075);
     const bookingTotalAmount = subtotal + serviceFee + vat;
 
+    console.log("Pricing calculation:", { subtotal, serviceFee, vat, total: bookingTotalAmount });
+
     // Optional: Validate that the total from frontend roughly matches our calculation
-    if (Math.abs(bookingTotalAmount - Number(totalAmount)) > 1) {
+    if (Math.abs(bookingTotalAmount - Number(totalAmount)) > 10) {
       console.warn(
         `Total amount mismatch: Frontend ${totalAmount}, Backend ${bookingTotalAmount}`,
       );
@@ -99,17 +124,17 @@ exports.createBooking = async (req, res) => {
         totalAmount: bookingTotalAmount,
         serviceFee,
         vat,
-        paidAmount: paidAmount || bookingTotalAmount,
+        paidAmount: paidAmount !== undefined ? paidAmount : bookingTotalAmount,
         isDeposit: isDeposit || false,
-        paymentStatus: "pending", // Payment will be verified via Paystack
-        bookingStatus: "pending", // Booking starts pending until payment is verified
+        paymentStatus: "pending", 
+        bookingStatus: "pending", 
       },
       { transaction },
     );
 
     // Update trip seats
     trip.bookedSeats = [...bookedSeats, ...selectedSeats];
-    trip.availableSeats = trip.availableSeats - selectedSeats.length;
+    trip.availableSeats = Math.max(0, trip.availableSeats - selectedSeats.length);
     await trip.save({ transaction });
 
     await transaction.commit();
@@ -122,20 +147,21 @@ exports.createBooking = async (req, res) => {
       ],
     });
 
+    console.log("Booking created successfully:", booking.id);
     res.status(201).json({
       success: true,
       message: "Booking created successfully",
       booking: populatedBooking,
     });
   } catch (error) {
-    await transaction.rollback();
+    if (transaction) await transaction.rollback();
     console.error("Create booking error:", error);
     res.status(500).json({
       success: false,
       message: "Error creating booking",
       error: error.message,
-      detail:
-        error.name === "SequelizeDatabaseError" ? error.parent.message : null,
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+      detail: error.name === "SequelizeDatabaseError" ? error.parent?.message : error.name,
     });
   }
 };
