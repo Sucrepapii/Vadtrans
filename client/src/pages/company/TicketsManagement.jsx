@@ -154,9 +154,10 @@ const TicketsManagement = () => {
     try {
       setLoading(true);
       const response = await tripAPI.getMyTrips();
+      const trips = response.data?.trips || [];
 
       // Transform API data to match table format
-      const transformedTrips = response.data.trips.map((trip) => ({
+      const transformedTrips = trips.map((trip) => ({
         id: trip.id,
         route: `${trip.from} - ${trip.to}`,
         transportType:
@@ -1090,6 +1091,10 @@ const TicketsManagement = () => {
                             seats = 7;
                           else if (vehicleType === "Sienna car (7 seats)")
                             seats = 7;
+                          else if (vehicleType.includes("SUV"))
+                            seats = 5;
+                          else if (vehicleType === "Luxury Car")
+                            seats = 4;
                           else if (vehicleType === "Sedan (small car)")
                             seats = 4;
                           setFormData({ ...formData, vehicleType, seats });
@@ -1111,6 +1116,10 @@ const TicketsManagement = () => {
                         <option value="Sienna car (7 seats)">
                           Sienna car (7 seats)
                         </option>
+                        <option value="SUV / Crossover (5-7 seats)">
+                          SUV / Crossover (5-7 seats)
+                        </option>
+                        <option value="Luxury Car">Luxury Car</option>
                         <option value="Sedan (small car)">
                           Sedan (small car)
                         </option>

@@ -56,7 +56,12 @@ Object.values(models).forEach((model) => {
 const app = express();
 
 // Security middleware
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+  }),
+);
 
 // Rate limiting for auth routes
 const authLimiter = rateLimit({

@@ -116,11 +116,13 @@ const SearchResults = () => {
         params.transportType = searchParams.transportType;
 
       let response = await tripAPI.getAllTrips(params);
-      let foundTrips = response.data.trips;
+      let foundTrips = response.data?.trips || [];
 
       if (searchParams.transportType && searchParams.transportType !== "all") {
         foundTrips = foundTrips.filter((trip) =>
-          trip.transportType?.toLowerCase().includes(searchParams.transportType.toLowerCase()),
+          trip.transportType
+            ?.toLowerCase()
+            .includes(searchParams.transportType.toLowerCase()),
         );
       }
 
@@ -138,7 +140,7 @@ const SearchResults = () => {
           fallbackParams.transportType = searchParams.transportType;
 
         const fallbackResponse = await tripAPI.getAllTrips(fallbackParams);
-        let fallbackTrips = fallbackResponse.data.trips;
+        let fallbackTrips = fallbackResponse.data?.trips || [];
 
         if (
           searchParams.transportType &&

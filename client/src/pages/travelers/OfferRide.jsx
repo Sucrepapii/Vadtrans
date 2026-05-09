@@ -256,6 +256,29 @@ const OfferRide = () => {
                         required
                       />
                     </div>
+                    <div>
+                      <label className="block text-sm font-medium text-charcoal mb-1">Vehicle Category</label>
+                      <select 
+                        value={formData.vehicleType}
+                        onChange={(e) => {
+                          const vt = e.target.value;
+                          let s = formData.seats;
+                          if (vt.includes("SUV")) s = 5;
+                          else if (vt === "Luxury Car") s = 4;
+                          else if (vt === "Sedan (small car)") s = 4;
+                          else if (vt.includes("7 seats")) s = 7;
+                          setFormData({...formData, vehicleType: vt, seats: s});
+                        }}
+                        className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                        required
+                      >
+                        <option value="Sedan (small car)">Sedan (small car)</option>
+                        <option value="SUV / Crossover (5-7 seats)">SUV / Crossover (5-7 seats)</option>
+                        <option value="Luxury Car">Luxury Car</option>
+                        <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
+                        <option value="Mini Buses (7 seater)">Mini Buses (7 seater)</option>
+                      </select>
+                    </div>
                   </div>
                 </div>
 

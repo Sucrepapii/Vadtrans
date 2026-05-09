@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
@@ -37,6 +38,10 @@ const PassengerInfo = () => {
   };
 
   const addPassenger = () => {
+    if (passengers.length >= (tripData?.availableSeats || 1)) {
+      toast.error(`Only ${tripData?.availableSeats} seats available for this trip.`);
+      return;
+    }
     setPassengers([
       ...passengers,
       {

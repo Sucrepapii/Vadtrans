@@ -28,8 +28,8 @@ const BookingManagement = () => {
     try {
       setLoading(true);
       const response = await adminAPI.getAllBookings();
-      if (response.data.success) {
-        setBookings(response.data.data);
+      if (response.data?.success) {
+        setBookings(response.data.data || []);
       }
     } catch (error) {
       console.error("Error fetching bookings:", error);
