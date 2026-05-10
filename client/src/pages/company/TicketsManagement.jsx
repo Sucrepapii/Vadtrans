@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import Navbar from "../../components/Navbar";
@@ -492,6 +493,17 @@ const TicketsManagement = () => {
           setSaving(false);
           return;
         }
+
+        // Validate time window
+        if (formData.timeWindowStart && formData.timeWindowEnd) {
+          const start = dayjs(formData.timeWindowStart, "hh:mm A");
+          const end = dayjs(formData.timeWindowEnd, "hh:mm A");
+          if (end.isBefore(start)) {
+            toast.error("Latest pickup time cannot be before earliest pickup time");
+            setSaving(false);
+            return;
+          }
+        }
       }
 
       if (editingTicket) {
@@ -853,27 +865,17 @@ const TicketsManagement = () => {
                     />
                   </div>
                   <div className="md:col-span-1">
-                    <Input
+                    <MaterialTimePicker
                       label="Earliest Pickup"
-                      type="time"
                       value={formData.timeWindowStart}
-                      onChange={(e) =>
-                        setFormData({ ...formData, timeWindowStart: e.target.value })
-                      }
-                      disabled={saving}
-                      required
+                      onChange={(time) => setFormData({ ...formData, timeWindowStart: time })}
                     />
                   </div>
                   <div className="md:col-span-1">
-                    <Input
+                    <MaterialTimePicker
                       label="Latest Pickup"
-                      type="time"
                       value={formData.timeWindowEnd}
-                      onChange={(e) =>
-                        setFormData({ ...formData, timeWindowEnd: e.target.value })
-                      }
-                      disabled={saving}
-                      required
+                      onChange={(time) => setFormData({ ...formData, timeWindowEnd: time })}
                     />
                   </div>
                 </div>
