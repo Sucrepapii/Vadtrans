@@ -87,6 +87,7 @@ exports.getAllTrips = async (req, res) => {
         "depositAmount", "cancellationWindow", "confirmationWindow",
         "timeWindowStart", "timeWindowEnd",
         "status", "companyId", "createdAt",
+        "vehiclePlateNumber", "pickupAddress"
       ],
       order: [["createdAt", "DESC"]],
       include: [

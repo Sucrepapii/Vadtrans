@@ -2,50 +2,70 @@ import React from "react";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { TimePicker } from "@mui/x-date-pickers/TimePicker";
+import { MultiSectionDigitalTimePicker } from "@mui/x-date-pickers/MultiSectionDigitalTimePicker";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 
-// Matches the app's primary purple + the new form card aesthetic:
-// rounded-xl (12px), neutral-200 border, xs semibold labels, white bg
+// Matches the app's brand red (#E31E24) + premium mission control aesthetic
 const appTheme = createTheme({
   palette: {
-    primary: { main: "#8e24aa" },
+    primary: { main: "#E31E24", light: "#FF3339", dark: "#C11A1F" },
+    text: { primary: "#1A1A1A", secondary: "#4B5563" },
   },
   typography: {
-    fontFamily: "'Inter', 'Outfit', sans-serif",
+    fontFamily: "'Poppins', 'Raleway', sans-serif",
   },
   components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          borderRadius: "16px",
+          boxShadow: "0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04)",
+          border: "1px solid #E5E7EB",
+          marginTop: "4px",
+        },
+      },
+    },
     MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          borderRadius: "0.75rem",        // rounded-xl
+          borderRadius: "12px",
           backgroundColor: "#ffffff",
-          fontSize: "0.875rem",           // text-sm
+          fontSize: "0.875rem",
+          transition: "all 0.2s ease",
+          "&:hover": {
+            backgroundColor: "#F9FAFB",
+          },
+          "&.Mui-focused": {
+            boxShadow: "0 0 0 4px rgba(227, 30, 36, 0.05)",
+          },
+          "& .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#E5E7EB",
+          },
           "&:hover .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#d1d5db",       // neutral-300 on hover
+            borderColor: "#D1D5DB",
           },
           "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
-            borderColor: "#8e24aa",
-            borderWidth: "2px",
+            borderColor: "#E31E24",
+            borderWidth: "1.5px",
           },
         },
-        notchedOutline: {
-          borderColor: "#e5e7eb",         // neutral-200
-        },
         input: {
-          padding: "10px 14px",           // py-2.5 equivalent
+          padding: "10px 14px",
+          fontWeight: 500,
         },
       },
     },
     MuiInputLabel: {
       styleOverrides: {
         root: {
-          fontSize: "0.75rem",            // text-xs
+          fontSize: "0.75rem",
           fontWeight: 600,
-          color: "#525252",               // neutral-600
+          color: "#4B5563",
+          textTransform: "uppercase",
+          letterSpacing: "0.025em",
           "&.Mui-focused": {
-            color: "#8e24aa",
+            color: "#E31E24",
           },
         },
       },
@@ -53,24 +73,47 @@ const appTheme = createTheme({
     MuiPickersDay: {
       styleOverrides: {
         root: {
-          borderRadius: "0.5rem",
+          borderRadius: "8px",
+          fontWeight: 500,
           "&.Mui-selected": {
-            backgroundColor: "#8e24aa",
+            backgroundColor: "#E31E24",
+            "&:hover": {
+              backgroundColor: "#C11A1F",
+            },
           },
+          "&:hover": {
+            backgroundColor: "rgba(227, 30, 36, 0.08)",
+          },
+        },
+        today: {
+          borderColor: "#E31E24 !important",
+          borderWidth: "1.5px !important",
+          color: "#E31E24",
         },
       },
     },
-    MuiClock: {
+    MuiMultiSectionDigitalTimePicker: {
       styleOverrides: {
-        pin: { backgroundColor: "#8e24aa" },
+        root: {
+          borderRadius: "16px",
+        },
       },
     },
-    MuiClockPointer: {
+    MuiMenuItem: {
       styleOverrides: {
-        root: { backgroundColor: "#8e24aa" },
-        thumb: {
-          backgroundColor: "#8e24aa",
-          borderColor: "#8e24aa",
+        root: {
+          borderRadius: "8px",
+          margin: "2px 6px",
+          fontSize: "0.875rem",
+          fontWeight: 500,
+          "&.Mui-selected": {
+            backgroundColor: "rgba(227, 30, 36, 0.08) !important",
+            color: "#E31E24",
+            fontWeight: 600,
+          },
+          "&:hover": {
+            backgroundColor: "#F3F4F6",
+          },
         },
       },
     },
@@ -148,7 +191,7 @@ export const MaterialTimePicker = ({
     <ThemeProvider theme={appTheme}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <div className={`w-full ${className}`}>
-          <TimePicker
+          <MultiSectionDigitalTimePicker
             label={label}
             value={timeValue}
             onChange={handleChange}

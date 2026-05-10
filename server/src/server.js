@@ -191,6 +191,23 @@ const initializeDatabase = async () => {
       });
     }
 
+    // Force add missing columns for Trips
+    const tripTableInfo = await queryInterface.describeTable("Trips");
+    if (!tripTableInfo.vehiclePlateNumber) {
+      console.log("ℹ️ Adding missing column 'vehiclePlateNumber' to Trips...");
+      await queryInterface.addColumn("Trips", "vehiclePlateNumber", {
+        type: DataTypes.STRING,
+        allowNull: true,
+      });
+    }
+    if (!tripTableInfo.pickupAddress) {
+      console.log("ℹ️ Adding missing column 'pickupAddress' to Trips...");
+      await queryInterface.addColumn("Trips", "pickupAddress", {
+        type: DataTypes.STRING,
+        allowNull: true,
+      });
+    }
+
     console.log("✅ Database models synchronized");
 
     // Check if any users exist, if not create default admin
