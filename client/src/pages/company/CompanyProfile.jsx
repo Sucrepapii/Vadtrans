@@ -1041,47 +1041,13 @@ const CompanyProfile = () => {
               <Card>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                   <h2 className="text-lg font-semibold">Manage Trips</h2>
-                  <Button
-                    variant="primary"
-                    onClick={() => {
-                      setShowModal(true);
-                      setFormData({
-                        from: "",
-                        to: "",
-                        transportType: "inter-state",
-                        departureTime: "",
-                        departureDate: "",
-                        operatingDays: [],
-                        duration: "",
-                        price: "",
-                        seats: 18,
-                        serviceCategory: "passenger",
-                        freightType: "",
-                        state: "",
-                        vehicleType: "Hiace Bus (18 seater)",
-                        city: "",
-                        terminal: "",
-                        documentPrices: {
-                          "Regular Passport": "",
-                          "Virgin Passport": "",
-                          NIN: "",
-                          "No Document": "",
-                        },
-                      });
-                      setEditingTrip(null);
-                    }}>
-                    <div className="flex items-center gap-2">
-                      <FaBus />
-                      <span>Add New Trip</span>
-                    </div>
-                  </Button>
                 </div>
 
                 {/* Trips List */}
                 <div className="space-y-3">
                   {trips.length === 0 ? (
                     <p className="text-center text-neutral-600 py-8">
-                      No trips created yet. Click "Add New Trip" to get started.
+                      No trips found.
                     </p>
                   ) : (
                     trips.map((trip) => (
