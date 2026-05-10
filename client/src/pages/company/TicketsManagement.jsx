@@ -697,16 +697,6 @@ const TicketsManagement = () => {
                 Manage your transportation tickets
               </p>
             </div>
-            <Button
-              variant="primary"
-              onClick={handleAddTicket}
-              disabled={loading}
-              className="w-full sm:w-auto">
-              <div className="flex items-center gap-2 justify-center sm:justify-start">
-                <FaPlus />
-                <span>Add Trip</span>
-              </div>
-            </Button>
           </div>
 
           <Card>
@@ -720,12 +710,6 @@ const TicketsManagement = () => {
             ) : tickets.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-neutral-600 mb-4">No trips yet</p>
-                <Button variant="primary" onClick={handleAddTicket}>
-                  <div className="flex items-center gap-2">
-                    <FaPlus />
-                    <span>Add Your First Trip</span>
-                  </div>
-                </Button>
               </div>
             ) : (
               <>
