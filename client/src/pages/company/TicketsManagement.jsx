@@ -709,7 +709,7 @@ const TicketsManagement = () => {
               </div>
             ) : tickets.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-neutral-600 mb-4">No trips yet</p>
+                <p className="text-neutral-600">No trips found</p>
               </div>
             ) : (
               <>
