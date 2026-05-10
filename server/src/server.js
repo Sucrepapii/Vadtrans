@@ -152,6 +152,7 @@ const initializeDatabase = async () => {
     await Shipment.sync({ alter: true });
     await Notification.sync({ alter: true });
     await Booking.sync({ alter: true });
+    await Trip.sync({ alter: true });
 
     // Force add missing columns for Bookings (for production environments where alter:true might fail)
     const queryInterface = sequelize.getQueryInterface();
@@ -204,6 +205,56 @@ const initializeDatabase = async () => {
       console.log("ℹ️ Adding missing column 'pickupAddress' to Trips...");
       await queryInterface.addColumn("Trips", "pickupAddress", {
         type: DataTypes.STRING,
+        allowNull: true,
+      });
+    }
+    if (!tripTableInfo.city) {
+      console.log("ℹ️ Adding missing column 'city' to Trips...");
+      await queryInterface.addColumn("Trips", "city", {
+        type: DataTypes.STRING,
+        allowNull: true,
+      });
+    }
+    if (!tripTableInfo.documentPrices) {
+      console.log("ℹ️ Adding missing column 'documentPrices' to Trips...");
+      await queryInterface.addColumn("Trips", "documentPrices", {
+        type: DataTypes.JSON,
+        allowNull: true,
+      });
+    }
+    if (!tripTableInfo.bookedSeats) {
+      console.log("ℹ️ Adding missing column 'bookedSeats' to Trips...");
+      await queryInterface.addColumn("Trips", "bookedSeats", {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: [],
+      });
+    }
+    if (!tripTableInfo.currentLat) {
+      console.log("ℹ️ Adding missing column 'currentLat' to Trips...");
+      await queryInterface.addColumn("Trips", "currentLat", {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      });
+    }
+    if (!tripTableInfo.currentLng) {
+      console.log("ℹ️ Adding missing column 'currentLng' to Trips...");
+      await queryInterface.addColumn("Trips", "currentLng", {
+        type: DataTypes.FLOAT,
+        allowNull: true,
+      });
+    }
+    if (!tripTableInfo.currentLocation) {
+      console.log("ℹ️ Adding missing column 'currentLocation' to Trips...");
+      await queryInterface.addColumn("Trips", "currentLocation", {
+        type: DataTypes.STRING,
+        allowNull: true,
+      });
+    }
+    if (!tripTableInfo.lastUpdated) {
+      console.log("ℹ️ Adding missing column 'lastUpdated' to Trips...");
+      await queryInterface.addColumn("Trips", "lastUpdated", {
+        type: DataTypes.DATE,
         allowNull: true,
       });
     }
