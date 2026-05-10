@@ -66,6 +66,16 @@ const Trip = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    vehiclePlateNumber: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Plate number of the vehicle (e.g. LAG-123-XY)",
+    },
+    pickupAddress: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Specific pickup point or terminal address",
+    },
     city: {
       type: DataTypes.STRING,
       allowNull: true,

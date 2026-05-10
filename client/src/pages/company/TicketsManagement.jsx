@@ -917,9 +917,6 @@ const TicketsManagement = () => {
                       <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
                     </select>
                   </div>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Input
                     label="Vehicle Plate Number"
                     placeholder="LAG-123-XY"
@@ -1014,85 +1011,55 @@ const TicketsManagement = () => {
           ) : (
             <div className="space-y-4">
               {/* Vehicle Information */}
-              {/* 1. Vehicle Details */}
+              {/* 1. Vehicle & Terminal Details */}
               <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-5">
                 <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                  <FaCar className="text-primary" /> Vehicle Information
+                  <FaCar className="text-primary" /> Vehicle & Terminal Details
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
-                      {formData.serviceCategory === "freight"
-                        ? "Carrier / Vehicle Type"
-                        : "Vehicle Category"}
+                      {formData.serviceCategory === "freight" ? "Carrier / Vehicle Type" : "Vehicle Category"}
                     </label>
                     {formData.serviceCategory === "freight" ? (
                       <select
                         value={formData.vehicleType}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            vehicleType: e.target.value,
-                          })
-                        }
+                        onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
                         className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
                         disabled={saving}>
                         <option value="Mini Van">Mini Van</option>
                         <option value="Delivery Van">Delivery Van</option>
                         <option value="Box Truck">Box Truck</option>
-                        <option value="Heavy Duty Truck">
-                          Heavy Duty Truck
-                        </option>
-                        <option value="Refrigerated Truck">
-                          Refrigerated Truck
-                        </option>
+                        <option value="Heavy Duty Truck">Heavy Duty Truck</option>
+                        <option value="Refrigerated Truck">Refrigerated Truck</option>
                       </select>
                     ) : (
                       <select
                         value={formData.vehicleType}
                         onChange={(e) => {
-                          const vehicleType = e.target.value;
-                          let seats = formData.seats;
-                          if (vehicleType.includes("18 seater")) seats = 18;
-                          else if (vehicleType.includes("32 seater"))
-                            seats = 32;
-                          else if (vehicleType.includes("52 seater"))
-                            seats = 52;
-                          else if (vehicleType === "Mini Buses (7 seater)")
-                            seats = 7;
-                          else if (vehicleType === "Sienna car (7 seats)")
-                            seats = 7;
-                          else if (vehicleType.includes("SUV")) seats = 5;
-                          else if (vehicleType === "Luxury Car") seats = 4;
-                          else if (vehicleType === "Sedan (small car)")
-                            seats = 4;
-                          setFormData({ ...formData, vehicleType, seats });
+                          const vt = e.target.value;
+                          let s = formData.seats;
+                          if (vt.includes("18 seater")) s = 18;
+                          else if (vt.includes("32 seater")) s = 32;
+                          else if (vt.includes("52 seater")) s = 52;
+                          else if (vt === "Mini Buses (7 seater)") s = 7;
+                          else if (vt === "Sienna car (7 seats)") s = 7;
+                          else if (vt.includes("SUV")) s = 5;
+                          else if (vt === "Luxury Car") s = 4;
+                          else if (vt === "Sedan (small car)") s = 4;
+                          setFormData({ ...formData, vehicleType: vt, seats: s });
                         }}
                         className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
                         disabled={saving}>
-                        <option value="Hiace Bus (18 seater)">
-                          Hiace Bus (18 seater)
-                        </option>
-                        <option value="Coaster Bus (32 seater)">
-                          Coaster Bus (32 seater)
-                        </option>
-                        <option value="Luxirious Bus (52 seater)">
-                          Luxirious Bus (52 seater)
-                        </option>
-                        <option value="Mini Buses (7 seater)">
-                          Mini Buses (7 seater)
-                        </option>
-                        <option value="Sienna car (7 seats)">
-                          Sienna car (7 seats)
-                        </option>
-                        <option value="SUV / Crossover (5-7 seats)">
-                          SUV / Crossover (5-7 seats)
-                        </option>
+                        <option value="Hiace Bus (18 seater)">Hiace Bus (18 seater)</option>
+                        <option value="Coaster Bus (32 seater)">Coaster Bus (32 seater)</option>
+                        <option value="Luxirious Bus (52 seater)">Luxirious Bus (52 seater)</option>
+                        <option value="Mini Buses (7 seater)">Mini Buses (7 seater)</option>
+                        <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
+                        <option value="SUV / Crossover (5-7 seats)">SUV / Crossover (5-7 seats)</option>
                         <option value="Luxury Car">Luxury Car</option>
-                        <option value="Sedan (small car)">
-                          Sedan (small car)
-                        </option>
+                        <option value="Sedan (small car)">Sedan (small car)</option>
                       </select>
                     )}
                   </div>
@@ -1100,12 +1067,23 @@ const TicketsManagement = () => {
                     label="Vehicle Name / Model"
                     placeholder="e.g. Toyota Hiace 2024"
                     value={formData.vehicleName}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        vehicleName: e.target.value,
-                      })
-                    }
+                    onChange={(e) => setFormData({ ...formData, vehicleName: e.target.value })}
+                    disabled={saving}
+                    required
+                  />
+                  <Input
+                    label="Vehicle Plate Number"
+                    placeholder="LAG-123-XY"
+                    value={formData.vehiclePlateNumber}
+                    onChange={(e) => setFormData({ ...formData, vehiclePlateNumber: e.target.value })}
+                    disabled={saving}
+                    required
+                  />
+                  <Input
+                    label="Pickup Address / Terminal"
+                    placeholder="e.g. Jibowu Terminal, Lagos"
+                    value={formData.pickupAddress}
+                    onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value, terminal: e.target.value })}
                     disabled={saving}
                     required
                   />
@@ -1227,7 +1205,8 @@ const TicketsManagement = () => {
                           ))}
                         </select>
                       </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
                           Destination State
@@ -1381,15 +1360,8 @@ const TicketsManagement = () => {
                 )}
               </div>
 
-              {/* Terminal & Time Slots row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                <Input
-                  label="Terminal Name"
-                  placeholder="e.g. Jibowu Terminal"
-                  value={formData.terminal}
-                  onChange={(e) => setFormData({ ...formData, terminal: e.target.value })}
-                  disabled={saving}
-                />
+              {/* Departure Time Slots */}
+              <div className="pt-2">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
                     <label className="block text-xs font-semibold text-neutral-600">Departure Time Slots</label>
@@ -1418,7 +1390,6 @@ const TicketsManagement = () => {
                   </div>
                 </div>
               </div>
-            </div>
 
               {/* 3. Schedule & Pricing */}
               <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-5">

@@ -197,6 +197,8 @@ exports.createTrip = async (req, res) => {
       depositAmount,
       cancellationWindow,
       confirmationWindow,
+      vehiclePlateNumber,
+      pickupAddress,
     } = req.body;
 
     // Validate required fields
@@ -251,6 +253,8 @@ exports.createTrip = async (req, res) => {
       depositAmount: depositAmount || 0,
       cancellationWindow: cancellationWindow || 12,
       confirmationWindow: confirmationWindow || 2,
+      vehiclePlateNumber: vehiclePlateNumber || null,
+      pickupAddress: pickupAddress || null,
       companyId: req.user.id,
       status: "active",
     });
@@ -325,6 +329,8 @@ exports.updateTrip = async (req, res) => {
       depositAmount,
       cancellationWindow,
       confirmationWindow,
+      vehiclePlateNumber,
+      pickupAddress,
     } = req.body;
 
     if (from) trip.from = from;
@@ -357,6 +363,8 @@ exports.updateTrip = async (req, res) => {
     if (depositAmount !== undefined) trip.depositAmount = depositAmount;
     if (cancellationWindow !== undefined) trip.cancellationWindow = cancellationWindow;
     if (confirmationWindow !== undefined) trip.confirmationWindow = confirmationWindow;
+    if (vehiclePlateNumber !== undefined) trip.vehiclePlateNumber = vehiclePlateNumber;
+    if (pickupAddress !== undefined) trip.pickupAddress = pickupAddress;
     
     if (seats !== undefined) {
       // Calculate booked seats BEFORE overwriting trip.seats
