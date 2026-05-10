@@ -2,6 +2,7 @@ const express = require("express");
 const path = require("path");
 const cors = require("cors");
 const helmet = require("helmet");
+const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const dotenv = require("dotenv");
 const { sequelize, testConnection, dbType } = require("./config/database");
@@ -62,6 +63,9 @@ app.use(
     crossOriginOpenerPolicy: false,
   }),
 );
+
+// Gzip compression — reduces JSON responses by ~70-85%
+app.use(compression());
 
 // Rate limiting for auth routes
 const authLimiter = rateLimit({

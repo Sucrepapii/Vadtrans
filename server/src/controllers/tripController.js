@@ -77,15 +77,26 @@ exports.getAllTrips = async (req, res) => {
 
     const trips = await Trip.findAll({
       where,
+      attributes: [
+        "id", "from", "to", "transportType", "serviceCategory",
+        "vehicleType", "vehicleName", "terminal", "state",
+        "fromCountry", "toCountry", "fromState", "toState",
+        "departureTime", "departureDate", "operatingDays", "duration",
+        "price", "baseFare", "pricePerKg", "minCharge", "maxWeightCapacity",
+        "seats", "availableSeats", "minSeats",
+        "depositAmount", "cancellationWindow", "confirmationWindow",
+        "timeWindowStart", "timeWindowEnd",
+        "status", "companyId", "createdAt",
+      ],
       order: [["createdAt", "DESC"]],
       include: [
         {
           model: User,
           as: "company",
-          attributes: ["id", "name", "email", "avatar"],
+          attributes: ["id", "name", "avatar"],
         },
       ],
-      limit: 100, // Safety limit
+      limit: 100,
     });
 
     // For carpooling trips, if we are searching for a specific date,
