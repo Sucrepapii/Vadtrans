@@ -887,15 +887,7 @@ const TicketsManagement = () => {
                 </h3>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Input
-                    label="Vehicle Name / Model"
-                    placeholder="e.g. Toyota Corolla"
-                    value={formData.vehicleName}
-                    onChange={(e) => setFormData({ ...formData, vehicleName: e.target.value })}
-                    disabled={saving}
-                    required
-                  />
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
                       Vehicle Category
                     </label>
@@ -918,21 +910,31 @@ const TicketsManagement = () => {
                     </select>
                   </div>
                   <Input
-                    label="Vehicle Plate Number"
+                    label="Vehicle Name / Model"
+                    placeholder="e.g. Toyota Corolla"
+                    value={formData.vehicleName}
+                    onChange={(e) => setFormData({ ...formData, vehicleName: e.target.value })}
+                    disabled={saving}
+                    required
+                  />
+                  <Input
+                    label="Vehicle Plate Number *"
                     placeholder="LAG-123-XY"
                     value={formData.vehiclePlateNumber}
                     onChange={(e) => setFormData({ ...formData, vehiclePlateNumber: e.target.value })}
                     disabled={saving}
                     required
                   />
-                  <Input
-                    label="Pickup Address / Terminal"
-                    placeholder="e.g. Conoil filling station, Festac"
-                    value={formData.pickupAddress}
-                    onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
-                    disabled={saving}
-                    required
-                  />
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Pickup Address / Terminal *"
+                      placeholder="e.g. Conoil filling station, Festac"
+                      value={formData.pickupAddress}
+                      onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
+                      disabled={saving}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1014,11 +1016,10 @@ const TicketsManagement = () => {
               {/* 1. Vehicle & Terminal Details */}
               <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-5">
                 <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                  <FaCar className="text-primary" /> Vehicle & Terminal Details
+                  <FaCar className="text-primary" /> Vehicle & Terminal
                 </h3>
-                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
+                  <div className="md:col-span-2">
                     <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
                       {formData.serviceCategory === "freight" ? "Carrier / Vehicle Type" : "Vehicle Category"}
                     </label>
@@ -1072,21 +1073,23 @@ const TicketsManagement = () => {
                     required
                   />
                   <Input
-                    label="Vehicle Plate Number"
+                    label="Vehicle Plate Number *"
                     placeholder="LAG-123-XY"
                     value={formData.vehiclePlateNumber}
                     onChange={(e) => setFormData({ ...formData, vehiclePlateNumber: e.target.value })}
                     disabled={saving}
                     required
                   />
-                  <Input
-                    label="Pickup Address / Terminal"
-                    placeholder="e.g. Jibowu Terminal, Lagos"
-                    value={formData.pickupAddress}
-                    onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value, terminal: e.target.value })}
-                    disabled={saving}
-                    required
-                  />
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Pickup Address / Terminal *"
+                      placeholder="e.g. Conoil filling station, Festac"
+                      value={formData.pickupAddress}
+                      onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value, terminal: e.target.value })}
+                      disabled={saving}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
