@@ -304,6 +304,30 @@ if (require.main === module) {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
     console.log(`💾 Database: SQLite (file-based)`);
+
+    // ── Keep-Alive Ping (production only) ────────────────────────────────────
+    // Prevents Railway from spinning down the server due to inactivity.
+    // Pings the health endpoint every 10 minutes.
+    if (process.env.NODE_ENV === "production") {
+      const https = require("https");
+      const SERVER_URL =
+        process.env.SERVER_URL ||
+        "https://vadtrans-production.up.railway.app";
+
+      setInterval(() => {
+        const url = `${SERVER_URL}/api/health`;
+        https
+          .get(url, (res) => {
+            console.log(`💓 Keep-alive ping: ${res.statusCode}`);
+          })
+          .on("error", (err) => {
+            console.warn(`⚠️  Keep-alive ping failed: ${err.message}`);
+          });
+      }, 10 * 60 * 1000); // every 10 minutes
+
+      console.log("💓 Keep-alive cron started (pings every 10 min)");
+    }
+    // ─────────────────────────────────────────────────────────────────────────
   });
 }
 

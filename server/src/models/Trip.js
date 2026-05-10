@@ -210,6 +210,21 @@ const Trip = sequelize.define(
   },
   {
     timestamps: true,
+    indexes: [
+      // Primary search filter — status + serviceCategory (most common query)
+      { fields: ["status", "serviceCategory"] },
+      // Date-based filtering
+      { fields: ["departureDate"] },
+      // Company portal: fetch own trips
+      { fields: ["companyId"] },
+      // Transport type filter
+      { fields: ["transportType"] },
+      // Compound: the exact shape of the landing page query
+      { fields: ["status", "serviceCategory", "transportType"] },
+      // Route search
+      { fields: ["from"] },
+      { fields: ["to"] },
+    ],
   },
 );
 

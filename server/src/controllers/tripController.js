@@ -74,7 +74,6 @@ exports.getAllTrips = async (req, res) => {
     // Filter by status (default to active only)
     where.status = status || "active";
 
-    console.log("Fetching trips with where clause:", where);
 
     const trips = await Trip.findAll({
       where,
