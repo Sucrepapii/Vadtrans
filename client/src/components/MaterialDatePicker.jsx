@@ -4,22 +4,73 @@ import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
 import dayjs from "dayjs";
 
-// Custom theme to match the user's "Purple" request
-// The color from the screenshot resembles deep purple.
-const purpleTheme = createTheme({
+// Matches the app's primary purple + the new form card aesthetic:
+// rounded-xl (12px), neutral-200 border, xs semibold labels, white bg
+const appTheme = createTheme({
   palette: {
-    primary: {
-      main: "#8e24aa", // Deep Purple similar to the screenshot
-    },
+    primary: { main: "#8e24aa" },
+  },
+  typography: {
+    fontFamily: "'Inter', 'Outfit', sans-serif",
   },
   components: {
-    MuiTextField: {
+    MuiOutlinedInput: {
       styleOverrides: {
         root: {
-          width: "100%",
+          borderRadius: "0.75rem",        // rounded-xl
+          backgroundColor: "#ffffff",
+          fontSize: "0.875rem",           // text-sm
+          "&:hover .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#d1d5db",       // neutral-300 on hover
+          },
+          "&.Mui-focused .MuiOutlinedInput-notchedOutline": {
+            borderColor: "#8e24aa",
+            borderWidth: "2px",
+          },
+        },
+        notchedOutline: {
+          borderColor: "#e5e7eb",         // neutral-200
+        },
+        input: {
+          padding: "10px 14px",           // py-2.5 equivalent
+        },
+      },
+    },
+    MuiInputLabel: {
+      styleOverrides: {
+        root: {
+          fontSize: "0.75rem",            // text-xs
+          fontWeight: 600,
+          color: "#525252",               // neutral-600
+          "&.Mui-focused": {
+            color: "#8e24aa",
+          },
+        },
+      },
+    },
+    MuiPickersDay: {
+      styleOverrides: {
+        root: {
+          borderRadius: "0.5rem",
+          "&.Mui-selected": {
+            backgroundColor: "#8e24aa",
+          },
+        },
+      },
+    },
+    MuiClock: {
+      styleOverrides: {
+        pin: { backgroundColor: "#8e24aa" },
+      },
+    },
+    MuiClockPointer: {
+      styleOverrides: {
+        root: { backgroundColor: "#8e24aa" },
+        thumb: {
+          backgroundColor: "#8e24aa",
+          borderColor: "#8e24aa",
         },
       },
     },
@@ -34,12 +85,9 @@ const MaterialDatePicker = ({
   className = "",
   fullWidth = true,
 }) => {
-  // Convert string/Date to dayjs object if necessary
   const dateValue = value ? dayjs(value) : null;
 
   const handleChange = (newValue) => {
-    // Return standard Javascript Date object or ISO string to parent
-    // to maintain compatibility with existing app logic
     if (newValue) {
       onChange(newValue.toDate());
     } else {
@@ -48,9 +96,9 @@ const MaterialDatePicker = ({
   };
 
   return (
-    <ThemeProvider theme={purpleTheme}>
+    <ThemeProvider theme={appTheme}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <div className={className}>
+        <div className={`w-full ${className}`}>
           <DatePicker
             label={label}
             value={dateValue}
@@ -60,13 +108,7 @@ const MaterialDatePicker = ({
               textField: {
                 fullWidth: fullWidth,
                 variant: "outlined",
-                sx: {
-                  // Custom styles to blend with existing inputs
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "0.5rem", // Tailwind rounded-lg
-                    backgroundColor: "white",
-                  },
-                },
+                size: "small",
               },
             }}
           />
@@ -83,10 +125,8 @@ export const MaterialTimePicker = ({
   className = "",
   fullWidth = true,
 }) => {
-  // Helpers to parse "hh:mm A" or "HH:mm" string to dayjs object
   const parseTime = (timeStr) => {
     if (!timeStr) return null;
-    // Support both "06:30 AM" and legacy "14:30" formats
     if (timeStr.includes("AM") || timeStr.includes("PM")) {
       return dayjs(timeStr, "hh:mm A");
     }
@@ -98,7 +138,6 @@ export const MaterialTimePicker = ({
 
   const handleChange = (newValue) => {
     if (newValue) {
-      // Format to 12-hour with AM/PM (e.g., "06:30 AM")
       onChange(newValue.format("hh:mm A"));
     } else {
       onChange("");
@@ -106,9 +145,9 @@ export const MaterialTimePicker = ({
   };
 
   return (
-    <ThemeProvider theme={purpleTheme}>
+    <ThemeProvider theme={appTheme}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <div className={className}>
+        <div className={`w-full ${className}`}>
           <TimePicker
             label={label}
             value={timeValue}
@@ -118,12 +157,7 @@ export const MaterialTimePicker = ({
               textField: {
                 fullWidth: fullWidth,
                 variant: "outlined",
-                sx: {
-                  "& .MuiOutlinedInput-root": {
-                    borderRadius: "0.5rem",
-                    backgroundColor: "white",
-                  },
-                },
+                size: "small",
               },
             }}
           />
