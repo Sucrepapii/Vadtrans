@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import dayjs from "dayjs";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
@@ -41,6 +42,7 @@ import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 
 const TicketsManagement = () => {
   const { user } = useAuth(); // Get user for verification status check
+  const [searchParams] = useSearchParams();
   const [tickets, setTickets] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showTypeSelection, setShowTypeSelection] = useState(false);
@@ -97,6 +99,13 @@ const TicketsManagement = () => {
   const { states, getCitiesForState } = useLocationsAPI();
   const [apiFromCities, setApiFromCities] = useState([]);
   const [apiToCities, setApiToCities] = useState([]);
+
+  useEffect(() => {
+    if (searchParams.get("add") === "true") {
+      handleAddTicket();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;

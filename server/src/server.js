@@ -152,7 +152,8 @@ const initializeDatabase = async () => {
     await Shipment.sync({ alter: true });
     await Notification.sync({ alter: true });
     await Booking.sync({ alter: true });
-    await Trip.sync({ alter: true });
+    // We do NOT use Trip.sync({ alter: true }) here because it causes syntax errors in Postgres ENUM updates.
+    // Instead, we use manual migration logic below.
 
     // Force add missing columns for Bookings (for production environments where alter:true might fail)
     const queryInterface = sequelize.getQueryInterface();
@@ -194,6 +195,35 @@ const initializeDatabase = async () => {
 
     // Force add missing columns for Trips
     const tripTableInfo = await queryInterface.describeTable("Trips");
+
+    // Handle PostgreSQL ENUM updates manually to avoid syntax errors
+    if (dbType === "Postgres") {
+      try {
+        await sequelize.query(`
+          DO $$ 
+          BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid WHERE t.typname = 'enum_Trips_transportType' AND e.enumlabel = 'carpooling') THEN
+              ALTER TYPE "enum_Trips_transportType" ADD VALUE 'carpooling';
+            END IF;
+          END $$;
+        `);
+      } catch (err) {
+        console.log("ℹ️ Note: Could not update transportType ENUM (might already be up to date)");
+      }
+
+      try {
+        await sequelize.query(`
+          DO $$ 
+          BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid WHERE t.typname = 'enum_Trips_serviceCategory' AND e.enumlabel = 'freight') THEN
+              ALTER TYPE "enum_Trips_serviceCategory" ADD VALUE 'freight';
+            END IF;
+          END $$;
+        `);
+      } catch (err) {
+        console.log("ℹ️ Note: Could not update serviceCategory ENUM (might already be up to date)");
+      }
+    }
     if (!tripTableInfo.vehiclePlateNumber) {
       console.log("ℹ️ Adding missing column 'vehiclePlateNumber' to Trips...");
       await queryInterface.addColumn("Trips", "vehiclePlateNumber", {

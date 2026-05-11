@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { authAPI, tripAPI } from "../../services/api";
@@ -43,6 +44,7 @@ import { FaUsers } from "react-icons/fa";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 
 const CompanyProfile = () => {
+  const navigate = useNavigate();
   const { user, updateUser } = useAuth();
   const [activeTab, setActiveTab] = useState("profile");
   const [isEditing, setIsEditing] = useState(false);
@@ -1070,36 +1072,10 @@ const CompanyProfile = () => {
                   <h2 className="text-lg font-semibold">Manage Trips</h2>
                   <Button
                     variant="primary"
-                    onClick={() => {
-                      setShowModal(true);
-                      setFormData({
-                        from: "",
-                        to: "",
-                        transportType: "inter-state",
-                        departureTime: "",
-                        departureDate: "",
-                        operatingDays: [],
-                        duration: "",
-                        price: "",
-                        seats: 18,
-                        serviceCategory: "passenger",
-                        freightType: "",
-                        state: "",
-                        vehicleType: "Hiace Bus (18 seater)",
-                        city: "",
-                        terminal: "",
-                        documentPrices: {
-                          "Regular Passport": "",
-                          "Virgin Passport": "",
-                          NIN: "",
-                          "No Document": "",
-                        },
-                      });
-                      setEditingTrip(null);
-                    }}>
+                    onClick={() => navigate("/company/tickets?add=true")}>
                     <div className="flex items-center gap-2">
                       <FaBus />
-                      <span>Add New Trillllp</span>
+                      <span>Add New Trip</span>
                     </div>
                   </Button>
                 </div>
