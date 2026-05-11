@@ -56,6 +56,9 @@ Object.values(models).forEach((model) => {
 // Initialize express
 const app = express();
 
+// Trust proxy for express-rate-limit behind proxies (like Railway)
+app.set("trust proxy", 1);
+
 // Security middleware
 app.use(
   helmet({
