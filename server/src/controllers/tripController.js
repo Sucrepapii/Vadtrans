@@ -1,6 +1,76 @@
 const Trip = require("../models/Trip");
 const User = require("../models/User");
+const Booking = require("../models/Booking");
 const { Op } = require("sequelize");
+
+/**
+ * Recalculates and updates a trip's bookedSeats and availableSeats based on valid bookings.
+ * Valid bookings are those that are 'confirmed' or 'pending' and less than 15 minutes old.
+ */
+const syncTripSeats = async (tripId) => {
+  try {
+    const trip = await Trip.findByPk(tripId);
+    if (!trip) return null;
+
+    // Find all bookings for this trip that should still occupy seats
+    // 1. Confirmed bookings
+    // 2. Pending bookings that are not expired (e.g., < 15 minutes old)
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+
+    const validBookings = await Booking.findAll({
+      where: {
+        tripId,
+        [Op.or]: [
+          { bookingStatus: "confirmed" },
+          {
+            bookingStatus: "pending",
+            createdAt: { [Op.gt]: fifteenMinutesAgo },
+          },
+        ],
+      },
+    });
+
+    // Collect all seats from valid bookings
+    let newlyBookedSeats = [];
+    validBookings.forEach((booking) => {
+      let seats = [];
+      if (Array.isArray(booking.selectedSeats)) {
+        seats = booking.selectedSeats;
+      } else if (typeof booking.selectedSeats === "string") {
+        try {
+          seats = JSON.parse(booking.selectedSeats || "[]");
+        } catch (e) {
+          seats = [];
+        }
+      }
+      newlyBookedSeats = [...newlyBookedSeats, ...seats];
+    });
+
+    // Remove duplicates
+    newlyBookedSeats = [...new Set(newlyBookedSeats)];
+
+    // Update trip record if changed
+    const currentBookedCount = Array.isArray(trip.bookedSeats)
+      ? trip.bookedSeats.length
+      : JSON.parse(trip.bookedSeats || "[]").length;
+
+    if (
+      newlyBookedSeats.length !== currentBookedCount ||
+      JSON.stringify(newlyBookedSeats.sort()) !==
+        JSON.stringify((Array.isArray(trip.bookedSeats) ? trip.bookedSeats : JSON.parse(trip.bookedSeats || "[]")).sort())
+    ) {
+      trip.bookedSeats = newlyBookedSeats;
+      trip.availableSeats = Math.max(0, trip.seats - newlyBookedSeats.length);
+      await trip.save();
+      console.log(`Synced seats for trip ${tripId}: ${newlyBookedSeats.length} occupied`);
+    }
+
+    return trip;
+  } catch (error) {
+    console.error("Error syncing trip seats:", error);
+    return null;
+  }
+};
 
 // @desc    Get all trips
 // @route   GET /api/trips
@@ -147,9 +217,23 @@ exports.getTripById = async (req, res) => {
       });
     }
 
+    // Sync seats before returning to ensure accuracy (e.g., release expired pending seats)
+    await syncTripSeats(req.params.id);
+    
+    // Refresh trip data after sync
+    const refreshedTrip = await Trip.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          as: "company",
+          attributes: ["id", "name", "email", "avatar"],
+        },
+      ],
+    });
+
     res.status(200).json({
       success: true,
-      trip,
+      trip: refreshedTrip || trip,
     });
   } catch (error) {
     console.error("Get trip error:", error);
@@ -459,6 +543,7 @@ exports.getMyTrips = async (req, res) => {
 // @desc    Update trip location (for live tracking)
 // @route   PUT /api/trips/:id/location
 // @access  Private (Company only - own trips)
+exports.syncTripSeats = syncTripSeats;
 exports.updateTripLocation = async (req, res) => {
   try {
     const trip = await Trip.findByPk(req.params.id);

@@ -1070,14 +1070,14 @@ const CompanyProfile = () => {
               <Card>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                   <h2 className="text-lg font-semibold">Manage Trips</h2>
-                  <Button
+                  {/* <Button
                     variant="primary"
                     onClick={() => navigate("/company/tickets?add=true")}>
                     <div className="flex items-center gap-2">
                       <FaBus />
                       <span>Add New Trip</span>
                     </div>
-                  </Button>
+                  </Button> */}
                 </div>
 
                 {/* Trips List */}

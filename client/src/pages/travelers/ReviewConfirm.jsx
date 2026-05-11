@@ -136,9 +136,22 @@ const ReviewConfirm = () => {
     }
   };
 
-  const handlePaystackClose = () => {
+  const handlePaystackClose = async () => {
     toast.info("Transaction cancelled");
     setIsProcessing(false);
+
+    // Release seats immediately if we have a pending booking ID
+    const bookingId = sessionStorage.getItem("lastPendingBookingId");
+    if (bookingId) {
+      try {
+        await api.delete(`/bookings/${bookingId}/abandon`);
+        sessionStorage.removeItem("lastPendingBookingId");
+        sessionStorage.removeItem("lastPendingBookingRef");
+        console.log("Seats released after manual cancellation");
+      } catch (err) {
+        console.error("Failed to release seats:", err);
+      }
+    }
   };
 
   const handleConfirmPayment = async () => {

@@ -6,6 +6,7 @@ const {
   getCompanyBookings,
   getBooking,
   cancelBooking,
+  abandonBooking,
 } = require("../controllers/bookingController");
 const { protect } = require("../middleware/auth");
 
@@ -17,5 +18,6 @@ router.get("/", getUserBookings);
 router.get("/company/my-bookings", getCompanyBookings);
 router.get("/:id", getBooking);
 router.put("/:id/cancel", cancelBooking);
+router.delete("/:id/abandon", abandonBooking);
 
 module.exports = router;

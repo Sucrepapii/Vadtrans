@@ -3,6 +3,7 @@ const Trip = require("../models/Trip");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
 const { sequelize } = require("../config/database");
+const { syncTripSeats } = require("./tripController");
 
 // @desc    Create a new booking
 // @route   POST /api/bookings
@@ -32,7 +33,10 @@ exports.createBooking = async (req, res) => {
       });
     }
 
-    // Find trip
+    // Sync seats before checking availability to release any expired pending reservations
+    await syncTripSeats(tripId);
+
+    // Find trip (now with updated seats)
     const trip = await Trip.findByPk(tripId, { transaction });
     if (!trip) {
       console.log(`Trip not found: ${tripId}`);
@@ -411,6 +415,57 @@ exports.cancelBooking = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error cancelling booking",
+      error: error.message,
+    });
+  }
+};
+
+// @desc    Abandon a pending booking (e.g. when user cancels payment)
+// @route   DELETE /api/bookings/:id/abandon
+// @access  Private
+exports.abandonBooking = async (req, res) => {
+  try {
+    const booking = await Booking.findByPk(req.params.id);
+
+    if (!booking) {
+      return res.status(404).json({
+        success: false,
+        message: "Booking not found",
+      });
+    }
+
+    // Only allow abandonment of pending bookings
+    if (booking.bookingStatus !== "pending" || booking.paymentStatus !== "pending") {
+      return res.status(400).json({
+        success: false,
+        message: "Only pending, unpaid bookings can be abandoned",
+      });
+    }
+
+    // Make sure booking belongs to user
+    if (booking.userId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to abandon this booking",
+      });
+    }
+
+    const tripId = booking.tripId;
+    await booking.destroy();
+
+    // Sync trip seats immediately to release them
+    const { syncTripSeats } = require("./tripController");
+    await syncTripSeats(tripId);
+
+    res.status(200).json({
+      success: true,
+      message: "Booking abandoned and seats released",
+    });
+  } catch (error) {
+    console.error("Abandon booking error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error abandoning booking",
       error: error.message,
     });
   }

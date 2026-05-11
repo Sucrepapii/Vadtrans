@@ -22,18 +22,16 @@ const SeatSelection = () => {
     const seatsPerRow = 4;
     const rows = Math.ceil(totalSeats / seatsPerRow);
 
-    // Calculate number of booked seats
-    const bookedSeatsCount = totalSeats - availableSeats;
-
-    // Generate random booked seat numbers for demo
-    // In production, this should come from the API
-    const bookedSeats = [];
-    for (let i = 0; i < bookedSeatsCount; i++) {
-      let randomSeat;
-      do {
-        randomSeat = Math.floor(Math.random() * totalSeats) + 1;
-      } while (bookedSeats.includes(randomSeat));
-      bookedSeats.push(randomSeat);
+    // Use booked seats from trip data
+    let bookedSeats = [];
+    if (Array.isArray(tripData?.bookedSeats)) {
+      bookedSeats = tripData.bookedSeats;
+    } else if (typeof tripData?.bookedSeats === "string") {
+      try {
+        bookedSeats = JSON.parse(tripData.bookedSeats || "[]");
+      } catch (e) {
+        bookedSeats = [];
+      }
     }
 
     for (let row = 1; row <= rows; row++) {
