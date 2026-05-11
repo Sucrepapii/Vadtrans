@@ -148,14 +148,33 @@ const initializeDatabase = async () => {
     await testConnection();
     // Sync all models with database (alter: false for production speed, manual migration handles columns)
     await sequelize.sync({ alter: false });
-    // Explicitly sync Shipment and Notification to ensure they exist
+    // Explicitly sync models without 'alter: true' for Trip to avoid the PostgreSQL ENUM bug
     await Shipment.sync({ alter: true });
     await Notification.sync({ alter: true });
     await Booking.sync({ alter: true });
-    await Trip.sync({ alter: true });
+    await Trip.sync({ alter: false }); // Disable alter here to prevent the 'USING' syntax error
 
-    // Force add missing columns for Bookings (for production environments where alter:true might fail)
     const queryInterface = sequelize.getQueryInterface();
+
+    // Fix for Trips transportType ENUM (PostgreSQL specific)
+    try {
+      if (process.env.DATABASE_URL && process.env.DATABASE_URL.includes('postgres')) {
+        console.log("ℹ️ Checking/Updating Trips transportType enum...");
+        // Add 'carpooling' to the enum if it doesn't exist
+        await sequelize.query(`
+          DO $$ 
+          BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid WHERE t.typname = 'enum_Trips_transportType' AND e.enumlabel = 'carpooling') THEN
+              ALTER TYPE "enum_Trips_transportType" ADD VALUE 'carpooling';
+            END IF;
+          END $$;
+        `).catch(err => console.log("Note: Enum update handled or skipped:", err.message));
+      }
+    } catch (e) {
+      console.log("⚠️ Enum update failed (might already exist):", e.message);
+    }
+
+    // Force add missing columns for Bookings
     const tableInfo = await queryInterface.describeTable("Bookings");
 
     if (!tableInfo.paidAmount) {
@@ -375,7 +394,7 @@ if (require.main === module) {
   app.listen(PORT, () => {
     console.log(`🚀 Server running on port ${PORT}`);
     console.log(`📍 Environment: ${process.env.NODE_ENV || "development"}`);
-    console.log(`💾 Database: SQLite (file-based)`);
+    console.log(`💾 Database: ${process.env.DATABASE_URL ? "PostgreSQL" : "SQLite"}`);
 
     // ── Keep-Alive Ping (production only) ────────────────────────────────────
     // Prevents Railway from spinning down the server due to inactivity.
