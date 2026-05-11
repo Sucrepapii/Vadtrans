@@ -731,7 +731,7 @@ const TicketsManagement = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => !saving && setIsModalOpen(false)}
-        title={editingTicket ? "Edit Trip" : "Add New Trip"}
+        title={editingTicket ? "Edit Trip" : "Trip Details"}
         footer={
           <>
             <Button
@@ -1557,7 +1557,7 @@ const TicketsManagement = () => {
               <FaPlus className="text-2xl text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold font-raleway">Add New Trip</h2>
+              <h2 className="text-2xl font-bold font-raleway">Trip Details</h2>
               <p className="text-neutral-400 text-sm">
                 Select the type of service you want to offer
               </p>

@@ -149,9 +149,9 @@ const initializeDatabase = async () => {
     // Sync all models with database (alter: false for production speed, manual migration handles columns)
     await sequelize.sync({ alter: false });
     // Explicitly sync models without 'alter: true' for Trip to avoid the PostgreSQL ENUM bug
-    await Shipment.sync({ alter: true });
-    await Notification.sync({ alter: true });
-    await Booking.sync({ alter: true });
+    await Shipment.sync({ alter: false });
+    await Notification.sync({ alter: false });
+    await Booking.sync({ alter: false });
     await Trip.sync({ alter: false }); // Disable alter here to prevent the 'USING' syntax error
 
     const queryInterface = sequelize.getQueryInterface();
