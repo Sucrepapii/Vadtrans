@@ -1,6 +1,8 @@
 import React from "react";
-import { LocalizationProvider, DatePicker, MultiSectionDigitalTimePicker } from "@mui/x-date-pickers";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { TimePicker } from "@mui/x-date-pickers/TimePicker";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 
@@ -87,13 +89,6 @@ const appTheme = createTheme({
           borderColor: "#E31E24 !important",
           borderWidth: "1.5px !important",
           color: "#E31E24",
-        },
-      },
-    },
-    MuiMultiSectionDigitalTimePicker: {
-      styleOverrides: {
-        root: {
-          borderRadius: "16px",
         },
       },
     },
@@ -189,7 +184,7 @@ export const MaterialTimePicker = ({
     <ThemeProvider theme={appTheme}>
       <LocalizationProvider dateAdapter={AdapterDayjs}>
         <div className={`w-full ${className}`}>
-          <MultiSectionDigitalTimePicker
+          <TimePicker
             label={label}
             value={timeValue}
             onChange={handleChange}
