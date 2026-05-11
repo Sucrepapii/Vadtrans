@@ -1,8 +1,6 @@
 import React from "react";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { LocalizationProvider, DatePicker, MultiSectionDigitalTimePicker } from "@mui/x-date-pickers";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { MultiSectionDigitalTimePicker } from "@mui/x-date-pickers/MultiSectionDigitalTimePicker";
 import { ThemeProvider, createTheme } from "@mui/material/styles";
 import dayjs from "dayjs";
 
