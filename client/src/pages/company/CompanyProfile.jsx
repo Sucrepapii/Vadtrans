@@ -1068,13 +1068,47 @@ const CompanyProfile = () => {
               <Card>
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
                   <h2 className="text-lg font-semibold">Manage Trips</h2>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setShowModal(true);
+                      setFormData({
+                        from: "",
+                        to: "",
+                        transportType: "inter-state",
+                        departureTime: "",
+                        departureDate: "",
+                        operatingDays: [],
+                        duration: "",
+                        price: "",
+                        seats: 18,
+                        serviceCategory: "passenger",
+                        freightType: "",
+                        state: "",
+                        vehicleType: "Hiace Bus (18 seater)",
+                        city: "",
+                        terminal: "",
+                        documentPrices: {
+                          "Regular Passport": "",
+                          "Virgin Passport": "",
+                          NIN: "",
+                          "No Document": "",
+                        },
+                      });
+                      setEditingTrip(null);
+                    }}>
+                    <div className="flex items-center gap-2">
+                      <FaBus />
+                      <span>Add New Trillllp</span>
+                    </div>
+                  </Button>
                 </div>
 
                 {/* Trips List */}
                 <div className="space-y-3">
                   {trips.length === 0 ? (
                     <p className="text-center text-neutral-600 py-8">
-                      No trips found.
+                      No trips created yet. Click "Add New Trip" to get started.
                     </p>
                   ) : (
                     trips.map((trip) => (
@@ -1159,7 +1193,7 @@ const CompanyProfile = () => {
                   <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
                       <h3 className="text-xl font-semibold mb-4">
-                        {editingTrip ? "Edit Trip" : "Trip Details"}
+                        {editingTrip ? "Edit Trip" : "Add New Trip"}
                       </h3>
                       <form onSubmit={handleSubmit} className="space-y-4">
                         <div>

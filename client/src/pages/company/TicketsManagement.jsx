@@ -697,6 +697,16 @@ const TicketsManagement = () => {
                 Manage your transportation tickets
               </p>
             </div>
+            <Button
+              variant="primary"
+              onClick={handleAddTicket}
+              disabled={loading}
+              className="w-full sm:w-auto">
+              <div className="flex items-center gap-2 justify-center sm:justify-start">
+                <FaPlus />
+                <span>Add Trip</span>
+              </div>
+            </Button>
           </div>
 
           <Card>
@@ -709,7 +719,13 @@ const TicketsManagement = () => {
               </div>
             ) : tickets.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-neutral-600">No trips found</p>
+                <p className="text-neutral-600 mb-4">No trips yet</p>
+                <Button variant="primary" onClick={handleAddTicket}>
+                  <div className="flex items-center gap-2">
+                    <FaPlus />
+                    <span>Add Your First Trip</span>
+                  </div>
+                </Button>
               </div>
             ) : (
               <>
@@ -731,7 +747,7 @@ const TicketsManagement = () => {
       <Modal
         isOpen={isModalOpen}
         onClose={() => !saving && setIsModalOpen(false)}
-        title={editingTicket ? "Edit Trip" : "Trip Details"}
+        title={editingTicket ? "Edit Trip" : "Add New Trip"}
         footer={
           <>
             <Button
@@ -1557,7 +1573,7 @@ const TicketsManagement = () => {
               <FaPlus className="text-2xl text-white" />
             </div>
             <div>
-              <h2 className="text-2xl font-bold font-raleway">Trip Details</h2>
+              <h2 className="text-2xl font-bold font-raleway">Add New Trip</h2>
               <p className="text-neutral-400 text-sm">
                 Select the type of service you want to offer
               </p>
