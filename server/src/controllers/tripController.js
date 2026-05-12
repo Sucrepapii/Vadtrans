@@ -189,6 +189,7 @@ exports.getAllTrips = async (req, res) => {
       message: "Server crash: " + error.message
     });
   }
+};
 
 // @desc    Get single trip
 // @route   GET /api/trips/:id
