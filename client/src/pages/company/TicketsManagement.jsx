@@ -956,6 +956,113 @@ const TicketsManagement = () => {
                 </div>
               </div>
 
+              {/* Drop-off Stops Section */}
+              <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-5">
+                <div className="flex justify-between items-center">
+                  <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                    <FaMapMarkerAlt className="text-primary" /> Drop-off Stops & Prices
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => setFormData({
+                      ...formData,
+                      stops: [...(formData.stops || []), { city: "", price: "" }]
+                    })}
+                    className="text-[10px] bg-primary/5 text-primary border border-primary/10 px-2.5 py-1.5 rounded-xl hover:bg-primary/10 transition-all flex items-center gap-1.5 font-bold"
+                  >
+                    <FaPlus size={10} /> ADD STOP
+                  </button>
+                </div>
+                
+                {(!formData.stops || formData.stops.length === 0) ? (
+                  <div className="bg-white border border-dashed border-neutral-200 rounded-xl p-6 text-center">
+                    <p className="text-[11px] text-neutral-500 italic">
+                      No intermediate stops added. Click "ADD STOP" to set specific prices for cities along your route.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {formData.stops.map((stop, index) => (
+                      <div key={index} className="flex gap-3 items-end bg-white p-3 rounded-xl border border-neutral-100 shadow-sm">
+                        <div className="flex-1">
+                          <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5 ml-1">Drop-off City</label>
+                          <input
+                            type="text"
+                            placeholder="e.g. VI"
+                            value={stop.city}
+                            onChange={(e) => {
+                              const newStops = [...formData.stops];
+                              newStops[index].city = e.target.value;
+                              setFormData({ ...formData, stops: newStops });
+                            }}
+                            className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
+                          />
+                        </div>
+                        <div className="w-24 sm:w-36">
+                          <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5 ml-1">Stop Price (₦)</label>
+                          <input
+                            type="number"
+                            placeholder="2500"
+                            value={stop.price}
+                            onChange={(e) => {
+                              const newStops = [...formData.stops];
+                              newStops[index].price = e.target.value;
+                              setFormData({ ...formData, stops: newStops });
+                            }}
+                            className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newStops = formData.stops.filter((_, i) => i !== index);
+                            setFormData({ ...formData, stops: newStops });
+                          }}
+                          className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors border border-transparent hover:border-red-100"
+                        >
+                          <FaMinus size={14} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Ride Preferences Section */}
+              <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-4">
+                <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                  <FaInfoCircle className="text-primary" /> Ride Preferences
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { key: 'ac', icon: FaSnowflake, label: 'AC' },
+                    { key: 'smoking', icon: FaSmoking, label: 'Smoking' },
+                    { key: 'pets', icon: FaPaw, label: 'Pets' },
+                    { key: 'music', icon: FaMusic, label: 'Music' }
+                  ].map((pref) => (
+                    <button
+                      key={pref.key}
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        preferences: { 
+                          ...(formData.preferences || {}), 
+                          [pref.key]: !(formData.preferences?.[pref.key]) 
+                        }
+                      })}
+                      className={`flex items-center justify-center gap-2 p-3 rounded-xl border-2 transition-all ${
+                        formData.preferences?.[pref.key]
+                        ? "bg-primary/5 border-primary text-primary font-bold shadow-sm"
+                        : "bg-white border-neutral-100 text-neutral-400 hover:border-neutral-200"
+                      }`}
+                    >
+                      <pref.icon size={14} />
+                      <span className="text-[10px] uppercase tracking-wider">{pref.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* 3. Capacity & Pricing */}
               <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-5">
                 <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
@@ -1381,79 +1488,7 @@ const TicketsManagement = () => {
                 )}
               </div>
 
-              {/* Drop-off Stops Section (New) */}
-              {formData.transportType === "carpooling" && (
-                <div className="mt-4 pt-4 border-t border-neutral-100">
-                  <div className="flex justify-between items-center mb-4">
-                    <label className="block text-xs font-semibold text-neutral-600 flex items-center gap-2">
-                      <FaMapMarkerAlt className="text-primary" /> Drop-off Stops & Prices
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setFormData({
-                        ...formData,
-                        stops: [...formData.stops, { city: "", price: "" }]
-                      })}
-                      className="text-[10px] bg-primary/5 text-primary border border-primary/10 px-2 py-1 rounded-md hover:bg-primary/10 transition-all flex items-center gap-1 font-bold"
-                    >
-                      <FaPlus size={8} /> ADD STOP
-                    </button>
-                  </div>
-                  
-                  {formData.stops.length === 0 ? (
-                    <div className="bg-neutral-50 border border-dashed border-neutral-200 rounded-xl p-4 text-center">
-                      <p className="text-[10px] text-neutral-500 italic">
-                        No intermediate stops added yet.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {formData.stops.map((stop, index) => (
-                        <div key={index} className="flex gap-2 items-end">
-                          <div className="flex-1">
-                            <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-1 ml-1">City Name</label>
-                            <input
-                              type="text"
-                              placeholder="e.g. VI"
-                              value={stop.city}
-                              onChange={(e) => {
-                                const newStops = [...formData.stops];
-                                newStops[index].city = e.target.value;
-                                setFormData({ ...formData, stops: newStops });
-                              }}
-                              className="w-full px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
-                            />
-                          </div>
-                          <div className="w-24 sm:w-32">
-                            <label className="block text-[9px] font-bold text-neutral-400 uppercase tracking-widest mb-1 ml-1">Price (₦)</label>
-                            <input
-                              type="number"
-                              placeholder="2500"
-                              value={stop.price}
-                              onChange={(e) => {
-                                const newStops = [...formData.stops];
-                                newStops[index].price = e.target.value;
-                                setFormData({ ...formData, stops: newStops });
-                              }}
-                              className="w-full px-4 py-2 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
-                            />
-                          </div>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const newStops = formData.stops.filter((_, i) => i !== index);
-                              setFormData({ ...formData, stops: newStops });
-                            }}
-                            className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <FaMinus size={12} />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              )}
+
               <div className="pt-2">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
