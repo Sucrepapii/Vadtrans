@@ -181,14 +181,19 @@ exports.getAllTrips = async (req, res) => {
       });
     }
 
+    // Pagination parameters
+    const pageNum = parseInt(req.query.page) || 1;
+    const limitNum = parseInt(req.query.limit) || 10;
+    const offsetNum = (pageNum - 1) * limitNum;
+
     // Apply pagination to the filtered results
     const totalItems = filteredTrips.length;
-    const paginatedTrips = filteredTrips.slice(offset, offset + parseInt(limit));
+    const paginatedTrips = filteredTrips.slice(offsetNum, offsetNum + limitNum);
 
     // For carpooling trips, if we are searching for a specific date,
     // we want them to appear as if they are for that date.
-    const transformedTrips = trips.map((trip) => {
-      const tripJson = trip.toJSON();
+    const transformedTrips = paginatedTrips.map((trip) => {
+      const tripJson = typeof trip.toJSON === 'function' ? trip.toJSON() : trip;
       if (tripJson.transportType === "carpooling" && date) {
         tripJson.departureDate = date;
       }
@@ -197,7 +202,9 @@ exports.getAllTrips = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      count: transformedTrips.length,
+      count: totalItems,
+      currentPage: pageNum,
+      totalPages: Math.ceil(totalItems / limitNum),
       trips: transformedTrips,
     });
   } catch (error) {
