@@ -103,7 +103,7 @@ exports.getAllTrips = async (req, res) => {
     // 2. Fetch trips with only the most basic fields to ensure stability
     const tripsFromDb = await Trip.findAll({
       where: dbWhere,
-      attributes: ["id", "from", "to", "transportType", "serviceCategory", "departureTime", "departureDate", "operatingDays", "stops", "status", "companyId", "createdAt"],
+      attributes: ["id", "from", "to", "transportType", "serviceCategory", "departureTime", "departureDate", "operatingDays", "status", "companyId", "createdAt"],
       order: [["createdAt", "DESC"]],
     });
 
