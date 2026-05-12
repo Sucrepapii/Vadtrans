@@ -210,6 +210,8 @@ const TicketsManagement = () => {
         depositAmount: trip.depositAmount || 0,
         cancellationWindow: trip.cancellationWindow || 12,
         confirmationWindow: trip.confirmationWindow || 2,
+        stops: trip.stops || [],
+        preferences: trip.preferences || {},
       }));
 
       setTickets(transformedTrips);
@@ -257,6 +259,7 @@ const TicketsManagement = () => {
         NIN: "",
         "No Document": "",
       },
+      stops: [],
     });
     setIsModalOpen(false);
     setShowTypeSelection(true);
@@ -279,6 +282,7 @@ const TicketsManagement = () => {
         vehicleType: "Sedan (small car)",
         seats: 4,
         departureDate: formattedDate,
+        stops: [],
       }));
     } else if (type === "inter-state") {
       setFormData((prev) => ({
@@ -488,6 +492,7 @@ const TicketsManagement = () => {
         minSeats: Number(formData.minSeats || 1),
         vehiclePlateNumber: formData.vehiclePlateNumber || null,
         pickupAddress: formData.pickupAddress || null,
+        stops: formData.stops || [],
         depositAmount: 5, // Reserve with 5% deposit
         cancellationWindow: 12, // Free cancellation up to 12 hours
         confirmationWindow: 2,
