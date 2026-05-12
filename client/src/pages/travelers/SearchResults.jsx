@@ -26,6 +26,8 @@ import {
   FaSmokingBan,
   FaSuitcase,
   FaShieldAlt,
+  FaCalendar,
+  FaBox,
 } from "react-icons/fa";
 import Pagination from "../../components/Pagination";
 
