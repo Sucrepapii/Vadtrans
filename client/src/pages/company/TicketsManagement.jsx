@@ -1092,35 +1092,37 @@ const TicketsManagement = () => {
                   />
                 </div>
 
-                {/* Price Breakdown */}
-                <div className="bg-white p-4 rounded-xl border border-neutral-100 space-y-2">
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-neutral-500 font-bold uppercase tracking-wider">Final Trip Summary</span>
-                    <span className="text-[10px] text-neutral-400">Calculated based on final destination</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[11px] pt-2 border-t border-neutral-50">
-                    <span className="text-neutral-500 font-medium italic">Final Price: ₦{Number(formData.price || 0).toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-neutral-500">Service Fee (5%)</span>
-                    <span className="font-semibold text-neutral-700">
-                      ₦{calculateServiceFee(Number(formData.price || 0)).toLocaleString()}
+                {/* Total Trip Summary */}
+                <div className="bg-white p-5 rounded-2xl border border-neutral-100 space-y-4">
+                  <div className="flex justify-between items-center border-b border-neutral-50 pb-3">
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Total Trip Summary</span>
+                    <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-md font-bold">
+                      {formData.stops?.length || 0} Destination(s)
                     </span>
                   </div>
-                  <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-neutral-500">VAT (7.5%)</span>
-                    <span className="font-semibold text-neutral-700">
-                      ₦{calculateVAT(calculateServiceFee(Number(formData.price || 0))).toLocaleString()}
-                    </span>
+
+                  {/* Destination List with Prices */}
+                  <div className="space-y-2.5 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                    {formData.stops?.map((stop, index) => (
+                      <div key={index} className="flex justify-between items-center text-xs">
+                        <div className="flex items-center gap-2">
+                          <span className="w-4 h-4 rounded-full bg-neutral-100 text-[8px] flex items-center justify-center font-bold text-neutral-500 border border-neutral-200">
+                            {index + 1}
+                          </span>
+                          <span className="text-neutral-600 font-medium">{stop.city || 'Unnamed Stop'}</span>
+                        </div>
+                        <span className="font-bold text-neutral-800">₦{Number(stop.price || 0).toLocaleString()}</span>
+                      </div>
+                    ))}
                   </div>
-                  <div className="pt-2 border-t border-neutral-100 flex justify-between items-center">
-                    <span className="text-xs font-bold text-neutral-800 uppercase tracking-widest">Customer Total (Final Stop)</span>
-                    <span className="text-xl font-black text-primary">
-                      ₦{(
-                        Number(formData.price || 0) +
-                        calculateServiceFee(Number(formData.price || 0)) +
-                        calculateVAT(calculateServiceFee(Number(formData.price || 0)))
-                      ).toLocaleString()}
+
+                  <div className="pt-4 border-t-2 border-dashed border-neutral-100 flex justify-between items-center">
+                    <div>
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block">Driver Total</span>
+                      <span className="text-[9px] text-neutral-400 italic">Based on final destination price</span>
+                    </div>
+                    <span className="text-2xl font-black text-primary">
+                      ₦{Number(formData.price || 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
