@@ -92,107 +92,13 @@ exports.getAllTrips = async (req, res) => {
       date
     } = req.query;
 
-    // 1. Build a very simple base query for the DB
-    const dbWhere = {
-      status: status || "active"
-    };
-    if (serviceCategory) dbWhere.serviceCategory = serviceCategory;
-    if (transportType && transportType !== "all") dbWhere.transportType = transportType;
-    if (companyId) dbWhere.companyId = companyId;
-
-    // 2. Fetch trips with only the most basic fields to ensure stability
-    const tripsFromDb = await Trip.findAll({
-      where: dbWhere,
-      attributes: ["id", "from", "to", "transportType", "serviceCategory", "departureTime", "departureDate", "operatingDays", "status", "companyId", "createdAt"],
-      order: [["createdAt", "DESC"]],
-    });
-
-    // Note: We will fetch companies in a separate step or handle missing data gracefully
-    const results = tripsFromDb.map(t => {
-      const data = typeof t.toJSON === 'function' ? t.toJSON() : t;
-      // Add a mock company if missing to prevent UI crashes
-      if (!data.company) {
-        data.company = { name: "Vadtrans Partner", avatar: null };
-      }
-      return data;
-    });
-
-    // Filter by FROM location
-    if (from) {
-      const sFrom = from.toLowerCase().trim();
-      results = results.filter(t => t.from && t.from.toLowerCase().includes(sFrom));
-    }
-
-    // Filter by TO location (including Multi-Stop logic)
-    if (to) {
-      const sTo = to.toLowerCase().trim();
-      results = results.filter(t => {
-        const matchesPrimary = t.to && t.to.toLowerCase().includes(sTo);
-        if (matchesPrimary) return true;
-        
-        if (t.stops && Array.isArray(t.stops)) {
-          return t.stops.some(stop => {
-            if (typeof stop === 'string') return stop.toLowerCase().includes(sTo);
-            if (stop && stop.city) return stop.city.toLowerCase().includes(sTo);
-            return false;
-          });
-        }
-        return false;
-      });
-    }
-
-    // Filter by DATE
-    if (date) {
-      const searchDate = new Date(date);
-      const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-      const dayName = daysOfWeek[searchDate.getUTCDay()];
-
-      results = results.filter(t => {
-        // Exact date match
-        if (t.departureDate === date) return true;
-        
-        // Recurring trip match
-        if (!t.departureDate && t.operatingDays && t.operatingDays.toLowerCase().includes(dayName.toLowerCase())) return true;
-        
-        // Carpooling is daily by default
-        if (t.transportType === "carpooling") return true;
-
-        return false;
-      });
-    }
-
-    // Transform carpooling dates for UI consistency
-    if (date) {
-      results = results.map(t => {
-        if (t.transportType === "carpooling") {
-          return { ...t, departureDate: date };
-        }
-        return t;
-      });
-    }
-
-    // 4. Handle Pagination on the final filtered list
-    const pageNum = parseInt(req.query.page) || 1;
-    const limitNum = parseInt(req.query.limit) || 10;
-    const startIndex = (pageNum - 1) * limitNum;
-    
-    const paginatedResults = results.slice(startIndex, startIndex + limitNum);
-
     return res.status(200).json({
       success: true,
-      count: results.length,
-      currentPage: pageNum,
-      totalPages: Math.ceil(results.length / limitNum),
-      trips: paginatedResults,
+      message: "Search API is reachable. Debugging database connectivity...",
+      debug: { status, serviceCategory, date }
     });
   } catch (error) {
-    console.error("Get trips fatal error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Server error during trip search",
-      error: error.message,
-      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
-    });
+    return res.status(500).json({ success: false, message: error.message });
   }
 };
 
