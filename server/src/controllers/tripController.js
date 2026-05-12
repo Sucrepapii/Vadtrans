@@ -92,15 +92,103 @@ exports.getAllTrips = async (req, res) => {
       date
     } = req.query;
 
+    // 1. Diagnostic Database Fetch
+    let tripsFromDb = [];
+    try {
+      tripsFromDb = await Trip.findAll({
+        where: { status: status || "active" },
+        include: [{ model: User, as: "company", attributes: ["id", "name", "avatar"] }],
+        order: [["createdAt", "DESC"]],
+        limit: 100
+      });
+    } catch (dbError) {
+      console.error("Database Diagnostic Error:", dbError);
+      return res.status(200).json({
+        success: false,
+        message: "Database Schema Conflict: " + dbError.message,
+        debug: "One of your database columns might be missing or the 'company' relationship is broken.",
+        trips: []
+      });
+    }
+
+    // 2. JavaScript Filtering (Already proven stable)
+    let results = tripsFromDb.map(t => (typeof t.toJSON === 'function' ? t.toJSON() : t));
+
+    // Filter by FROM location
+    if (from) {
+      const sFrom = from.toLowerCase().trim();
+      results = results.filter(t => t.from && t.from.toLowerCase().includes(sFrom));
+    }
+
+    // Filter by TO location (including Multi-Stop logic)
+    if (to) {
+      const sTo = to.toLowerCase().trim();
+      results = results.filter(t => {
+        const matchesPrimary = t.to && t.to.toLowerCase().includes(sTo);
+        if (matchesPrimary) return true;
+        
+        if (t.stops && Array.isArray(t.stops)) {
+          return t.stops.some(stop => {
+            if (typeof stop === 'string') return stop.toLowerCase().includes(sTo);
+            if (stop && stop.city) return stop.city.toLowerCase().includes(sTo);
+            return false;
+          });
+        }
+        return false;
+      });
+    }
+
+    // Filter by DATE
+    if (date) {
+      const searchDate = new Date(date);
+      const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dayName = daysOfWeek[searchDate.getUTCDay()];
+
+      results = results.filter(t => {
+        // Exact date match
+        if (t.departureDate === date) return true;
+        
+        // Recurring trip match
+        if (!t.departureDate && t.operatingDays && t.operatingDays.toLowerCase().includes(dayName.toLowerCase())) return true;
+        
+        // Carpooling is daily by default
+        if (t.transportType === "carpooling") return true;
+
+        return false;
+      });
+    }
+
+    // Transform carpooling dates for UI consistency
+    if (date) {
+      results = results.map(t => {
+        if (t.transportType === "carpooling") {
+          return { ...t, departureDate: date };
+        }
+        return t;
+      });
+    }
+
+    // 3. Handle Pagination on the final filtered list
+    const pageNum = parseInt(req.query.page) || 1;
+    const limitNum = parseInt(req.query.limit) || 10;
+    const startIndex = (pageNum - 1) * limitNum;
+    
+    const paginatedResults = results.slice(startIndex, startIndex + limitNum);
+
     return res.status(200).json({
       success: true,
-      message: "Search API is reachable. Debugging database connectivity...",
-      debug: { status, serviceCategory, date }
+      count: results.length,
+      currentPage: pageNum,
+      totalPages: Math.ceil(results.length / limitNum),
+      trips: paginatedResults,
     });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    console.error("Get trips fatal error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Server crash: " + error.message
+    });
   }
-};
 
 // @desc    Get single trip
 // @route   GET /api/trips/:id
