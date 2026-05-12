@@ -508,7 +508,7 @@ const TicketsManagement = () => {
           setSaving(false);
           return;
         }
-        if (Number(formData.price) < 1500) {
+        if (Number(formData.price) < 100) {
           toast.error("Carpooling price cannot be less than ₦1,500.");
           setSaving(false);
           return;
@@ -519,7 +519,9 @@ const TicketsManagement = () => {
           const start = dayjs(formData.timeWindowStart, "hh:mm A");
           const end = dayjs(formData.timeWindowEnd, "hh:mm A");
           if (end.isBefore(start)) {
-            toast.error("Latest pickup time cannot be before earliest pickup time");
+            toast.error(
+              "Latest pickup time cannot be before earliest pickup time",
+            );
             setSaving(false);
             return;
           }
@@ -795,7 +797,7 @@ const TicketsManagement = () => {
                 <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
                   <FaMapMarkerAlt className="text-primary" /> Route & Schedule
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="md:col-span-1">
                     <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
@@ -852,7 +854,10 @@ const TicketsManagement = () => {
                       onChange={(date) => {
                         if (date) {
                           const year = date.getFullYear();
-                          const month = String(date.getMonth() + 1).padStart(2, "0");
+                          const month = String(date.getMonth() + 1).padStart(
+                            2,
+                            "0",
+                          );
                           const day = String(date.getDate()).padStart(2, "0");
                           const dateStr = `${year}-${month}-${day}`;
                           setFormData({ ...formData, departureDate: dateStr });
@@ -867,7 +872,9 @@ const TicketsManagement = () => {
                     <MaterialTimePicker
                       label="Earliest Pickup"
                       value={formData.timeWindowStart}
-                      onChange={(time) => setFormData({ ...formData, timeWindowStart: time })}
+                      onChange={(time) =>
+                        setFormData({ ...formData, timeWindowStart: time })
+                      }
                       disabled={saving}
                     />
                   </div>
@@ -875,7 +882,9 @@ const TicketsManagement = () => {
                     <MaterialTimePicker
                       label="Latest Pickup"
                       value={formData.timeWindowEnd}
-                      onChange={(time) => setFormData({ ...formData, timeWindowEnd: time })}
+                      onChange={(time) =>
+                        setFormData({ ...formData, timeWindowEnd: time })
+                      }
                       disabled={saving}
                     />
                   </div>
@@ -886,26 +895,29 @@ const TicketsManagement = () => {
               <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-5">
                 <div className="flex justify-between items-center">
                   <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
-                    <FaMapMarkerAlt className="text-primary" /> Route Destinations & Pricing
+                    <FaMapMarkerAlt className="text-primary" /> Route
+                    Destinations & Pricing
                   </h3>
                   <button
                     type="button"
                     onClick={() => {
-                      const newStops = [...(formData.stops || []), { city: "", price: "" }];
-                      setFormData({ 
-                        ...formData, 
+                      const newStops = [
+                        ...(formData.stops || []),
+                        { city: "", price: "" },
+                      ];
+                      setFormData({
+                        ...formData,
                         stops: newStops,
                         to: "", // Reset final destination until the new stop is filled
-                        price: "" // Reset final price
+                        price: "", // Reset final price
                       });
                     }}
-                    className="text-[10px] bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-all flex items-center gap-1.5 font-bold shadow-sm"
-                  >
+                    className="text-[10px] bg-primary text-white px-3 py-1.5 rounded-lg hover:bg-primary/90 transition-all flex items-center gap-1.5 font-bold shadow-sm">
                     <FaPlus size={10} /> ADD NEXT DESTINATION
                   </button>
                 </div>
-                
-                {(!formData.stops || formData.stops.length === 0) ? (
+
+                {!formData.stops || formData.stops.length === 0 ? (
                   <div className="bg-white border border-dashed border-neutral-200 rounded-2xl p-8 text-center">
                     <div className="w-12 h-12 bg-neutral-50 rounded-full flex items-center justify-center mx-auto mb-3">
                       <FaMapMarkerAlt className="text-neutral-300" size={20} />
@@ -921,11 +933,13 @@ const TicketsManagement = () => {
                         {/* Timeline Connector */}
                         <div className="absolute left-3 top-0 bottom-0 w-0.5 bg-neutral-200"></div>
                         <div className="absolute left-1.5 top-8 w-3.5 h-3.5 rounded-full bg-primary border-2 border-white shadow-sm z-10"></div>
-                        
+
                         <div className="bg-white p-4 rounded-2xl border border-neutral-100 shadow-sm flex flex-col md:flex-row gap-4 items-end">
                           <div className="flex-1 w-full">
                             <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5 ml-1">
-                              {index === formData.stops.length - 1 ? "Final Destination" : `${index + 1}${index === 0 ? 'st' : index === 1 ? 'nd' : index === 2 ? 'rd' : 'th'} Destination`}
+                              {index === formData.stops.length - 1
+                                ? "Final Destination"
+                                : `${index + 1}${index === 0 ? "st" : index === 1 ? "nd" : index === 2 ? "rd" : "th"} Destination`}
                             </label>
                             <select
                               value={stop.city}
@@ -933,14 +947,17 @@ const TicketsManagement = () => {
                                 const newStops = [...formData.stops];
                                 newStops[index].city = e.target.value;
                                 if (index === formData.stops.length - 1) {
-                                  setFormData({ ...formData, stops: newStops, to: e.target.value });
+                                  setFormData({
+                                    ...formData,
+                                    stops: newStops,
+                                    to: e.target.value,
+                                  });
                                 } else {
                                   setFormData({ ...formData, stops: newStops });
                                 }
                               }}
                               className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
-                              required
-                            >
+                              required>
                               <option value="">Select city</option>
                               {fromCities.map((city) => (
                                 <option key={city} value={city}>
@@ -950,7 +967,9 @@ const TicketsManagement = () => {
                             </select>
                           </div>
                           <div className="w-full md:w-40">
-                            <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5 ml-1">Price per Seat (₦)</label>
+                            <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5 ml-1">
+                              Price per Seat (₦)
+                            </label>
                             <input
                               type="number"
                               placeholder="e.g. 2500"
@@ -959,7 +978,11 @@ const TicketsManagement = () => {
                                 const newStops = [...formData.stops];
                                 newStops[index].price = e.target.value;
                                 if (index === formData.stops.length - 1) {
-                                  setFormData({ ...formData, stops: newStops, price: e.target.value });
+                                  setFormData({
+                                    ...formData,
+                                    stops: newStops,
+                                    price: e.target.value,
+                                  });
                                 } else {
                                   setFormData({ ...formData, stops: newStops });
                                 }
@@ -971,19 +994,26 @@ const TicketsManagement = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              const newStops = formData.stops.filter((_, i) => i !== index);
-                              const finalDest = newStops.length > 0 ? newStops[newStops.length - 1].city : "";
-                              const finalPrice = newStops.length > 0 ? newStops[newStops.length - 1].price : "";
-                              setFormData({ 
-                                ...formData, 
+                              const newStops = formData.stops.filter(
+                                (_, i) => i !== index,
+                              );
+                              const finalDest =
+                                newStops.length > 0
+                                  ? newStops[newStops.length - 1].city
+                                  : "";
+                              const finalPrice =
+                                newStops.length > 0
+                                  ? newStops[newStops.length - 1].price
+                                  : "";
+                              setFormData({
+                                ...formData,
                                 stops: newStops,
                                 to: finalDest,
-                                price: finalPrice
+                                price: finalPrice,
                               });
                             }}
                             className="p-2.5 text-red-500 hover:bg-red-50 rounded-xl transition-colors"
-                            title="Remove Destination"
-                          >
+                            title="Remove Destination">
                             <FaTrash size={14} />
                           </button>
                         </div>
@@ -993,13 +1023,12 @@ const TicketsManagement = () => {
                 )}
               </div>
 
-
               {/* 2. Vehicle & Terminal Details */}
               <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-5">
                 <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
                   <FaCar className="text-primary" /> Vehicle & Terminal Details
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
@@ -1017,17 +1046,25 @@ const TicketsManagement = () => {
                       }}
                       className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
                       disabled={saving}>
-                      <option value="Sedan (small car)">Sedan (small car)</option>
-                      <option value="SUV / Crossover (5-7 seats)">SUV / Crossover (5-7 seats)</option>
+                      <option value="Sedan (small car)">
+                        Sedan (small car)
+                      </option>
+                      <option value="SUV / Crossover (5-7 seats)">
+                        SUV / Crossover (5-7 seats)
+                      </option>
                       <option value="Luxury Car">Luxury Car</option>
-                      <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
+                      <option value="Sienna car (7 seats)">
+                        Sienna car (7 seats)
+                      </option>
                     </select>
                   </div>
                   <Input
                     label="Vehicle Name / Model"
                     placeholder="e.g. Toyota Corolla"
                     value={formData.vehicleName}
-                    onChange={(e) => setFormData({ ...formData, vehicleName: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, vehicleName: e.target.value })
+                    }
                     disabled={saving}
                     required
                   />
@@ -1035,7 +1072,12 @@ const TicketsManagement = () => {
                     label="Vehicle Plate Number *"
                     placeholder="LAG-123-XY"
                     value={formData.vehiclePlateNumber}
-                    onChange={(e) => setFormData({ ...formData, vehiclePlateNumber: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        vehiclePlateNumber: e.target.value,
+                      })
+                    }
                     disabled={saving}
                     required
                   />
@@ -1044,7 +1086,12 @@ const TicketsManagement = () => {
                       label="Pickup Address / Terminal *"
                       placeholder="e.g. Conoil filling station, Festac"
                       value={formData.pickupAddress}
-                      onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          pickupAddress: e.target.value,
+                        })
+                      }
                       disabled={saving}
                       required
                     />
@@ -1052,14 +1099,12 @@ const TicketsManagement = () => {
                 </div>
               </div>
 
-
-
               {/* 3. Capacity & Pricing */}
               <div className="bg-neutral-50 p-5 rounded-2xl border border-neutral-200 space-y-5">
                 <h3 className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
                   <FaUsers className="text-primary" /> Capacity & Pricing
                 </h3>
-                
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <Input
                     label="Available Seats"
@@ -1067,7 +1112,9 @@ const TicketsManagement = () => {
                     min="1"
                     max="10"
                     value={formData.seats}
-                    onChange={(e) => setFormData({ ...formData, seats: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, seats: e.target.value })
+                    }
                     required
                     disabled={saving}
                   />
@@ -1077,7 +1124,9 @@ const TicketsManagement = () => {
                     min="1"
                     max={formData.seats}
                     value={formData.minSeats}
-                    onChange={(e) => setFormData({ ...formData, minSeats: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, minSeats: e.target.value })
+                    }
                     required
                     disabled={saving}
                   />
@@ -1085,7 +1134,9 @@ const TicketsManagement = () => {
                     label="Price per Seat (₦)"
                     type="number"
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
                     required
                     disabled={saving}
                     className="hidden" // Hidden because it's managed by the destinations list
@@ -1095,7 +1146,9 @@ const TicketsManagement = () => {
                 {/* Total Trip Summary */}
                 <div className="bg-white p-5 rounded-2xl border border-neutral-100 space-y-4">
                   <div className="flex justify-between items-center border-b border-neutral-50 pb-3">
-                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">Total Trip Summary</span>
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest">
+                      Total Trip Summary
+                    </span>
                     <span className="text-[10px] bg-primary/10 text-primary px-2 py-0.5 rounded-md font-bold">
                       {formData.stops?.length || 0} Destination(s)
                     </span>
@@ -1104,34 +1157,57 @@ const TicketsManagement = () => {
                   {/* Destination List with Prices */}
                   <div className="space-y-2.5 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
                     {formData.stops?.map((stop, index) => (
-                      <div key={index} className="flex justify-between items-center text-xs">
+                      <div
+                        key={index}
+                        className="flex justify-between items-center text-xs">
                         <div className="flex items-center gap-2">
                           <span className="w-4 h-4 rounded-full bg-neutral-100 text-[8px] flex items-center justify-center font-bold text-neutral-500 border border-neutral-200">
                             {index + 1}
                           </span>
-                          <span className="text-neutral-600 font-medium">{stop.city || 'Unnamed Stop'}</span>
+                          <span className="text-neutral-600 font-medium">
+                            {stop.city || "Unnamed Stop"}
+                          </span>
                         </div>
-                        <span className="font-bold text-neutral-800">₦{Number(stop.price || 0).toLocaleString()}</span>
+                        <span className="font-bold text-neutral-800">
+                          ₦{Number(stop.price || 0).toLocaleString()}
+                        </span>
                       </div>
                     ))}
                   </div>
 
                   <div className="pt-4 border-t-2 border-dashed border-neutral-100 flex justify-between items-center">
                     <div>
-                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block">Driver Total</span>
-                      <span className="text-[9px] text-neutral-400 italic">Sum of all destination prices</span>
+                      <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block">
+                        Driver Total
+                      </span>
+                      <span className="text-[9px] text-neutral-400 italic">
+                        Sum of all destination prices
+                      </span>
                     </div>
                     <span className="text-2xl font-black text-primary">
-                      ₦{(formData.stops?.reduce((acc, stop) => acc + Number(stop.price || 0), 0)).toLocaleString()}
+                      ₦
+                      {formData.stops
+                        ?.reduce(
+                          (acc, stop) => acc + Number(stop.price || 0),
+                          0,
+                        )
+                        .toLocaleString()}
                     </span>
                   </div>
                 </div>
 
                 <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl flex gap-3 items-start">
-                  <FaInfoCircle className="text-amber-500 mt-0.5 flex-shrink-0" size={14} />
+                  <FaInfoCircle
+                    className="text-amber-500 mt-0.5 flex-shrink-0"
+                    size={14}
+                  />
                   <div>
-                    <p className="text-[10px] font-semibold text-amber-800">Price Recommendation</p>
-                    <p className="text-[10px] text-amber-700">Mainland ↔ Island, Peak hours: ₦1,500 - ₦7,000</p>
+                    <p className="text-[10px] font-semibold text-amber-800">
+                      Price Recommendation
+                    </p>
+                    <p className="text-[10px] text-amber-700">
+                      Mainland ↔ Island, Peak hours: ₦1,500 - ₦7,000
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1147,19 +1223,30 @@ const TicketsManagement = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="md:col-span-2">
                     <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
-                      {formData.serviceCategory === "freight" ? "Carrier / Vehicle Type" : "Vehicle Category"}
+                      {formData.serviceCategory === "freight"
+                        ? "Carrier / Vehicle Type"
+                        : "Vehicle Category"}
                     </label>
                     {formData.serviceCategory === "freight" ? (
                       <select
                         value={formData.vehicleType}
-                        onChange={(e) => setFormData({ ...formData, vehicleType: e.target.value })}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            vehicleType: e.target.value,
+                          })
+                        }
                         className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
                         disabled={saving}>
                         <option value="Mini Van">Mini Van</option>
                         <option value="Delivery Van">Delivery Van</option>
                         <option value="Box Truck">Box Truck</option>
-                        <option value="Heavy Duty Truck">Heavy Duty Truck</option>
-                        <option value="Refrigerated Truck">Refrigerated Truck</option>
+                        <option value="Heavy Duty Truck">
+                          Heavy Duty Truck
+                        </option>
+                        <option value="Refrigerated Truck">
+                          Refrigerated Truck
+                        </option>
                       </select>
                     ) : (
                       <select
@@ -1175,18 +1262,36 @@ const TicketsManagement = () => {
                           else if (vt.includes("SUV")) s = 5;
                           else if (vt === "Luxury Car") s = 4;
                           else if (vt === "Sedan (small car)") s = 4;
-                          setFormData({ ...formData, vehicleType: vt, seats: s });
+                          setFormData({
+                            ...formData,
+                            vehicleType: vt,
+                            seats: s,
+                          });
                         }}
                         className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
                         disabled={saving}>
-                        <option value="Hiace Bus (18 seater)">Hiace Bus (18 seater)</option>
-                        <option value="Coaster Bus (32 seater)">Coaster Bus (32 seater)</option>
-                        <option value="Luxirious Bus (52 seater)">Luxirious Bus (52 seater)</option>
-                        <option value="Mini Buses (7 seater)">Mini Buses (7 seater)</option>
-                        <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
-                        <option value="SUV / Crossover (5-7 seats)">SUV / Crossover (5-7 seats)</option>
+                        <option value="Hiace Bus (18 seater)">
+                          Hiace Bus (18 seater)
+                        </option>
+                        <option value="Coaster Bus (32 seater)">
+                          Coaster Bus (32 seater)
+                        </option>
+                        <option value="Luxirious Bus (52 seater)">
+                          Luxirious Bus (52 seater)
+                        </option>
+                        <option value="Mini Buses (7 seater)">
+                          Mini Buses (7 seater)
+                        </option>
+                        <option value="Sienna car (7 seats)">
+                          Sienna car (7 seats)
+                        </option>
+                        <option value="SUV / Crossover (5-7 seats)">
+                          SUV / Crossover (5-7 seats)
+                        </option>
                         <option value="Luxury Car">Luxury Car</option>
-                        <option value="Sedan (small car)">Sedan (small car)</option>
+                        <option value="Sedan (small car)">
+                          Sedan (small car)
+                        </option>
                       </select>
                     )}
                   </div>
@@ -1194,7 +1299,9 @@ const TicketsManagement = () => {
                     label="Vehicle Name / Model"
                     placeholder="e.g. Toyota Hiace 2024"
                     value={formData.vehicleName}
-                    onChange={(e) => setFormData({ ...formData, vehicleName: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, vehicleName: e.target.value })
+                    }
                     disabled={saving}
                     required
                   />
@@ -1202,7 +1309,12 @@ const TicketsManagement = () => {
                     label="Vehicle Plate Number *"
                     placeholder="LAG-123-XY"
                     value={formData.vehiclePlateNumber}
-                    onChange={(e) => setFormData({ ...formData, vehiclePlateNumber: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        vehiclePlateNumber: e.target.value,
+                      })
+                    }
                     disabled={saving}
                     required
                   />
@@ -1211,7 +1323,13 @@ const TicketsManagement = () => {
                       label="Pickup Address / Terminal *"
                       placeholder="e.g. Conoil filling station, Festac"
                       value={formData.pickupAddress}
-                      onChange={(e) => setFormData({ ...formData, pickupAddress: e.target.value, terminal: e.target.value })}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          pickupAddress: e.target.value,
+                          terminal: e.target.value,
+                        })
+                      }
                       disabled={saving}
                       required
                     />
@@ -1426,11 +1544,13 @@ const TicketsManagement = () => {
                           required
                           disabled={saving || !formData.fromCountry}>
                           <option value="">Select state/region</option>
-                          {westAfricanStates[formData.fromCountry]?.map((state) => (
-                            <option key={state} value={state}>
-                              {state}
-                            </option>
-                          ))}
+                          {westAfricanStates[formData.fromCountry]?.map(
+                            (state) => (
+                              <option key={state} value={state}>
+                                {state}
+                              </option>
+                            ),
+                          )}
                         </select>
                       </div>
                     </div>
@@ -1477,11 +1597,13 @@ const TicketsManagement = () => {
                           required
                           disabled={saving || !formData.toCountry}>
                           <option value="">Select state/region</option>
-                          {westAfricanStates[formData.toCountry]?.map((state) => (
-                            <option key={state} value={state}>
-                              {state}
-                            </option>
-                          ))}
+                          {westAfricanStates[formData.toCountry]?.map(
+                            (state) => (
+                              <option key={state} value={state}>
+                                {state}
+                              </option>
+                            ),
+                          )}
                         </select>
                       </div>
                     </div>
@@ -1489,13 +1611,16 @@ const TicketsManagement = () => {
                 )}
               </div>
 
-
               <div className="pt-2">
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="block text-xs font-semibold text-neutral-600">Departure Time Slots</label>
+                    <label className="block text-xs font-semibold text-neutral-600">
+                      Departure Time Slots
+                    </label>
                     {!editingTicket && (
-                      <button type="button" onClick={handleAddTimeSlot}
+                      <button
+                        type="button"
+                        onClick={handleAddTimeSlot}
                         className="text-[10px] bg-primary text-white px-2 py-1 rounded-md hover:bg-primary/90 transition-all flex items-center gap-1">
                         <FaPlus size={8} /> ADD SLOT
                       </button>
@@ -1505,15 +1630,23 @@ const TicketsManagement = () => {
                     {formData.departureTimes.map((time, index) => (
                       <div key={index} className="flex items-center gap-1">
                         <div className="flex-1">
-                          <MaterialTimePicker label={`Slot ${index + 1}`} value={time}
-                            onChange={(timeStr) => handleTimeSlotChange(index, timeStr)} />
+                          <MaterialTimePicker
+                            label={`Slot ${index + 1}`}
+                            value={time}
+                            onChange={(timeStr) =>
+                              handleTimeSlotChange(index, timeStr)
+                            }
+                          />
                         </div>
-                        {!editingTicket && formData.departureTimes.length > 1 && (
-                          <button type="button" onClick={() => handleRemoveTimeSlot(index)}
-                            className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
-                            <FaMinus size={10} />
-                          </button>
-                        )}
+                        {!editingTicket &&
+                          formData.departureTimes.length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTimeSlot(index)}
+                              className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors">
+                              <FaMinus size={10} />
+                            </button>
+                          )}
                       </div>
                     ))}
                   </div>
@@ -1532,10 +1665,17 @@ const TicketsManagement = () => {
                   onChange={(date) => {
                     if (date) {
                       const year = date.getFullYear();
-                      const month = String(date.getMonth() + 1).padStart(2, "0");
+                      const month = String(date.getMonth() + 1).padStart(
+                        2,
+                        "0",
+                      );
                       const day = String(date.getDate()).padStart(2, "0");
                       const dateStr = `${year}-${month}-${day}`;
-                      setFormData({ ...formData, departureDate: dateStr, operatingDays: [] });
+                      setFormData({
+                        ...formData,
+                        departureDate: dateStr,
+                        operatingDays: [],
+                      });
                     } else {
                       setFormData({ ...formData, departureDate: "" });
                     }
@@ -1548,21 +1688,36 @@ const TicketsManagement = () => {
                     Or Operating Days (Recurring)
                   </label>
                   <div className="flex flex-wrap gap-2">
-                    {["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"].map((day) => (
-                      <label key={day}
+                    {[
+                      "Monday",
+                      "Tuesday",
+                      "Wednesday",
+                      "Thursday",
+                      "Friday",
+                      "Saturday",
+                      "Sunday",
+                    ].map((day) => (
+                      <label
+                        key={day}
                         className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full cursor-pointer transition-all border text-[10px] font-bold uppercase ${
                           formData.operatingDays.includes(day)
                             ? "bg-primary text-white border-primary"
                             : "bg-white text-neutral-600 border-neutral-200 hover:bg-neutral-50"
                         }`}>
-                        <input type="checkbox" className="hidden"
+                        <input
+                          type="checkbox"
+                          className="hidden"
                           checked={formData.operatingDays.includes(day)}
                           disabled={saving || formData.departureDate}
                           onChange={(e) => {
                             const newDays = e.target.checked
                               ? [...formData.operatingDays, day]
                               : formData.operatingDays.filter((d) => d !== day);
-                            setFormData({ ...formData, operatingDays: newDays, departureDate: "" });
+                            setFormData({
+                              ...formData,
+                              operatingDays: newDays,
+                              departureDate: "",
+                            });
                           }}
                         />
                         {day.substring(0, 3)}
@@ -1572,20 +1727,36 @@ const TicketsManagement = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Input label="Duration (hours)" type="number" step="0.5" placeholder="12"
+                  <Input
+                    label="Duration (hours)"
+                    type="number"
+                    step="0.5"
+                    placeholder="12"
                     value={formData.duration}
-                    onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+                    onChange={(e) =>
+                      setFormData({ ...formData, duration: e.target.value })
+                    }
                     disabled={saving}
                   />
-                  <Input label="Price (₦)" type="number"
+                  <Input
+                    label="Price (₦)"
+                    type="number"
                     value={formData.price}
-                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-                    required disabled={saving}
+                    onChange={(e) =>
+                      setFormData({ ...formData, price: e.target.value })
+                    }
+                    required
+                    disabled={saving}
                   />
-                  <Input label="Total Seats" type="number"
+                  <Input
+                    label="Total Seats"
+                    type="number"
                     value={formData.seats}
-                    onChange={(e) => setFormData({ ...formData, seats: e.target.value })}
-                    required disabled={saving}
+                    onChange={(e) =>
+                      setFormData({ ...formData, seats: e.target.value })
+                    }
+                    required
+                    disabled={saving}
                   />
                 </div>
 
@@ -1593,16 +1764,35 @@ const TicketsManagement = () => {
                 <div className="bg-white p-4 rounded-xl border border-neutral-100 space-y-2">
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-neutral-500">Service Fee (5%)</span>
-                    <span className="font-semibold text-neutral-700">₦{calculateServiceFee(Number(formData.price || 0)).toLocaleString()}</span>
+                    <span className="font-semibold text-neutral-700">
+                      ₦
+                      {calculateServiceFee(
+                        Number(formData.price || 0),
+                      ).toLocaleString()}
+                    </span>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
                     <span className="text-neutral-500">VAT (7.5%)</span>
-                    <span className="font-semibold text-neutral-700">₦{calculateVAT(calculateServiceFee(Number(formData.price || 0))).toLocaleString()}</span>
+                    <span className="font-semibold text-neutral-700">
+                      ₦
+                      {calculateVAT(
+                        calculateServiceFee(Number(formData.price || 0)),
+                      ).toLocaleString()}
+                    </span>
                   </div>
                   <div className="pt-2 border-t border-neutral-100 flex justify-between items-center">
-                    <span className="text-xs font-bold text-neutral-800">Total Customer Pays</span>
+                    <span className="text-xs font-bold text-neutral-800">
+                      Total Customer Pays
+                    </span>
                     <span className="text-base font-bold text-primary">
-                      ₦{(Number(formData.price || 0) + calculateServiceFee(Number(formData.price || 0)) + calculateVAT(calculateServiceFee(Number(formData.price || 0)))).toLocaleString()}
+                      ₦
+                      {(
+                        Number(formData.price || 0) +
+                        calculateServiceFee(Number(formData.price || 0)) +
+                        calculateVAT(
+                          calculateServiceFee(Number(formData.price || 0)),
+                        )
+                      ).toLocaleString()}
                     </span>
                   </div>
                 </div>

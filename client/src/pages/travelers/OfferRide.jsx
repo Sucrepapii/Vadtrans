@@ -80,8 +80,8 @@ const OfferRide = () => {
       setLoading(false);
       return;
     }
-    if (Number(formData.price) < 100) {
-      toast.error("Carpooling price cannot be less than ₦100.");
+    if (Number(formData.price) < 1500) {
+      toast.error("Carpooling price cannot be less than ₦1,500.");
       setLoading(false);
       return;
     }
