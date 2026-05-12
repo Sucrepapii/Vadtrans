@@ -34,6 +34,10 @@ import {
   FaUsers,
   FaInfoCircle,
   FaMoneyBillWave,
+  FaSnowflake,
+  FaSmoking,
+  FaMusic,
+  FaPaw,
 } from "react-icons/fa";
 import MaterialDatePicker, {
   MaterialTimePicker,
