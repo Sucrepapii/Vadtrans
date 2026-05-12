@@ -199,8 +199,19 @@ const initializeDatabase = async () => {
     // Force add missing columns for Trips
     const tripTableInfo = await queryInterface.describeTable("Trips");
 
-    // Handle PostgreSQL ENUM updates manually to avoid syntax errors
+    // Direct PostgreSQL Schema Fixes (Reliable for Production)
     if (dbType === "Postgres") {
+      try {
+        console.log("ℹ️ Ensuring critical columns exist in Trips table...");
+        await sequelize.query('ALTER TABLE "Trips" ADD COLUMN IF NOT EXISTS "preferences" JSONB DEFAULT \'{}\';');
+        await sequelize.query('ALTER TABLE "Trips" ADD COLUMN IF NOT EXISTS "stops" JSONB DEFAULT \'[]\';');
+        await sequelize.query('ALTER TABLE "Trips" ADD COLUMN IF NOT EXISTS "terminal" VARCHAR(255);');
+        await sequelize.query('ALTER TABLE "Trips" ADD COLUMN IF NOT EXISTS "vehicleName" VARCHAR(255);');
+        console.log("✅ Critical columns verified/added");
+      } catch (err) {
+        console.log("ℹ️ Postgres migration note:", err.message);
+      }
+
       try {
         await sequelize.query(`
           DO $$ 
