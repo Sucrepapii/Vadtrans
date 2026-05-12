@@ -106,16 +106,7 @@ exports.getAllTrips = async (req, res) => {
     // Filter by to location
     if (toCountry) where.toCountry = toCountry;
     if (toState) where.toState = toState;
-    if (to) {
-      // Use [Op.and] to ensure this doesn't conflict with other [Op.or] conditions
-      if (!where[Op.and]) where[Op.and] = [];
-      where[Op.and].push({
-        [Op.or]: [
-          { to: { [Op.like]: `%${to}%` } },
-          { stops: { [Op.like]: `%${to}%` } }
-        ]
-      });
-    }
+    if (to) where.to = { [Op.like]: `%${to}%` };
 
     // Filter by transportType in DB
     if (transportType && transportType !== "all") {
@@ -136,23 +127,18 @@ exports.getAllTrips = async (req, res) => {
       ];
       const dayName = daysOfWeek[searchDate.getUTCDay()];
 
-      const dateConditions = {
-        [Op.or]: [
-          { departureDate: date }, // Matches exact date
-          {
-            departureDate: null,
-            operatingDays: {
-              [Op.like]: `%${dayName}%`, // Matches operating day
-            },
+      where[Op.or] = [
+        { departureDate: date }, // Matches exact date
+        {
+          departureDate: null,
+          operatingDays: {
+            [Op.like]: `%${dayName}%`, // Matches operating day
           },
-          {
-            transportType: "carpooling", // Carpooling trips are daily by default
-          },
-        ]
-      };
-
-      if (!where[Op.and]) where[Op.and] = [];
-      where[Op.and].push(dateConditions);
+        },
+        {
+          transportType: "carpooling", // Carpooling trips are daily by default
+        },
+      ];
     }
 
     // Filter by status (default to active only)
