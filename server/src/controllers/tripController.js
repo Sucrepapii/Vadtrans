@@ -92,26 +92,24 @@ exports.getAllTrips = async (req, res) => {
       date
     } = req.query;
 
-    const where = {};
+    const conditions = [];
 
-    if (serviceCategory) where.serviceCategory = serviceCategory;
-    if (freightType) where.freightType = freightType;
-    if (companyId) where.companyId = companyId;
+    if (serviceCategory) conditions.push({ serviceCategory });
+    if (freightType) conditions.push({ freightType });
+    if (companyId) conditions.push({ companyId });
 
     // Filter by from location
-    if (fromCountry) where.fromCountry = fromCountry;
-    if (fromState) where.fromState = fromState;
-    if (from) where.from = { [Op.iLike]: `%${from}%` };
+    if (fromCountry) conditions.push({ fromCountry });
+    if (fromState) conditions.push({ fromState });
+    if (from) conditions.push({ from: { [Op.like]: `%${from}%` } });
 
-    // Filter by to location
-    if (toCountry) where.toCountry = toCountry;
-    if (toState) where.toState = toState;
-    // Note: City 'to' search is now handled in application logic after fetching 
-    // to ensure reliable JSON searching across all DB types.
+    // Filter by to location metadata
+    if (toCountry) conditions.push({ toCountry });
+    if (toState) conditions.push({ toState });
 
     // Filter by transportType in DB
     if (transportType && transportType !== "all") {
-      where.transportType = transportType;
+      conditions.push({ transportType });
     }
 
     // Filter by departureDate if provided
@@ -128,22 +126,26 @@ exports.getAllTrips = async (req, res) => {
       ];
       const dayName = daysOfWeek[searchDate.getUTCDay()];
 
-      where[Op.or] = [
-        { departureDate: date }, // Matches exact date
-        {
-          departureDate: null,
-          operatingDays: {
-            [Op.iLike]: `%${dayName}%`, // Matches operating day
+      conditions.push({
+        [Op.or]: [
+          { departureDate: date }, // Matches exact date
+          {
+            departureDate: null,
+            operatingDays: {
+              [Op.like]: `%${dayName}%`, // Matches operating day
+            },
           },
-        },
-        {
-          transportType: "carpooling", // Carpooling trips are daily by default
-        },
-      ];
+          {
+            transportType: "carpooling", // Carpooling trips are daily by default
+          },
+        ],
+      });
     }
 
     // Filter by status (default to active only)
-    where.status = status || "active";
+    conditions.push({ status: status || "active" });
+
+    const where = { [Op.and]: conditions };
 
 
     // Fetch trips from database
