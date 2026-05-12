@@ -92,129 +92,100 @@ exports.getAllTrips = async (req, res) => {
       date
     } = req.query;
 
-    const conditions = [];
+    // 1. Build a very simple base query for the DB
+    const dbWhere = {
+      status: status || "active"
+    };
+    if (serviceCategory) dbWhere.serviceCategory = serviceCategory;
+    if (transportType && transportType !== "all") dbWhere.transportType = transportType;
+    if (companyId) dbWhere.companyId = companyId;
 
-    if (serviceCategory) conditions.push({ serviceCategory });
-    if (freightType) conditions.push({ freightType });
-    if (companyId) conditions.push({ companyId });
+    // 2. Fetch all potentially relevant trips
+    const tripsFromDb = await Trip.findAll({
+      where: dbWhere,
+      include: [{ model: User, as: "company", attributes: ["id", "name", "avatar", "email", "phone"] }],
+      order: [["createdAt", "DESC"]],
+      limit: 500 // Safety limit to prevent memory issues
+    });
 
-    // Filter by from location
-    if (fromCountry) conditions.push({ fromCountry });
-    if (fromState) conditions.push({ fromState });
-    if (from) conditions.push({ from: { [Op.like]: `%${from}%` } });
+    // 3. Apply advanced filtering in JavaScript (Safer & Database-Agnostic)
+    let results = tripsFromDb.map(t => (typeof t.toJSON === 'function' ? t.toJSON() : t));
 
-    // Filter by to location metadata
-    if (toCountry) conditions.push({ toCountry });
-    if (toState) conditions.push({ toState });
-
-    // Filter by transportType in DB
-    if (transportType && transportType !== "all") {
-      conditions.push({ transportType });
+    // Filter by FROM location
+    if (from) {
+      const sFrom = from.toLowerCase().trim();
+      results = results.filter(t => t.from && t.from.toLowerCase().includes(sFrom));
     }
 
-    // Filter by departureDate if provided
-    if (date) {
-      const searchDate = new Date(date);
-      const daysOfWeek = [
-        "Sunday",
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-      ];
-      const dayName = daysOfWeek[searchDate.getUTCDay()];
-
-      conditions.push({
-        [Op.or]: [
-          { departureDate: date }, // Matches exact date
-          {
-            departureDate: null,
-            operatingDays: {
-              [Op.like]: `%${dayName}%`, // Matches operating day
-            },
-          },
-          {
-            transportType: "carpooling", // Carpooling trips are daily by default
-          },
-        ],
+    // Filter by TO location (including Multi-Stop logic)
+    if (to) {
+      const sTo = to.toLowerCase().trim();
+      results = results.filter(t => {
+        const matchesPrimary = t.to && t.to.toLowerCase().includes(sTo);
+        if (matchesPrimary) return true;
+        
+        if (t.stops && Array.isArray(t.stops)) {
+          return t.stops.some(stop => {
+            if (typeof stop === 'string') return stop.toLowerCase().includes(sTo);
+            if (stop && stop.city) return stop.city.toLowerCase().includes(sTo);
+            return false;
+          });
+        }
+        return false;
       });
     }
 
-    // Filter by status (default to active only)
-    conditions.push({ status: status || "active" });
+    // Filter by DATE
+    if (date) {
+      const searchDate = new Date(date);
+      const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+      const dayName = daysOfWeek[searchDate.getUTCDay()];
 
-    const where = { [Op.and]: conditions };
-
-
-    // Fetch trips from database
-    const allTrips = await Trip.findAll({
-      where,
-      include: [
-        {
-          model: User,
-          as: "company",
-          attributes: ["id", "name", "email", "phone", "avatar"],
-        },
-      ],
-      order: [["createdAt", "DESC"]],
-    });
-
-    // Safer filtering in application logic to handle multi-stop JSON correctly
-    let filteredTrips = allTrips;
-    
-    if (to) {
-      const searchTo = to.toLowerCase().trim();
-      filteredTrips = allTrips.filter(trip => {
-        // Check primary destination
-        const matchesPrimary = trip.to && trip.to.toLowerCase().includes(searchTo);
-        if (matchesPrimary) return true;
-
-        // Check intermediate stops in the JSON field
-        if (trip.stops && Array.isArray(trip.stops)) {
-          return trip.stops.some(stop => 
-            (typeof stop === 'string' && stop.toLowerCase().includes(searchTo)) ||
-            (stop.city && stop.city.toLowerCase().includes(searchTo))
-          );
-        }
+      results = results.filter(t => {
+        // Exact date match
+        if (t.departureDate === date) return true;
+        
+        // Recurring trip match
+        if (!t.departureDate && t.operatingDays && t.operatingDays.toLowerCase().includes(dayName.toLowerCase())) return true;
+        
+        // Carpooling is daily by default
+        if (t.transportType === "carpooling") return true;
 
         return false;
       });
     }
 
-    // Pagination parameters
+    // Transform carpooling dates for UI consistency
+    if (date) {
+      results = results.map(t => {
+        if (t.transportType === "carpooling") {
+          return { ...t, departureDate: date };
+        }
+        return t;
+      });
+    }
+
+    // 4. Handle Pagination on the final filtered list
     const pageNum = parseInt(req.query.page) || 1;
     const limitNum = parseInt(req.query.limit) || 10;
-    const offsetNum = (pageNum - 1) * limitNum;
+    const startIndex = (pageNum - 1) * limitNum;
+    
+    const paginatedResults = results.slice(startIndex, startIndex + limitNum);
 
-    // Apply pagination to the filtered results
-    const totalItems = filteredTrips.length;
-    const paginatedTrips = filteredTrips.slice(offsetNum, offsetNum + limitNum);
-
-    // For carpooling trips, if we are searching for a specific date,
-    // we want them to appear as if they are for that date.
-    const transformedTrips = paginatedTrips.map((trip) => {
-      const tripJson = typeof trip.toJSON === 'function' ? trip.toJSON() : trip;
-      if (tripJson.transportType === "carpooling" && date) {
-        tripJson.departureDate = date;
-      }
-      return tripJson;
-    });
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
-      count: totalItems,
+      count: results.length,
       currentPage: pageNum,
-      totalPages: Math.ceil(totalItems / limitNum),
-      trips: transformedTrips,
+      totalPages: Math.ceil(results.length / limitNum),
+      trips: paginatedResults,
     });
   } catch (error) {
-    console.error("Get trips error:", error);
-    res.status(500).json({
+    console.error("Get trips fatal error:", error);
+    return res.status(500).json({
       success: false,
-      message: "Error fetching trips",
+      message: "Server error during trip search",
       error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
     });
   }
 };
