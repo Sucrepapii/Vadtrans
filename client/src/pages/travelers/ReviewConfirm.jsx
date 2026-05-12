@@ -31,19 +31,22 @@ const ReviewConfirm = () => {
   const [paymentOption, setPaymentOption] = useState("full"); // "full" or "deposit"
 
   const calculatePassengerPrice = (passenger) => {
+    // Use the specific price selected (for carpooling stops) if available
+    const basePrice = Number(tripData?.selectedPrice || tripData?.price || 0);
+
     // Only apply document pricing for international trips
     if (tripData?.transportType !== "international") {
-      return Number(tripData?.price || 0);
+      return basePrice;
     }
 
     const docType = passenger.documentType || "No Document";
     const docPrices = tripData?.documentPrices || {};
     const specificPrice = docPrices[docType];
 
-    // Use specific price if set, otherwise fallback to standard trip price
+    // Use specific price if set, otherwise fallback to basePrice
     return specificPrice && Number(specificPrice) > 0
       ? Number(specificPrice)
-      : Number(tripData?.price || 0);
+      : basePrice;
   };
 
   const subtotal = passengers?.reduce(
@@ -299,9 +302,14 @@ const ReviewConfirm = () => {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <p className="text-lg font-bold text-charcoal">
-                        {tripData?.from} → {tripData?.to}
+                        {tripData?.from} → {tripData?.selectedDestination || tripData?.to}
                       </p>
-                      <p className="text-sm text-neutral-600">
+                      {tripData?.selectedDestination && tripData.selectedDestination !== tripData.to && (
+                        <p className="text-[10px] font-bold text-green-600 uppercase tracking-widest bg-green-50 px-2 py-0.5 rounded border border-green-100 inline-block mt-1">
+                          Drop-off Stop selected
+                        </p>
+                      )}
+                      <p className="text-sm text-neutral-600 mt-1">
                         {searchDate || tripData?.departureDate || "Scheduled Date"} • {tripData?.departureTime}
                       </p>
                     </div>

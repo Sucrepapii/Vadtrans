@@ -241,6 +241,29 @@ const initializeDatabase = async () => {
         allowNull: true,
       });
     }
+    if (!tripTableInfo.state) {
+      console.log("ℹ️ Adding missing column 'state' to Trips...");
+      await queryInterface.addColumn("Trips", "state", {
+        type: DataTypes.STRING,
+        allowNull: true,
+      });
+    }
+    if (!tripTableInfo.preferences) {
+      console.log("ℹ️ Adding missing column 'preferences' to Trips...");
+      await queryInterface.addColumn("Trips", "preferences", {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: {},
+      });
+    }
+    if (!tripTableInfo.stops) {
+      console.log("ℹ️ Adding missing column 'stops' to Trips...");
+      await queryInterface.addColumn("Trips", "stops", {
+        type: DataTypes.JSON,
+        allowNull: true,
+        defaultValue: [],
+      });
+    }
     if (!tripTableInfo.city) {
       console.log("ℹ️ Adding missing column 'city' to Trips...");
       await queryInterface.addColumn("Trips", "city", {

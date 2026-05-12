@@ -288,7 +288,7 @@ const BookingConfirmation = () => {
                         <span className="font-bold text-lg">{arrivalTime}</span>
                       </div>
                       <span className="text-xs font-medium text-neutral-600">
-                        {finalTrip.to}
+                        {finalTrip.selectedDestination || finalTrip.to}
                       </span>
                     </div>
                     <div className="text-xs text-neutral-500 ml-2">
@@ -342,7 +342,7 @@ const BookingConfirmation = () => {
                       <div className="flex items-center gap-2">
                         <FaMapMarkerAlt className="text-primary" />
                         <div>
-                          <p className="font-bold">{finalTrip.to}</p>
+                          <p className="font-bold">{finalTrip.selectedDestination || finalTrip.to}</p>
                           <p className="text-sm text-neutral-600">
                             {arrivalTime}
                           </p>
@@ -386,7 +386,7 @@ const BookingConfirmation = () => {
                           <FaMapMarkerAlt className="text-white text-xs" />
                         </div>
                         <p className="font-semibold">
-                          Arrives Terminal: {finalTrip.to}
+                          Arrives Terminal: {finalTrip.selectedDestination || finalTrip.to}
                         </p>
                       </div>
                     </div>

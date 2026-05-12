@@ -106,7 +106,16 @@ exports.getAllTrips = async (req, res) => {
     // Filter by to location
     if (toCountry) where.toCountry = toCountry;
     if (toState) where.toState = toState;
-    if (to) where.to = { [Op.like]: `%${to}%` };
+    if (to) {
+      // Use [Op.and] to ensure this doesn't conflict with other [Op.or] conditions
+      if (!where[Op.and]) where[Op.and] = [];
+      where[Op.and].push({
+        [Op.or]: [
+          { to: { [Op.like]: `%${to}%` } },
+          { stops: { [Op.like]: `%${to}%` } }
+        ]
+      });
+    }
 
     // Filter by transportType in DB
     if (transportType && transportType !== "all") {
@@ -127,18 +136,23 @@ exports.getAllTrips = async (req, res) => {
       ];
       const dayName = daysOfWeek[searchDate.getUTCDay()];
 
-      where[Op.or] = [
-        { departureDate: date }, // Matches exact date
-        {
-          departureDate: null,
-          operatingDays: {
-            [Op.like]: `%${dayName}%`, // Matches operating day
+      const dateConditions = {
+        [Op.or]: [
+          { departureDate: date }, // Matches exact date
+          {
+            departureDate: null,
+            operatingDays: {
+              [Op.like]: `%${dayName}%`, // Matches operating day
+            },
           },
-        },
-        {
-          transportType: "carpooling", // Carpooling trips are daily by default
-        },
-      ];
+          {
+            transportType: "carpooling", // Carpooling trips are daily by default
+          },
+        ]
+      };
+
+      if (!where[Op.and]) where[Op.and] = [];
+      where[Op.and].push(dateConditions);
     }
 
     // Filter by status (default to active only)
@@ -340,6 +354,8 @@ exports.createTrip = async (req, res) => {
       confirmationWindow: confirmationWindow || 2,
       vehiclePlateNumber: vehiclePlateNumber || null,
       pickupAddress: pickupAddress || null,
+      preferences: req.body.preferences || {},
+      stops: req.body.stops || [],
       companyId: req.user.id,
       status: "active",
     });
@@ -416,6 +432,8 @@ exports.updateTrip = async (req, res) => {
       confirmationWindow,
       vehiclePlateNumber,
       pickupAddress,
+      preferences,
+      stops,
     } = req.body;
 
     if (from) trip.from = from;
@@ -450,6 +468,8 @@ exports.updateTrip = async (req, res) => {
     if (confirmationWindow !== undefined) trip.confirmationWindow = confirmationWindow;
     if (vehiclePlateNumber !== undefined) trip.vehiclePlateNumber = vehiclePlateNumber;
     if (pickupAddress !== undefined) trip.pickupAddress = pickupAddress;
+    if (preferences !== undefined) trip.preferences = preferences;
+    if (stops !== undefined) trip.stops = stops;
     
     if (seats !== undefined) {
       // Calculate booked seats BEFORE overwriting trip.seats

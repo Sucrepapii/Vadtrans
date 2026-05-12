@@ -16,6 +16,13 @@ import {
   FaUsers,
   FaMoneyBillWave,
   FaInfoCircle,
+  FaSmoking,
+  FaSmokingBan,
+  FaPaw,
+  FaSnowflake,
+  FaMusic,
+  FaSuitcase,
+  FaCheck,
 } from "react-icons/fa";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 
@@ -39,6 +46,14 @@ const OfferRide = () => {
     cancellationWindow: 12,
     confirmationWindow: 2,
     vehicleName: "",
+    preferences: {
+      smoking: false,
+      pets: false,
+      music: true,
+      ac: true,
+      luggage: "small", // small, medium, large
+    },
+    stops: [] // [{ city: "", price: "" }]
   });
 
   const [cities, setCities] = useState([]);
@@ -87,6 +102,8 @@ const OfferRide = () => {
         cancellationWindow: 12,
         confirmationWindow: 2,
         vehicleName: formData.vehicleName,
+        preferences: formData.preferences,
+        stops: formData.stops.filter(s => s.city && s.price),
       };
 
       const response = await tripAPI.createTrip(tripData);
@@ -278,6 +295,177 @@ const OfferRide = () => {
                         <option value="Sienna car (7 seats)">Sienna car (7 seats)</option>
                         <option value="Mini Buses (7 seater)">Mini Buses (7 seater)</option>
                       </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Drop-off Stops Section */}
+                <div className="col-span-full">
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-sm font-bold text-neutral-400 uppercase tracking-widest flex items-center gap-2">
+                      <FaMapMarkerAlt className="text-primary" /> Drop-off Stops & Prices
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData,
+                        stops: [...formData.stops, { city: "", price: "" }]
+                      })}
+                      className="text-xs font-bold text-primary hover:text-primary-dark transition-colors flex items-center gap-1 bg-primary/5 px-3 py-1.5 rounded-lg border border-primary/10"
+                    >
+                      + Add Stop
+                    </button>
+                  </div>
+                  
+                  {formData.stops.length === 0 ? (
+                    <div className="bg-neutral-50 border border-dashed border-neutral-200 rounded-2xl p-6 text-center">
+                      <p className="text-xs text-neutral-500 italic">
+                        No intermediate stops added. Click "+ Add Stop" to set prices for cities along your route.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {formData.stops.map((stop, index) => (
+                        <div key={index} className="flex gap-3 items-end animate-in fade-in slide-in-from-top-2 duration-300">
+                          <div className="flex-1">
+                            <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 ml-1">City Name</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. VI"
+                              value={stop.city}
+                              onChange={(e) => {
+                                const newStops = [...formData.stops];
+                                newStops[index].city = e.target.value;
+                                setFormData({ ...formData, stops: newStops });
+                              }}
+                              className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                            />
+                          </div>
+                          <div className="w-32 sm:w-40">
+                            <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1 ml-1">Price (₦)</label>
+                            <input
+                              type="number"
+                              placeholder="2500"
+                              value={stop.price}
+                              onChange={(e) => {
+                                const newStops = [...formData.stops];
+                                newStops[index].price = e.target.value;
+                                setFormData({ ...formData, stops: newStops });
+                              }}
+                              className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const newStops = formData.stops.filter((_, i) => i !== index);
+                              setFormData({ ...formData, stops: newStops });
+                            }}
+                            className="p-3.5 bg-red-50 text-red-500 rounded-xl hover:bg-red-100 transition-colors border border-red-100"
+                            title="Remove Stop"
+                          >
+                            <FaCheck className="rotate-45" /> {/* Using FaCheck rotated since it's already imported */}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <p className="mt-3 text-[10px] text-neutral-400 flex items-center gap-1">
+                    <FaInfoCircle className="text-primary/60" /> 
+                    Tip: Add stops like "VI", "Ikoyi" if you're passing through them to get more riders.
+                  </p>
+                </div>
+
+                {/* Preferences Section */}
+                <div className="col-span-full">
+                  <h2 className="text-sm font-bold text-neutral-400 uppercase tracking-widest mb-4 flex items-center gap-2">
+                    <FaInfoCircle className="text-primary" /> Ride Preferences
+                  </h2>
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    {/* Smoking */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData, 
+                        preferences: { ...formData.preferences, smoking: !formData.preferences.smoking }
+                      })}
+                      className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
+                        formData.preferences.smoking 
+                        ? "bg-primary/5 border-primary text-primary shadow-md" 
+                        : "bg-neutral-50 border-neutral-100 text-neutral-400 hover:border-neutral-200"
+                      }`}
+                    >
+                      {formData.preferences.smoking ? <FaSmoking className="text-xl mb-2" /> : <FaSmokingBan className="text-xl mb-2" />}
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Smoking</span>
+                    </button>
+
+                    {/* Pets */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData, 
+                        preferences: { ...formData.preferences, pets: !formData.preferences.pets }
+                      })}
+                      className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
+                        formData.preferences.pets 
+                        ? "bg-primary/5 border-primary text-primary shadow-md" 
+                        : "bg-neutral-50 border-neutral-100 text-neutral-400 hover:border-neutral-200"
+                      }`}
+                    >
+                      <FaPaw className="text-xl mb-2" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Pets</span>
+                    </button>
+
+                    {/* AC */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData, 
+                        preferences: { ...formData.preferences, ac: !formData.preferences.ac }
+                      })}
+                      className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
+                        formData.preferences.ac 
+                        ? "bg-primary/5 border-primary text-primary shadow-md" 
+                        : "bg-neutral-50 border-neutral-100 text-neutral-400 hover:border-neutral-200"
+                      }`}
+                    >
+                      <FaSnowflake className="text-xl mb-2" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">AC</span>
+                    </button>
+
+                    {/* Music */}
+                    <button
+                      type="button"
+                      onClick={() => setFormData({
+                        ...formData, 
+                        preferences: { ...formData.preferences, music: !formData.preferences.music }
+                      })}
+                      className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all ${
+                        formData.preferences.music 
+                        ? "bg-primary/5 border-primary text-primary shadow-md" 
+                        : "bg-neutral-50 border-neutral-100 text-neutral-400 hover:border-neutral-200"
+                      }`}
+                    >
+                      <FaMusic className="text-xl mb-2" />
+                      <span className="text-[10px] font-bold uppercase tracking-widest">Music</span>
+                    </button>
+
+                    {/* Luggage */}
+                    <div className="relative group">
+                      <select
+                        value={formData.preferences.luggage}
+                        onChange={(e) => setFormData({
+                          ...formData, 
+                          preferences: { ...formData.preferences, luggage: e.target.value }
+                        })}
+                        className="w-full h-full appearance-none flex flex-col items-center justify-center p-4 rounded-2xl border-2 bg-neutral-50 border-neutral-100 text-neutral-400 hover:border-neutral-200 focus:border-primary focus:text-primary transition-all outline-none"
+                      >
+                        <option value="small">Small Luggage</option>
+                        <option value="medium">Medium Bag</option>
+                        <option value="large">Big Trunk</option>
+                      </select>
+                      <FaSuitcase className="absolute top-4 left-1/2 -translate-x-1/2 text-xl pointer-events-none" />
+                      <span className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-bold uppercase tracking-widest pointer-events-none">Luggage</span>
                     </div>
                   </div>
                 </div>

@@ -125,10 +125,15 @@ const LandingPage = () => {
 
               {/* Find/Offer Ride Interaction */}
               <div className="mb-8 p-4 bg-white rounded-2xl shadow-sm border border-primary/10">
-                <p className="text-xs font-bold text-primary uppercase tracking-widest mb-4 flex items-center gap-2">
-                  <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
-                  Primary Feature: FIND OR SHARE A RIDE
-                </p>
+                <div className="flex justify-between items-center mb-4">
+                  <p className="text-xs font-bold text-primary uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                    Primary Feature: FIND OR SHARE A RIDE
+                  </p>
+                  <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                    <FaHandHoldingHeart className="text-[8px]" /> Smart Choice
+                  </span>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <button 
                     onClick={() => {
@@ -139,14 +144,14 @@ const LandingPage = () => {
                     className="flex flex-col items-center justify-center p-4 bg-primary/5 hover:bg-primary/10 rounded-xl transition-all border border-primary/20 group">
                     <FaUsers className="text-2xl text-primary mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-sm font-bold text-charcoal">Find a ride</span>
-                    <span className="text-[10px] text-neutral-500">Riders side</span>
+                    <span className="text-[10px] text-green-600 font-medium">Eco-friendly & Cheap</span>
                   </button>
                   <button 
                     onClick={() => navigate('/offer-ride')}
                     className="flex flex-col items-center justify-center p-4 bg-charcoal/5 hover:bg-charcoal/10 rounded-xl transition-all border border-charcoal/20 group">
                     <FaCar className="text-2xl text-charcoal mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-sm font-bold text-charcoal">Offer a ride</span>
-                    <span className="text-[10px] text-neutral-500">Drivers side</span>
+                    <span className="text-[10px] text-neutral-500">Earn while driving</span>
                   </button>
                 </div>
               </div>

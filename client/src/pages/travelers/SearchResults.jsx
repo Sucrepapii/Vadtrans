@@ -19,6 +19,13 @@ import {
   FaCheckCircle,
   FaFilter,
   FaSyncAlt,
+  FaSnowflake,
+  FaPaw,
+  FaMusic,
+  FaSmoking,
+  FaSmokingBan,
+  FaSuitcase,
+  FaShieldAlt,
 } from "react-icons/fa";
 import Pagination from "../../components/Pagination";
 
@@ -177,13 +184,24 @@ const SearchResults = () => {
   };
 
   const handleSelectTrip = (trip, isDepositOnly = false) => {
+    // Detect if we are booking for a specific stop
+    const searchCity = (searchParams.to || "").toLowerCase();
+    const stopMatch = trip.stops?.find(s => s.city.toLowerCase().includes(searchCity));
+    
+    const bookingData = {
+      ...trip,
+      // If a stop was matched, override the destination and price for the booking flow
+      selectedDestination: stopMatch ? stopMatch.city : trip.to,
+      selectedPrice: stopMatch ? stopMatch.price : trip.price
+    };
+
     if (trip.serviceCategory === "freight") {
       navigate("/booking/freight-info", {
-        state: { tripData: trip, searchDate: searchParams.date },
+        state: { tripData: bookingData, searchDate: searchParams.date },
       });
     } else {
       navigate("/booking/passenger-info", {
-        state: { tripData: trip, searchDate: searchParams.date, isDepositOnly },
+        state: { tripData: bookingData, searchDate: searchParams.date, isDepositOnly },
       });
     }
   };
@@ -230,6 +248,42 @@ const SearchResults = () => {
     "Search Results": currentTrips,
   };
 
+  const renderPreferences = (preferences) => {
+    if (!preferences) return null;
+    
+    const prefList = [
+      { key: 'ac', icon: FaSnowflake, label: 'AC' },
+      { key: 'pets', icon: FaPaw, label: 'Pets' },
+      { key: 'music', icon: FaMusic, label: 'Music' },
+      { key: 'smoking', icon: preferences.smoking ? FaSmoking : FaSmokingBan, label: 'Smoking' },
+    ];
+
+    return (
+      <div className="flex flex-wrap gap-2 mt-3">
+        {prefList.map(pref => (
+          <div 
+            key={pref.key} 
+            className={`flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold border ${
+              preferences[pref.key] 
+              ? "bg-green-50 border-green-100 text-green-700" 
+              : "bg-neutral-50 border-neutral-100 text-neutral-400 opacity-60"
+            }`}
+            title={pref.label}
+          >
+            <pref.icon className="text-xs" />
+            <span className="uppercase tracking-tight">{pref.label}</span>
+          </div>
+        ))}
+        {preferences.luggage && (
+          <div className="flex items-center gap-1.5 px-2 py-1 rounded-md text-[10px] font-bold bg-blue-50 border border-blue-100 text-blue-700">
+            <FaSuitcase className="text-xs" />
+            <span className="uppercase tracking-tight">{preferences.luggage}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderTripCard = (trip) => {
     const Icon = getTransportIcon(trip);
     const isFreight = trip.serviceCategory === "freight";
@@ -263,13 +317,21 @@ const SearchResults = () => {
                       {trip.company?.name || "VadTrans Company"}
                     </p>
                     {trip.transportType === "carpooling" && (
-                      <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
-                        Carpool
-                      </span>
+                      <div className="flex items-center gap-1.5">
+                        <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-widest">
+                          Carpool
+                        </span>
+                        <div className="flex items-center gap-1 bg-blue-50 text-blue-700 text-[10px] font-bold px-2 py-0.5 rounded-full border border-blue-100">
+                          <FaShieldAlt className="text-[8px]" />
+                          <span>Verified Driver</span>
+                        </div>
+                      </div>
                     )}
                   </div>
                 </div>
               </div>
+              
+              {trip.transportType === "carpooling" && renderPreferences(trip.preferences)}
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                 <div className="bg-neutral-50 p-2 rounded-lg border border-neutral-100">
@@ -329,17 +391,50 @@ const SearchResults = () => {
                   </p>
                 </div>
               )}
+
+              {trip.transportType === "carpooling" && trip.stops?.length > 0 && (
+                <div className="mt-4 p-3 bg-blue-50/30 rounded-xl border border-blue-100/50">
+                  <p className="text-[10px] uppercase font-bold text-blue-400 mb-2 flex items-center gap-1">
+                    <FaMapMarkerAlt className="text-[8px]" /> Route Stops & Prices
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {trip.stops.map((stop, i) => (
+                      <div key={i} className="bg-white px-2 py-1 rounded-md border border-blue-100 flex items-center gap-1.5 shadow-sm">
+                        <span className="text-[10px] font-bold text-charcoal">{stop.city}</span>
+                        <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1 rounded">₦{Number(stop.price).toLocaleString()}</span>
+                      </div>
+                    ))}
+                    <div className="bg-white px-2 py-1 rounded-md border border-primary/20 flex items-center gap-1.5 shadow-sm">
+                      <span className="text-[10px] font-bold text-charcoal">{trip.to} (Final)</span>
+                      <span className="text-[9px] font-bold text-primary bg-primary/5 px-1 rounded">₦{Number(trip.price).toLocaleString()}</span>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-end gap-4 pt-4 md:pt-0 border-t md:border-t-0 border-neutral-100">
               <div className="text-left md:text-right">
-                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">
-                  {isFreight ? "Starting From" : "Per Seat"}
-                </p>
+                {trip.transportType === "carpooling" && trip.stops?.some(s => s.city.toLowerCase().includes(searchParams.to.toLowerCase())) ? (
+                  <div className="mb-1">
+                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest bg-green-50 px-1.5 py-0.5 rounded border border-green-100">
+                      Price for {searchParams.to}
+                    </span>
+                  </div>
+                ) : (
+                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">
+                    {isFreight ? "Starting From" : "Per Seat"}
+                  </p>
+                )}
                 <div className="flex items-center md:justify-end gap-1">
                   <span className="text-sm font-bold text-primary">₦</span>
                   <span className="text-3xl font-black text-primary">
-                    {Number(isFreight ? (trip.minCharge || trip.price) : trip.price).toLocaleString()}
+                    {(() => {
+                      const searchCity = searchParams.to.toLowerCase();
+                      const stopMatch = trip.stops?.find(s => s.city.toLowerCase().includes(searchCity));
+                      const priceToUse = stopMatch ? stopMatch.price : trip.price;
+                      return Number(isFreight ? (trip.minCharge || trip.price) : priceToUse).toLocaleString();
+                    })()}
                   </span>
                 </div>
               </div>
@@ -398,6 +493,81 @@ const SearchResults = () => {
             <h1 className="text-2xl font-raleway font-bold text-charcoal mb-2">
               {searchParams.companyId ? "Direct Booking Page" : "Search Results"}
             </h1>
+
+            {/* Premium Re-Search Bar */}
+            {!searchParams.companyId && (
+              <div className="mt-6 mb-8 p-4 bg-white rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 animate-in fade-in slide-in-from-top-4 duration-500">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <div className="relative group">
+                    <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">From</label>
+                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
+                      <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
+                      <input 
+                        type="text" 
+                        value={searchParams.from} 
+                        onChange={(e) => setSearchParams({...searchParams, from: e.target.value})}
+                        className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
+                        placeholder="Departure city"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="relative group">
+                    <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">To</label>
+                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
+                      <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
+                      <input 
+                        type="text" 
+                        value={searchParams.to} 
+                        onChange={(e) => setSearchParams({...searchParams, to: e.target.value})}
+                        className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
+                        placeholder="Destination city"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="relative group">
+                    <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">Date</label>
+                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
+                      <FaCalendar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
+                      <input 
+                        type="date" 
+                        value={searchParams.date} 
+                        onChange={(e) => setSearchParams({...searchParams, date: e.target.value})}
+                        className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <div className="relative group flex-1">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">Type</label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
+                        <FaCar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
+                        <select 
+                          value={searchParams.transportType} 
+                          onChange={(e) => setSearchParams({...searchParams, transportType: e.target.value})}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none appearance-none"
+                        >
+                          <option value="all">All Types</option>
+                          <option value="inter-state">Inter-State</option>
+                          <option value="intra-state">Intra-State</option>
+                          <option value="carpooling">Carpooling</option>
+                          <option value="international">International</option>
+                        </select>
+                      </div>
+                    </div>
+                    <Button 
+                      onClick={() => fetchTrips()} 
+                      variant="primary" 
+                      className="px-6 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+                    >
+                      <FaSyncAlt className={loading ? "animate-spin" : ""} />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {searchParams.companyId && trips.length > 0 && (
               <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-6 flex items-center gap-4">

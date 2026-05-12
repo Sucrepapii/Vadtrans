@@ -187,6 +187,18 @@ const Trip = sequelize.define(
       defaultValue: [],
       comment: "Array of occupied seat numbers",
     },
+    preferences: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: {},
+      comment: "JSON object for ride preferences (smoking, pets, music, ac, etc.)",
+    },
+    stops: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
+      comment: "Array of drop-off points with prices: [{ city: 'VI', price: 2000 }]",
+    },
     status: {
       type: DataTypes.ENUM("active", "inactive", "cancelled", "completed"),
       defaultValue: "active",
