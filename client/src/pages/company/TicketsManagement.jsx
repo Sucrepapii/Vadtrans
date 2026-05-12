@@ -1119,10 +1119,10 @@ const TicketsManagement = () => {
                   <div className="pt-4 border-t-2 border-dashed border-neutral-100 flex justify-between items-center">
                     <div>
                       <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block">Driver Total</span>
-                      <span className="text-[9px] text-neutral-400 italic">Based on final destination price</span>
+                      <span className="text-[9px] text-neutral-400 italic">Sum of all destination prices</span>
                     </div>
                     <span className="text-2xl font-black text-primary">
-                      ₦{Number(formData.price || 0).toLocaleString()}
+                      ₦{(formData.stops?.reduce((acc, stop) => acc + Number(stop.price || 0), 0)).toLocaleString()}
                     </span>
                   </div>
                 </div>
