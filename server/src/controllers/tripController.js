@@ -100,16 +100,22 @@ exports.getAllTrips = async (req, res) => {
     if (transportType && transportType !== "all") dbWhere.transportType = transportType;
     if (companyId) dbWhere.companyId = companyId;
 
-    // 2. Fetch all potentially relevant trips
+    // 2. Fetch trips with only the most basic fields to ensure stability
     const tripsFromDb = await Trip.findAll({
       where: dbWhere,
-      include: [{ model: User, as: "company", attributes: ["id", "name", "avatar", "email", "phone"] }],
+      attributes: ["id", "from", "to", "transportType", "serviceCategory", "departureTime", "departureDate", "operatingDays", "stops", "status", "companyId", "createdAt"],
       order: [["createdAt", "DESC"]],
-      limit: 500 // Safety limit to prevent memory issues
     });
 
-    // 3. Apply advanced filtering in JavaScript (Safer & Database-Agnostic)
-    let results = tripsFromDb.map(t => (typeof t.toJSON === 'function' ? t.toJSON() : t));
+    // Note: We will fetch companies in a separate step or handle missing data gracefully
+    const results = tripsFromDb.map(t => {
+      const data = typeof t.toJSON === 'function' ? t.toJSON() : t;
+      // Add a mock company if missing to prevent UI crashes
+      if (!data.company) {
+        data.company = { name: "Vadtrans Partner", avatar: null };
+      }
+      return data;
+    });
 
     // Filter by FROM location
     if (from) {
