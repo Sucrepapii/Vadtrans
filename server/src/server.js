@@ -251,7 +251,7 @@ const initializeDatabase = async () => {
     if (!tripTableInfo.preferences) {
       console.log("ℹ️ Adding missing column 'preferences' to Trips...");
       await queryInterface.addColumn("Trips", "preferences", {
-        type: DataTypes.JSON,
+        type: DataTypes.JSONB, // Using JSONB for Postgres performance
         allowNull: true,
         defaultValue: {},
       });
@@ -259,22 +259,22 @@ const initializeDatabase = async () => {
     if (!tripTableInfo.stops) {
       console.log("ℹ️ Adding missing column 'stops' to Trips...");
       await queryInterface.addColumn("Trips", "stops", {
-        type: DataTypes.JSON,
+        type: DataTypes.JSONB,
         allowNull: true,
         defaultValue: [],
       });
     }
-    if (!tripTableInfo.city) {
-      console.log("ℹ️ Adding missing column 'city' to Trips...");
-      await queryInterface.addColumn("Trips", "city", {
+    if (!tripTableInfo.terminal) {
+      console.log("ℹ️ Adding missing column 'terminal' to Trips...");
+      await queryInterface.addColumn("Trips", "terminal", {
         type: DataTypes.STRING,
         allowNull: true,
       });
     }
-    if (!tripTableInfo.documentPrices) {
-      console.log("ℹ️ Adding missing column 'documentPrices' to Trips...");
-      await queryInterface.addColumn("Trips", "documentPrices", {
-        type: DataTypes.JSON,
+    if (!tripTableInfo.vehicleName) {
+      console.log("ℹ️ Adding missing column 'vehicleName' to Trips...");
+      await queryInterface.addColumn("Trips", "vehicleName", {
+        type: DataTypes.STRING,
         allowNull: true,
       });
     }
