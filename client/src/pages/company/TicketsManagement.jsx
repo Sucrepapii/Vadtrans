@@ -509,7 +509,7 @@ const TicketsManagement = () => {
           return;
         }
         if (Number(formData.price) < 100) {
-          toast.error("Carpooling price cannot be less than ₦1,500.");
+          toast.error("Carpooling price cannot be less than ₦100.");
           setSaving(false);
           return;
         }
