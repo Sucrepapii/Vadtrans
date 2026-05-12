@@ -28,6 +28,7 @@ import {
   FaShieldAlt,
   FaCalendar,
   FaBox,
+  FaTimes,
 } from "react-icons/fa";
 import Pagination from "../../components/Pagination";
 
@@ -490,7 +491,7 @@ const SearchResults = () => {
                   onClick={() => navigate("/")}
                   className="flex items-center gap-2 text-sm">
                   <FaArrowLeft />
-                  <span>Back to Search</span>
+                  <span className="hidden sm:inline">Back to Search</span>
                 </Button>
               </div>
 
@@ -539,6 +540,14 @@ const SearchResults = () => {
                         className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
                         placeholder="Departure city"
                       />
+                      {searchParams.from && (
+                        <button 
+                          onClick={() => setSearchParams({...searchParams, from: ""})}
+                          className="mr-2 p-1 text-neutral-400 hover:text-primary transition-colors"
+                        >
+                          <FaTimes size={12} />
+                        </button>
+                      )}
                     </div>
                   </div>
                   
@@ -553,6 +562,14 @@ const SearchResults = () => {
                         className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
                         placeholder="Destination city"
                       />
+                      {searchParams.to && (
+                        <button 
+                          onClick={() => setSearchParams({...searchParams, to: ""})}
+                          className="mr-2 p-1 text-neutral-400 hover:text-primary transition-colors"
+                        >
+                          <FaTimes size={12} />
+                        </button>
+                      )}
                     </div>
                   </div>
 

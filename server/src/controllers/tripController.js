@@ -101,12 +101,13 @@ exports.getAllTrips = async (req, res) => {
     // Filter by from location
     if (fromCountry) where.fromCountry = fromCountry;
     if (fromState) where.fromState = fromState;
-    if (from) where.from = { [Op.like]: `%${from}%` };
+    if (from) where.from = { [Op.iLike]: `%${from}%` };
 
     // Filter by to location
     if (toCountry) where.toCountry = toCountry;
     if (toState) where.toState = toState;
-    if (to) where.to = { [Op.like]: `%${to}%` };
+    // Note: City 'to' search is now handled in application logic after fetching 
+    // to ensure reliable JSON searching across all DB types.
 
     // Filter by transportType in DB
     if (transportType && transportType !== "all") {
@@ -132,7 +133,7 @@ exports.getAllTrips = async (req, res) => {
         {
           departureDate: null,
           operatingDays: {
-            [Op.like]: `%${dayName}%`, // Matches operating day
+            [Op.iLike]: `%${dayName}%`, // Matches operating day
           },
         },
         {
@@ -145,30 +146,44 @@ exports.getAllTrips = async (req, res) => {
     where.status = status || "active";
 
 
-    const trips = await Trip.findAll({
+    // Fetch trips from database
+    const allTrips = await Trip.findAll({
       where,
-      attributes: [
-        "id", "from", "to", "transportType", "serviceCategory",
-        "vehicleType", "vehicleName", "terminal", "state",
-        "fromCountry", "toCountry", "fromState", "toState",
-        "departureTime", "departureDate", "operatingDays", "duration",
-        "price", "baseFare", "pricePerKg", "minCharge", "maxWeightCapacity",
-        "seats", "availableSeats", "minSeats",
-        "depositAmount", "cancellationWindow", "confirmationWindow",
-        "timeWindowStart", "timeWindowEnd",
-        "status", "companyId", "createdAt",
-        "vehiclePlateNumber", "pickupAddress"
-      ],
-      order: [["createdAt", "DESC"]],
       include: [
         {
           model: User,
           as: "company",
-          attributes: ["id", "name", "avatar"],
+          attributes: ["id", "name", "email", "phone", "avatar"],
         },
       ],
-      limit: 100,
+      order: [["createdAt", "DESC"]],
     });
+
+    // Safer filtering in application logic to handle multi-stop JSON correctly
+    let filteredTrips = allTrips;
+    
+    if (to) {
+      const searchTo = to.toLowerCase().trim();
+      filteredTrips = allTrips.filter(trip => {
+        // Check primary destination
+        const matchesPrimary = trip.to && trip.to.toLowerCase().includes(searchTo);
+        if (matchesPrimary) return true;
+
+        // Check intermediate stops in the JSON field
+        if (trip.stops && Array.isArray(trip.stops)) {
+          return trip.stops.some(stop => 
+            (typeof stop === 'string' && stop.toLowerCase().includes(searchTo)) ||
+            (stop.city && stop.city.toLowerCase().includes(searchTo))
+          );
+        }
+
+        return false;
+      });
+    }
+
+    // Apply pagination to the filtered results
+    const totalItems = filteredTrips.length;
+    const paginatedTrips = filteredTrips.slice(offset, offset + parseInt(limit));
 
     // For carpooling trips, if we are searching for a specific date,
     // we want them to appear as if they are for that date.
