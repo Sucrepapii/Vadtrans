@@ -481,17 +481,45 @@ const SearchResults = () => {
 
       <div className="flex-1 py-8 px-4">
         <div className="container-custom max-w-6xl">
-          {/* Header with Back Button */}
+          {/* Header with Back Button & Filters */}
           <div className="mb-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Button
-                variant="secondary"
-                onClick={() => navigate("/")}
-                className="flex items-center gap-2 text-sm">
-                <FaArrowLeft />
-                <span>Back to Search</span>
-              </Button>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="secondary"
+                  onClick={() => navigate("/")}
+                  className="flex items-center gap-2 text-sm">
+                  <FaArrowLeft />
+                  <span>Back to Search</span>
+                </Button>
+              </div>
+
+              {/* Filter Buttons in Header */}
+              <div className="flex flex-wrap items-center gap-2 bg-neutral-100/50 p-1 rounded-2xl border border-neutral-200">
+                {[
+                  { id: "all", label: "All" },
+                  { id: "inter-state", label: "Inter-State" },
+                  { id: "intra-state", label: "Intra-State" },
+                  { id: "carpooling", label: "Carpooling" },
+                  { id: "international", label: "International" },
+                ].map((filter) => (
+                  <button
+                    key={filter.id}
+                    onClick={() => {
+                      setActiveFilter(filter.id);
+                      setCurrentPage(1);
+                    }}
+                    className={`px-4 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
+                      activeFilter === filter.id
+                        ? "bg-white text-primary shadow-sm ring-1 ring-neutral-200"
+                        : "text-neutral-500 hover:text-primary hover:bg-white/50"
+                    }`}>
+                    {filter.label}
+                  </button>
+                ))}
+              </div>
             </div>
+
             <h1 className="text-2xl font-raleway font-bold text-charcoal mb-2">
               {searchParams.companyId ? "Direct Booking Page" : "Search Results"}
             </h1>
@@ -598,7 +626,7 @@ const SearchResults = () => {
             <div className="flex flex-wrap items-center gap-y-2 gap-x-4 text-neutral-600">
               <div className="flex items-center gap-2">
                 <FaMapMarkerAlt className="text-primary" />
-                <span className="font-medium">
+                <span className="font-medium text-sm">
                   {searchParams.transportType === "international" && searchParams.fromCountry ? (
                     `${searchParams.fromState ? searchParams.fromState + ", " : ""}${searchParams.fromCountry}`
                   ) : searchParams.from || "Any"}
@@ -612,7 +640,7 @@ const SearchResults = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-neutral-300 hidden sm:inline">|</span>
                   <FaClock className="text-primary" />
-                  <span>
+                  <span className="text-sm">
                     {new Date(searchParams.date).toLocaleDateString()}
                   </span>
                 </div>
@@ -626,44 +654,6 @@ const SearchResults = () => {
                 </div>
               )}
             </div>
-          </div>
-
-          {/* Filter Buttons */}
-          <div className="mb-6 flex flex-wrap items-center gap-2">
-            <span className="text-xs font-bold text-neutral-400 uppercase tracking-widest mr-2 flex items-center gap-2">
-              <FaFilter size={12} /> Filter by type:
-            </span>
-            {[
-              { id: "all", label: "All" },
-              { id: "inter-state", label: "Inter-State" },
-              { id: "intra-state", label: "Intra-State" },
-              { id: "carpooling", label: "Carpooling" },
-              { id: "international", label: "International" },
-            ].map((filter) => (
-              <button
-                key={filter.id}
-                onClick={() => {
-                  setActiveFilter(filter.id);
-                  setCurrentPage(1);
-                }}
-                className={`px-4 py-2 rounded-full text-xs font-bold transition-all border ${
-                  activeFilter === filter.id
-                    ? "bg-primary text-white border-primary shadow-md shadow-primary/20 scale-105"
-                    : "bg-white text-neutral-600 border-neutral-200 hover:border-primary/30 hover:bg-primary/5"
-                }`}>
-                {filter.label}
-              </button>
-            ))}
-            {activeFilter !== "all" && (
-              <button
-                onClick={() => {
-                  setActiveFilter("all");
-                  setCurrentPage(1);
-                }}
-                className="flex items-center gap-1.5 text-xs font-bold text-neutral-400 hover:text-primary transition-colors ml-2">
-                <FaSyncAlt size={10} /> Clear
-              </button>
-            )}
           </div>
 
           {loading ? (
