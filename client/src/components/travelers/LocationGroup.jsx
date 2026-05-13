@@ -61,22 +61,9 @@ const LocationGroup = ({
               required
             >
               <option value="">{loadingCities ? "Loading cities..." : "Select city"}</option>
-              {cities.map((c) => {
-                const isHeader = c.endsWith(" AXIS") || c.endsWith(" CORE");
-                return (
-                  <option
-                    key={c}
-                    value={c}
-                    disabled={isHeader}
-                    className={
-                      isHeader
-                        ? "font-bold text-neutral-800 bg-neutral-100"
-                        : ""
-                    }>
-                    {isHeader ? `── ${c} ──` : c}
-                  </option>
-                );
-              })}
+              {cities.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
             </select>
           </div>
         </div>

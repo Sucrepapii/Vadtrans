@@ -190,23 +190,11 @@ const OfferRide = () => {
                           required
                           disabled={!formData.state}>
                           <option value="">Select pickup</option>
-                          {cities.map((c) => {
-                            const isHeader =
-                              c.endsWith(" AXIS") || c.endsWith(" CORE");
-                            return (
-                              <option
-                                key={c}
-                                value={c}
-                                disabled={isHeader}
-                                className={
-                                  isHeader
-                                    ? "font-bold text-neutral-800 bg-neutral-100"
-                                    : ""
-                                }>
-                                {isHeader ? `── ${c} ──` : c}
-                              </option>
-                            );
-                          })}
+                          {cities.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
                         </select>
                       </div>
                       <div>
@@ -222,23 +210,11 @@ const OfferRide = () => {
                           required
                           disabled={!formData.state}>
                           <option value="">Select destination</option>
-                          {cities.map((c) => {
-                            const isHeader =
-                              c.endsWith(" AXIS") || c.endsWith(" CORE");
-                            return (
-                              <option
-                                key={c}
-                                value={c}
-                                disabled={isHeader}
-                                className={
-                                  isHeader
-                                    ? "font-bold text-neutral-800 bg-neutral-100"
-                                    : ""
-                                }>
-                                {isHeader ? `── ${c} ──` : c}
-                              </option>
-                            );
-                          })}
+                          {cities.map((c) => (
+                            <option key={c} value={c}>
+                              {c}
+                            </option>
+                          ))}
                         </select>
                       </div>
                     </div>
@@ -452,23 +428,11 @@ const OfferRide = () => {
                               className="w-full px-4 py-3 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all"
                               disabled={!formData.state}>
                               <option value="">Select city</option>
-                              {cities.map((c) => {
-                                const isHeader =
-                                  c.endsWith(" AXIS") || c.endsWith(" CORE");
-                                return (
-                                  <option
-                                    key={c}
-                                    value={c}
-                                    disabled={isHeader}
-                                    className={
-                                      isHeader
-                                        ? "font-bold text-neutral-800 bg-neutral-100"
-                                        : ""
-                                    }>
-                                    {isHeader ? `── ${c} ──` : c}
-                                  </option>
-                                );
-                              })}
+                              {cities.map((c) => (
+                                <option key={c} value={c}>
+                                  {c}
+                                </option>
+                              ))}
                             </select>
                           </div>
                           <div className="w-32 sm:w-40">

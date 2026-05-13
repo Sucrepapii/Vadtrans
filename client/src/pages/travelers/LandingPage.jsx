@@ -323,24 +323,11 @@ const LandingPage = () => {
                             className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"
                             required>
                             <option value="">Select departure city</option>
-                            {fromCities.map((city) => {
-                              const isHeader =
-                                city.endsWith(" AXIS") ||
-                                city.endsWith(" CORE");
-                              return (
-                                <option
-                                  key={city}
-                                  value={city}
-                                  disabled={isHeader}
-                                  className={
-                                    isHeader
-                                      ? "font-bold text-neutral-800 bg-neutral-100"
-                                      : ""
-                                  }>
-                                  {isHeader ? `── ${city} ──` : city}
-                                </option>
-                              );
-                            })}
+                            {fromCities.map((city) => (
+                              <option key={city} value={city}>
+                                {city}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       </div>
@@ -482,24 +469,11 @@ const LandingPage = () => {
                             className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"
                             required>
                             <option value="">Select destination city</option>
-                            {toCities.map((city) => {
-                              const isHeader =
-                                city.endsWith(" AXIS") ||
-                                city.endsWith(" CORE");
-                              return (
-                                <option
-                                  key={city}
-                                  value={city}
-                                  disabled={isHeader}
-                                  className={
-                                    isHeader
-                                      ? "font-bold text-neutral-800 bg-neutral-100"
-                                      : ""
-                                  }>
-                                  {isHeader ? `── ${city} ──` : city}
-                                </option>
-                              );
-                            })}
+                            {toCities.map((city) => (
+                              <option key={city} value={city}>
+                                {city}
+                              </option>
+                            ))}
                           </select>
                         </div>
                       </div>
