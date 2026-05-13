@@ -837,11 +837,23 @@ const TicketsManagement = () => {
                       required
                       disabled={saving || !formData.state}>
                       <option value="">Select pickup city</option>
-                      {fromCities.map((city) => (
-                        <option key={city} value={city}>
-                          {city}
-                        </option>
-                      ))}
+                      {fromCities.map((city) => {
+                        const isHeader =
+                          city.endsWith(" AXIS") || city.endsWith(" CORE");
+                        return (
+                          <option
+                            key={city}
+                            value={city}
+                            disabled={isHeader}
+                            className={
+                              isHeader
+                                ? "font-bold text-neutral-800 bg-neutral-100"
+                                : ""
+                            }>
+                            {isHeader ? `── ${city} ──` : city}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 </div>
@@ -959,11 +971,24 @@ const TicketsManagement = () => {
                               className="w-full px-4 py-2.5 bg-neutral-50 border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
                               required>
                               <option value="">Select city</option>
-                              {fromCities.map((city) => (
-                                <option key={city} value={city}>
-                                  {city}
-                                </option>
-                              ))}
+                              {fromCities.map((city) => {
+                                const isHeader =
+                                  city.endsWith(" AXIS") ||
+                                  city.endsWith(" CORE");
+                                return (
+                                  <option
+                                    key={city}
+                                    value={city}
+                                    disabled={isHeader}
+                                    className={
+                                      isHeader
+                                        ? "font-bold text-neutral-800 bg-neutral-100"
+                                        : ""
+                                    }>
+                                    {isHeader ? `── ${city} ──` : city}
+                                  </option>
+                                );
+                              })}
                             </select>
                           </div>
                           <div className="w-full md:w-40">
@@ -1445,11 +1470,23 @@ const TicketsManagement = () => {
                           required
                           disabled={saving || !formData.state}>
                           <option value="">Select departure city</option>
-                          {fromCities.map((city) => (
-                            <option key={city} value={city}>
-                              {city}
-                            </option>
-                          ))}
+                          {fromCities.map((city) => {
+                            const isHeader =
+                              city.endsWith(" AXIS") || city.endsWith(" CORE");
+                            return (
+                              <option
+                                key={city}
+                                value={city}
+                                disabled={isHeader}
+                                className={
+                                  isHeader
+                                    ? "font-bold text-neutral-800 bg-neutral-100"
+                                    : ""
+                                }>
+                                {isHeader ? `── ${city} ──` : city}
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                     </div>
@@ -1491,11 +1528,23 @@ const TicketsManagement = () => {
                           required
                           disabled={saving || !formData.toState}>
                           <option value="">Select destination city</option>
-                          {toCities.map((city) => (
-                            <option key={city} value={city}>
-                              {city}
-                            </option>
-                          ))}
+                          {toCities.map((city) => {
+                            const isHeader =
+                              city.endsWith(" AXIS") || city.endsWith(" CORE");
+                            return (
+                              <option
+                                key={city}
+                                value={city}
+                                disabled={isHeader}
+                                className={
+                                  isHeader
+                                    ? "font-bold text-neutral-800 bg-neutral-100"
+                                    : ""
+                                }>
+                                {isHeader ? `── ${city} ──` : city}
+                              </option>
+                            );
+                          })}
                         </select>
                       </div>
                     </div>

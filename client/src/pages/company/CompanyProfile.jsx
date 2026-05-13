@@ -1408,11 +1408,24 @@ const CompanyProfile = () => {
                                   <option value="">
                                     Select departure city
                                   </option>
-                                  {fromCities.map((city) => (
-                                    <option key={city} value={city}>
-                                      {city}
-                                    </option>
-                                  ))}
+                                  {fromCities.map((city) => {
+                                    const isHeader =
+                                      city.endsWith(" AXIS") ||
+                                      city.endsWith(" CORE");
+                                    return (
+                                      <option
+                                        key={city}
+                                        value={city}
+                                        disabled={isHeader}
+                                        className={
+                                          isHeader
+                                            ? "font-bold text-neutral-800 bg-neutral-100"
+                                            : ""
+                                        }>
+                                        {isHeader ? `── ${city} ──` : city}
+                                      </option>
+                                    );
+                                  })}
                                 </select>
                               </div>
                             )}
@@ -1437,11 +1450,24 @@ const CompanyProfile = () => {
                                   <option value="">
                                     Select destination city
                                   </option>
-                                  {fromCities.map((city) => (
-                                    <option key={city} value={city}>
-                                      {city}
-                                    </option>
-                                  ))}
+                                  {fromCities.map((city) => {
+                                    const isHeader =
+                                      city.endsWith(" AXIS") ||
+                                      city.endsWith(" CORE");
+                                    return (
+                                      <option
+                                        key={city}
+                                        value={city}
+                                        disabled={isHeader}
+                                        className={
+                                          isHeader
+                                            ? "font-bold text-neutral-800 bg-neutral-100"
+                                            : ""
+                                        }>
+                                        {isHeader ? `── ${city} ──` : city}
+                                      </option>
+                                    );
+                                  })}
                                 </select>
                               </div>
                             )}
@@ -1492,11 +1518,24 @@ const CompanyProfile = () => {
                                   <option value="">
                                     Select departure city
                                   </option>
-                                  {fromCities.map((city) => (
-                                    <option key={city} value={city}>
-                                      {city}
-                                    </option>
-                                  ))}
+                                  {fromCities.map((city) => {
+                                    const isHeader =
+                                      city.endsWith(" AXIS") ||
+                                      city.endsWith(" CORE");
+                                    return (
+                                      <option
+                                        key={city}
+                                        value={city}
+                                        disabled={isHeader}
+                                        className={
+                                          isHeader
+                                            ? "font-bold text-neutral-800 bg-neutral-100"
+                                            : ""
+                                        }>
+                                        {isHeader ? `── ${city} ──` : city}
+                                      </option>
+                                    );
+                                  })}
                                 </select>
                               </div>
                             )}
