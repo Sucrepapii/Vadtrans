@@ -469,11 +469,17 @@ const SearchResults = () => {
                       className="w-full md:w-48 bg-white border border-neutral-200 rounded-lg px-3 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     >
                       <option value="-1">{trip.to} (Final Destination)</option>
-                      {trip.stops.map((stop, idx) => (
-                        <option key={idx} value={idx}>
-                          {stop.city} (Stop)
-                        </option>
-                      ))}
+                      {trip.stops
+                        .filter(stop => stop.city.toLowerCase().trim() !== trip.to.toLowerCase().trim())
+                        .map((stop, idx) => {
+                          // Find original index in trip.stops for state management
+                          const originalIdx = trip.stops.indexOf(stop);
+                          return (
+                            <option key={originalIdx} value={originalIdx}>
+                              {stop.city} (Stop)
+                            </option>
+                          );
+                        })}
                     </select>
                   </div>
                 )}

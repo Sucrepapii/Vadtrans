@@ -98,6 +98,7 @@ const TicketsManagement = () => {
     vehiclePlateNumber: "",
     pickupAddress: "",
     vehicleName: "",
+    driverContact: "",
     stops: [], // [{ city: "", price: "" }]
   });
 
@@ -496,6 +497,7 @@ const TicketsManagement = () => {
         minSeats: Number(formData.minSeats || 1),
         vehiclePlateNumber: formData.vehiclePlateNumber || null,
         pickupAddress: formData.pickupAddress || null,
+        driverContact: formData.driverContact || null,
         stops: formData.stops || [],
         depositAmount: 5, // Reserve with 5% deposit
         cancellationWindow: 12, // Free cancellation up to 12 hours
@@ -1096,6 +1098,21 @@ const TicketsManagement = () => {
                       required
                     />
                   </div>
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Driver Contact Number *"
+                      placeholder="e.g. 08012345678"
+                      value={formData.driverContact}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          driverContact: e.target.value,
+                        })
+                      }
+                      disabled={saving}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
 
@@ -1328,6 +1345,21 @@ const TicketsManagement = () => {
                           ...formData,
                           pickupAddress: e.target.value,
                           terminal: e.target.value,
+                        })
+                      }
+                      disabled={saving}
+                      required
+                    />
+                  </div>
+                  <div className="md:col-span-2">
+                    <Input
+                      label="Driver Contact Number *"
+                      placeholder="e.g. 08012345678"
+                      value={formData.driverContact}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          driverContact: e.target.value,
                         })
                       }
                       disabled={saving}
