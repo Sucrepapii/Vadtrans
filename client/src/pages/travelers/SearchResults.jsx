@@ -417,16 +417,39 @@ const SearchResults = () => {
                     <FaMapMarkerAlt className="text-[8px]" /> Route Stops & Prices
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {trip.stops.map((stop, i) => (
-                      <div key={i} className="bg-white px-2 py-1 rounded-md border border-blue-100 flex items-center gap-1.5 shadow-sm">
-                        <span className="text-[10px] font-bold text-charcoal">{stop.city}</span>
-                        <span className="text-[9px] font-bold text-blue-600 bg-blue-50 px-1 rounded">₦{Number(stop.price).toLocaleString()}</span>
-                      </div>
-                    ))}
-                    <div className="bg-white px-2 py-1 rounded-md border border-primary/20 flex items-center gap-1.5 shadow-sm">
-                      <span className="text-[10px] font-bold text-charcoal">{trip.to} (Final)</span>
-                      <span className="text-[9px] font-bold text-primary bg-primary/5 px-1 rounded">₦{Number(trip.price).toLocaleString()}</span>
-                    </div>
+                    {(() => {
+                      // Filter out duplicates and the final destination if it's already in stops
+                      const uniqueStops = [];
+                      const seenCities = new Set();
+                      
+                      // Process intermediate stops
+                      trip.stops.forEach(stop => {
+                        const cityKey = stop.city.toLowerCase().trim();
+                        if (!seenCities.has(cityKey)) {
+                          uniqueStops.push(stop);
+                          seenCities.add(cityKey);
+                        }
+                      });
+
+                      // Add final destination if not already seen
+                      const finalCityKey = trip.to.toLowerCase().trim();
+                      if (!seenCities.has(finalCityKey)) {
+                        uniqueStops.push({ city: trip.to, price: trip.price, isFinal: true });
+                      } else {
+                        // Mark the existing stop as final if it matches
+                        const finalStop = uniqueStops.find(s => s.city.toLowerCase().trim() === finalCityKey);
+                        if (finalStop) finalStop.isFinal = true;
+                      }
+
+                      return uniqueStops.map((stop, i) => (
+                        <div key={i} className={`bg-white px-2 py-1 rounded-md border flex items-center gap-1.5 shadow-sm ${stop.isFinal ? 'border-primary/20' : 'border-blue-100'}`}>
+                          <span className="text-[10px] font-bold text-charcoal">{stop.city}{stop.isFinal && " (Final)"}</span>
+                          <span className={`text-[9px] font-bold px-1 rounded ${stop.isFinal ? 'text-primary bg-primary/5' : 'text-blue-600 bg-blue-50'}`}>
+                            ₦{Number(stop.price).toLocaleString()}
+                          </span>
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </div>
               )}
