@@ -1537,7 +1537,6 @@ const TicketsManagement = () => {
                             setFormData({
                               ...formData,
                               fromState: e.target.value,
-                              from: e.target.value,
                             })
                           }
                           className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
@@ -1553,6 +1552,23 @@ const TicketsManagement = () => {
                           )}
                         </select>
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
+                        Departure City & Terminal
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.from}
+                        onChange={(e) =>
+                          setFormData({ ...formData, from: e.target.value })
+                        }
+                        placeholder="Enter city and terminal name (e.g. Accra Central Terminal)"
+                        className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
+                        required
+                        disabled={saving || !formData.fromState}
+                      />
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -1590,7 +1606,6 @@ const TicketsManagement = () => {
                             setFormData({
                               ...formData,
                               toState: e.target.value,
-                              to: e.target.value,
                             })
                           }
                           className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
@@ -1606,6 +1621,23 @@ const TicketsManagement = () => {
                           )}
                         </select>
                       </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
+                        Destination City & Terminal
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.to}
+                        onChange={(e) =>
+                          setFormData({ ...formData, to: e.target.value })
+                        }
+                        placeholder="Enter destination city and terminal (e.g. Lome Gare)"
+                        className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
+                        required
+                        disabled={saving || !formData.toState}
+                      />
                     </div>
                   </div>
                 )}

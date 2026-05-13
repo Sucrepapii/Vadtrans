@@ -1651,7 +1651,9 @@ const CompanyProfile = () => {
                             <label className="block text-sm font-medium text-neutral-700 mb-2">
                               Terminal City
                             </label>
-                            <select
+                            <Input
+                              type="text"
+                              placeholder="Enter city name"
                               value={formData.city}
                               onChange={(e) =>
                                 setFormData({
@@ -1659,19 +1661,8 @@ const CompanyProfile = () => {
                                   city: e.target.value,
                                 })
                               }
-                              className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                              disabled={saving}>
-                              <option value="">Select City</option>
-                              {formData.from && westAfricanCities[formData.from]
-                                ? westAfricanCities[formData.from].map(
-                                    (city) => (
-                                      <option key={city} value={city}>
-                                        {city}
-                                      </option>
-                                    ),
-                                  )
-                                : null}
-                            </select>
+                              disabled={saving}
+                            />
                           </div>
                         )}
 
