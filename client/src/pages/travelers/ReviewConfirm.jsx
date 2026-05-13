@@ -23,7 +23,7 @@ import {
 const ReviewConfirm = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useAuth();
+  const { user, setTransactionActive } = useAuth();
   const { tripData, passengers, selectedSeats, paymentMethod, searchDate } =
     location.state || {};
 
@@ -49,6 +49,7 @@ const ReviewConfirm = () => {
       : basePrice;
   };
 
+  const passengerCount = passengers?.length || 0;
   const subtotal = passengers?.reduce(
     (acc, p) => acc + calculatePassengerPrice(p),
     0,
@@ -77,6 +78,7 @@ const ReviewConfirm = () => {
   const initializePayment = usePaystackPayment(paystackConfig);
 
   const handlePaystackSuccess = async (reference) => {
+    setTransactionActive(false);
     setIsProcessing(true);
     const bookingId = sessionStorage.getItem("lastPendingBookingId");
     const savedRef =
@@ -95,6 +97,8 @@ const ReviewConfirm = () => {
           passengerDetails: passengers,
           selectedSeats,
           totalAmount: total,
+          paidAmount: amountToPay,
+          isDeposit: paymentOption === "deposit",
           paymentMethod,
           searchParams: {
             date:
@@ -140,6 +144,7 @@ const ReviewConfirm = () => {
   };
 
   const handlePaystackClose = async () => {
+    setTransactionActive(false);
     toast.info("Transaction cancelled");
     setIsProcessing(false);
 
@@ -197,6 +202,7 @@ const ReviewConfirm = () => {
           }
 
           // Use the hook-provided initialize function (react-paystack v6 syntax)
+          setTransactionActive(true);
           initializePayment({
             onSuccess: handlePaystackSuccess,
             onClose: handlePaystackClose,
@@ -231,6 +237,8 @@ const ReviewConfirm = () => {
             passengerDetails: passengers,
             selectedSeats,
             totalAmount: total,
+            paidAmount: total, // bank is always full for now in this flow
+            isDeposit: false,
             paymentMethod,
             searchParams: {
               date:

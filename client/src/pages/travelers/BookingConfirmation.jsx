@@ -94,16 +94,15 @@ const BookingConfirmation = () => {
   const finalPaymentMethod =
     fetchedBooking?.paymentMethod || paymentMethod || "Paystack";
 
-  // Derive subtotal from total (totalAmount already includes service fee from ReviewConfirm)
-  // pricePerPerson from trip, else back-calculate from total
-  const pricePerPerson = Number(finalTrip?.price) || 0;
+  // Derive subtotal from trip data or back-calculate correctly
+  const pricePerPerson = Number(finalTrip?.selectedPrice || finalTrip?.price) || 0;
   const subtotal =
     pricePerPerson > 0
       ? pricePerPerson * passengerCount
-      : Math.round(finalTotal / 1.125); // approximate reverse (1 + 0.05 + 0.075)
+      : Math.round(finalTotal / 1.05375); // reverse (1 + 0.05 * 1.075)
 
   const serviceFee = calculateServiceFee(subtotal);
-  const vat = calculateVAT(subtotal);
+  const vat = calculateVAT(serviceFee);
 
   const handleDownloadTicket = async () => {
     const element = document.getElementById("ticket-content");

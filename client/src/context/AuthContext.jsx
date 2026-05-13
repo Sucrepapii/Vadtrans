@@ -13,6 +13,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [transactionActive, setTransactionActive] = useState(false);
 
   useEffect(() => {
     // Note: We check both sessionStorage (new standard) and localStorage (legacy migration)
@@ -47,6 +48,13 @@ export const AuthProvider = ({ children }) => {
     const handleActivity = () => {
       clearTimeout(timeoutId);
       if (user) {
+        // DO NOT log out if there is an active transaction (e.g., payment modal open)
+        if (transactionActive) {
+          // Restart timer but don't log out
+          timeoutId = setTimeout(handleActivity, 60000); // Check again in 1 minute
+          return;
+        }
+
         timeoutId = setTimeout(() => {
           logout();
           // Optional: Could redirect or show a toast here, but logout() clears state
@@ -75,7 +83,7 @@ export const AuthProvider = ({ children }) => {
         );
       };
     }
-  }, [user]);
+  }, [user, transactionActive]);
 
   const login = (userData) => {
     // Use role from backend user data
@@ -111,6 +119,8 @@ export const AuthProvider = ({ children }) => {
     isModerator: user?.role === "moderator",
     isCompany: user?.role === "company",
     isTraveler: user?.role === "traveler",
+    transactionActive,
+    setTransactionActive,
     loading,
   };
 

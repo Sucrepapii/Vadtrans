@@ -58,6 +58,7 @@ const SearchResults = () => {
   });
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [selectedStops, setSelectedStops] = useState({}); // { tripId: stopIndex }
   const [exactMatch, setExactMatch] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -187,15 +188,30 @@ const SearchResults = () => {
   };
 
   const handleSelectTrip = (trip, isDepositOnly = false) => {
-    // Detect if we are booking for a specific stop
-    const searchCity = (searchParams.to || "").toLowerCase();
-    const stopMatch = trip.stops?.find(s => s.city.toLowerCase().includes(searchCity));
+    // Check if user manually selected a stop from the dropdown
+    const manualStopIndex = selectedStops[trip.id];
+    let selectedDestination = trip.to;
+    let selectedPrice = trip.price;
+
+    if (manualStopIndex !== undefined && manualStopIndex !== -1) {
+      const stop = trip.stops[manualStopIndex];
+      selectedDestination = stop.city;
+      selectedPrice = stop.price;
+    } else {
+      // Auto-detect if we are booking for a specific stop based on search params
+      const searchCity = (searchParams.to || "").toLowerCase();
+      const stopMatch = trip.stops?.find(s => s.city.toLowerCase().includes(searchCity));
+      
+      if (stopMatch) {
+        selectedDestination = stopMatch.city;
+        selectedPrice = stopMatch.price;
+      }
+    }
     
     const bookingData = {
       ...trip,
-      // If a stop was matched, override the destination and price for the booking flow
-      selectedDestination: stopMatch ? stopMatch.city : trip.to,
-      selectedPrice: stopMatch ? stopMatch.price : trip.price
+      selectedDestination,
+      selectedPrice
     };
 
     if (trip.serviceCategory === "freight") {
@@ -418,24 +434,45 @@ const SearchResults = () => {
 
             <div className="flex flex-row md:flex-col items-center md:items-end justify-between md:justify-end gap-4 pt-4 md:pt-0 border-t md:border-t-0 border-neutral-100">
               <div className="text-left md:text-right">
-                {trip.transportType === "carpooling" && trip.stops?.some(s => s.city.toLowerCase().includes(searchParams.to.toLowerCase())) ? (
-                  <div className="mb-1">
-                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-widest bg-green-50 px-1.5 py-0.5 rounded border border-green-100">
-                      Price for {searchParams.to}
-                    </span>
+                {/* Destination Stop Selection */}
+                {trip.stops?.length > 0 && (
+                  <div className="mb-4">
+                    <label className="block text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1.5">
+                      Select Your Destination
+                    </label>
+                    <select
+                      value={selectedStops[trip.id] ?? -1}
+                      onChange={(e) => setSelectedStops(prev => ({ ...prev, [trip.id]: parseInt(e.target.value) }))}
+                      className="w-full md:w-48 bg-white border border-neutral-200 rounded-lg px-3 py-1.5 text-xs font-semibold focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    >
+                      <option value="-1">{trip.to} (Final Destination)</option>
+                      {trip.stops.map((stop, idx) => (
+                        <option key={idx} value={idx}>
+                          {stop.city} (Stop)
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                ) : (
-                  <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">
-                    {isFreight ? "Starting From" : "Per Seat"}
-                  </p>
                 )}
+
+                <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">
+                  {isFreight ? "Starting From" : "Per Seat"}
+                </p>
                 <div className="flex items-center md:justify-end gap-1">
                   <span className="text-sm font-bold text-primary">₦</span>
                   <span className="text-3xl font-black text-primary">
                     {(() => {
+                      // Priority 1: User selection from dropdown
+                      const manualStopIndex = selectedStops[trip.id];
+                      if (manualStopIndex !== undefined && manualStopIndex !== -1) {
+                        return Number(trip.stops[manualStopIndex].price).toLocaleString();
+                      }
+                      
+                      // Priority 2: Match from search params
                       const searchCity = searchParams.to.toLowerCase();
                       const stopMatch = trip.stops?.find(s => s.city.toLowerCase().includes(searchCity));
                       const priceToUse = stopMatch ? stopMatch.price : trip.price;
+                      
                       return Number(isFreight ? (trip.minCharge || trip.price) : priceToUse).toLocaleString();
                     })()}
                   </span>
