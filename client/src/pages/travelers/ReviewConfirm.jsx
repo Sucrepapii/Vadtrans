@@ -112,27 +112,37 @@ const ReviewConfirm = () => {
     };
 
     try {
+      console.log("💳 Paystack Success Callback Started");
+      console.log("📍 Reference:", reference.reference);
+      console.log("🆔 Session BookingId:", bookingId);
+      console.log("🔖 Session SavedRef:", savedRef);
+
       if (!bookingId) {
         // No booking ID but Paystack approved — still show ticket
+        console.warn("⚠️ No bookingId found in session storage, but payment was successful.");
         toast.success("Payment approved! Your booking is being processed.");
         goToConfirmation();
         return;
       }
 
       // Verify payment on backend
+      console.log("🔍 Triggering Backend Verification...");
       const verifyRes = await bookingAPI.verifyPayment(
         reference.reference,
         bookingId,
       );
+      console.log("✅ Backend Verification Response:", verifyRes.data);
 
       if (verifyRes.data.success) {
         toast.success("Booking confirmed successfully!");
       } else {
+        console.warn("⚠️ Backend returned success:false for verification");
         toast.warning("Payment received — booking confirmation pending.");
       }
       goToConfirmation();
     } catch (error) {
-      console.error("Payment verification error:", error);
+      console.error("❌ Payment verification error:", error);
+      console.error("📄 Error Response:", error.response?.data);
       // Paystack already approved payment — still show ticket, don't block the user
       toast.warning(
         "Payment approved by Paystack! Booking confirmation is being processed.",

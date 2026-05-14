@@ -179,7 +179,7 @@ const BookingConfirmation = () => {
   const arrivalTime = calculateArrivalTime();
   const durationText = finalTrip.duration
     ? `${finalTrip.duration} hrs`
-    : "12 hrs";
+    : finalTrip.transportType === "carpooling" ? "" : "12 hrs";
 
   if (loading) {
     return (
@@ -258,13 +258,21 @@ const BookingConfirmation = () => {
                       <p className="text-sm text-neutral-600">
                         {finalBookingId}
                       </p>
-                      <div className="mt-1">
-                        <p className="text-sm text-neutral-600 font-bold">
-                          Vehicle: {finalTrip.vehicleName || "Assigned Vehicle"}
-                        </p>
-                        <p className="text-[10px] text-neutral-500 font-medium">
-                          Type: {finalTrip.vehicleType || "Bus"}
-                        </p>
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <div className="bg-neutral-100 px-2 py-1 rounded border border-neutral-200">
+                          <p className="text-[10px] text-neutral-500 font-bold uppercase">Vehicle</p>
+                          <p className="text-sm font-bold text-charcoal">{finalTrip.vehicleName || "Assigned Vehicle"}</p>
+                        </div>
+                        {finalTrip.vehiclePlateNumber && (
+                          <div className="bg-amber-50 px-2 py-1 rounded border border-amber-200">
+                            <p className="text-[10px] text-amber-600 font-bold uppercase">Plate Number</p>
+                            <p className="text-sm font-bold text-amber-700 tracking-wider">{finalTrip.vehiclePlateNumber}</p>
+                          </div>
+                        )}
+                        <div className="bg-neutral-100 px-2 py-1 rounded border border-neutral-200">
+                          <p className="text-[10px] text-neutral-500 font-bold uppercase">Type</p>
+                          <p className="text-sm font-bold text-charcoal">{finalTrip.vehicleType || "Bus"}</p>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -286,16 +294,24 @@ const BookingConfirmation = () => {
                     <div className="text-center">
                       <div className="flex items-center gap-2 mb-1">
                         <FaMapMarkerAlt className="text-primary text-xs" />
-                        <span className="font-bold text-lg">{arrivalTime}</span>
+                        <span className="font-bold text-lg">
+                          {finalTrip.transportType === "carpooling" && !finalTrip.duration ? finalTrip.timeWindowEnd || finalTrip.departureTime : arrivalTime}
+                        </span>
                       </div>
                       <span className="text-xs font-medium text-neutral-600">
                         {finalTrip.selectedDestination || finalTrip.to}
                       </span>
                     </div>
-                    <div className="text-xs text-neutral-500 ml-2">
-                      <FaClock className="inline mr-1" />
-                      {durationText}
-                    </div>
+                    {finalTrip.transportType === "carpooling" && finalTrip.timeWindowEnd && !finalTrip.duration ? (
+                      <div className="text-[10px] bg-primary/10 text-primary px-2 py-1 rounded font-bold ml-2">
+                        PICKUP WINDOW
+                      </div>
+                    ) : (
+                      <div className="text-xs text-neutral-500 ml-2">
+                        <FaClock className="inline mr-1" />
+                        {durationText}
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -312,26 +328,13 @@ const BookingConfirmation = () => {
                   </span>
                 </div>
 
-                {(finalTrip.driverContact || finalTrip.vehiclePlateNumber) && (
-                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
-                    {finalTrip.driverContact && (
-                      <div className="flex items-center gap-2 text-sm text-neutral-800 bg-primary/5 p-3 rounded-lg border border-primary/10 flex-1">
-                        <FaPhone className="text-primary flex-shrink-0" />
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Driver's Contact</span>
-                          <span className="font-bold text-base">{finalTrip.driverContact}</span>
-                        </div>
-                      </div>
-                    )}
-                    {finalTrip.vehiclePlateNumber && (
-                      <div className="flex items-center gap-2 text-sm text-neutral-800 bg-amber-50 p-3 rounded-lg border border-amber-200 flex-1">
-                        <FaIdCard className="text-amber-600 flex-shrink-0" />
-                        <div className="flex flex-col">
-                          <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Plate Number</span>
-                          <span className="font-bold text-base tracking-widest uppercase">{finalTrip.vehiclePlateNumber}</span>
-                        </div>
-                      </div>
-                    )}
+                {finalTrip.driverContact && (
+                  <div className="flex items-center gap-2 text-sm text-neutral-800 bg-primary/5 p-3 rounded-lg border border-primary/10 mb-4">
+                    <FaPhone className="text-primary flex-shrink-0" />
+                    <div className="flex flex-col">
+                      <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Driver's Contact</span>
+                      <span className="font-bold text-base">{finalTrip.driverContact}</span>
+                    </div>
                   </div>
                 )}
               </div>

@@ -62,23 +62,37 @@ exports.verifyPayment = async (req, res) => {
   const transaction = await sequelize.transaction();
 
   try {
+    console.log(`💳 Received Verification Request for Ref: ${reference}`);
     const response = await paystack.transaction.verify({ reference });
 
+    console.log("📄 Paystack Verification Response Status:", response.data.status);
+    
     if (response.data.status === "success") {
       // Get bookingId from metadata OR query params
       const bookingId =
         response.data.metadata?.bookingId || req.query.bookingId;
 
+      console.log("🆔 Extracted BookingId:", bookingId);
+      console.log("📦 Metadata present:", !!response.data.metadata);
+      console.log("🔍 Query params:", JSON.stringify(req.query));
+
       if (!bookingId) {
+        console.warn("❌ No Booking ID found in metadata or query params!");
         await transaction.rollback();
         return res.status(400).json({
           success: false,
           message: "Booking ID missing from transaction metadata and query",
+          debug: {
+            hasMetadata: !!response.data.metadata,
+            query: req.query
+          }
         });
       }
 
       const booking = await Booking.findByPk(bookingId, { transaction });
+      
       if (booking) {
+        console.log(`✅ Found Booking #${booking.id} (Ref: ${booking.bookingId}). Updating to paid.`);
         booking.paymentStatus = "paid";
         booking.paymentReference = reference;
         booking.bookingStatus = "confirmed";
@@ -96,9 +110,12 @@ exports.verifyPayment = async (req, res) => {
           },
           { transaction },
         );
+      } else {
+        console.error(`❌ Booking with ID ${bookingId} not found in database!`);
       }
 
       await transaction.commit();
+      console.log("🏁 Transaction committed successfully");
 
       res.status(200).json({
         success: true,
@@ -106,6 +123,7 @@ exports.verifyPayment = async (req, res) => {
         data: response.data,
       });
     } else {
+      console.warn("❌ Paystack reported transaction status as NOT success:", response.data.status);
       await transaction.rollback();
       res.status(400).json({
         success: false,
@@ -114,7 +132,7 @@ exports.verifyPayment = async (req, res) => {
       });
     }
   } catch (error) {
-    await transaction.rollback();
+    if (transaction) await transaction.rollback();
     console.error("❌ Paystack verification error:", error?.message || error);
     console.error(
       "❌ Error details:",

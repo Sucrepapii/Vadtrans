@@ -186,6 +186,7 @@ const LandingPage = () => {
                     <option value="carpooling">
                       Carpooling (Lagos & Beyond)
                     </option>
+                    <option value="freight" disabled>Freight & Logistics - Coming Soon</option>
                   </select>
                 </div>
 
@@ -599,14 +600,75 @@ const LandingPage = () => {
             </p>
           </div>
 
-          <div className="flex justify-center">
-            <div className="bg-white rounded-lg p-8 text-center hover:shadow-lg transition-shadow border border-neutral-200 max-w-sm w-full">
-              <FaBus className="text-5xl text-primary mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-charcoal mb-2">Bus</h3>
-              <p className="text-neutral-600 mb-4">
-                Comfortable and affordable bus services
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Bus / Carpooling Card */}
+            <div 
+              onClick={() => navigate("/search?type=carpooling")}
+              className="bg-white rounded-2xl p-6 text-center hover:shadow-xl transition-all border border-neutral-200 cursor-pointer group">
+              <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <FaBus className="text-3xl text-primary" />
+              </div>
+              <h3 className="text-xl font-bold text-charcoal mb-2 font-raleway">Carpooling</h3>
+              <p className="text-sm text-neutral-500 mb-4 h-12 flex items-center justify-center">
+                Comfortable shared rides for city-to-city travel
               </p>
-              <p className="text-2xl font-bold text-primary">From ₦25,000</p>
+              <div className="pt-4 border-t border-neutral-100">
+                <span className="text-xs text-neutral-400 block mb-1">Starting from</span>
+                <p className="text-xl font-bold text-primary">₦15,000</p>
+              </div>
+            </div>
+
+            {/* International Card */}
+            <div 
+              onClick={() => navigate("/search?type=international")}
+              className="bg-white rounded-2xl p-6 text-center hover:shadow-xl transition-all border border-neutral-200 cursor-pointer group">
+              <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
+                <FaBus className="text-3xl text-blue-600 rotate-12" />
+              </div>
+              <h3 className="text-xl font-bold text-charcoal mb-2 font-raleway">International</h3>
+              <p className="text-sm text-neutral-500 mb-4 h-12 flex items-center justify-center">
+                Cross-border transport within West Africa
+              </p>
+              <div className="pt-4 border-t border-neutral-100">
+                <span className="text-xs text-neutral-400 block mb-1">Starting from</span>
+                <p className="text-xl font-bold text-primary">₦45,000</p>
+              </div>
+            </div>
+
+            {/* Inter-state Card - GATED */}
+            <div className="relative bg-white rounded-2xl p-6 text-center border border-neutral-200 opacity-60 overflow-hidden cursor-not-allowed">
+              <div className="absolute top-4 right-[-35px] bg-primary text-white text-[10px] font-bold py-1 px-10 rotate-45 z-10 shadow-md">
+                COMING SOON
+              </div>
+              <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <FaBus className="text-3xl text-neutral-400" />
+              </div>
+              <h3 className="text-xl font-bold text-charcoal mb-2 font-raleway">Inter-state</h3>
+              <p className="text-sm text-neutral-500 mb-4 h-12 flex items-center justify-center">
+                State-to-state travel across Nigeria
+              </p>
+              <div className="pt-4 border-t border-neutral-100">
+                <span className="text-xs text-neutral-400 block mb-1">Starting from</span>
+                <p className="text-xl font-bold text-neutral-400">₦25,000</p>
+              </div>
+            </div>
+
+            {/* Freight Card - GATED */}
+            <div className="relative bg-white rounded-2xl p-6 text-center border border-neutral-200 opacity-60 overflow-hidden cursor-not-allowed">
+              <div className="absolute top-4 right-[-35px] bg-primary text-white text-[10px] font-bold py-1 px-10 rotate-45 z-10 shadow-md">
+                COMING SOON
+              </div>
+              <div className="w-16 h-16 bg-neutral-100 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <FaTruck className="text-3xl text-neutral-400" />
+              </div>
+              <h3 className="text-xl font-bold text-charcoal mb-2 font-raleway">Freight</h3>
+              <p className="text-sm text-neutral-500 mb-4 h-12 flex items-center justify-center">
+                Fast and secure cargo delivery services
+              </p>
+              <div className="pt-4 border-t border-neutral-100">
+                <span className="text-xs text-neutral-400 block mb-1">Starting from</span>
+                <p className="text-xl font-bold text-neutral-400">₦10,000</p>
+              </div>
             </div>
           </div>
         </div>

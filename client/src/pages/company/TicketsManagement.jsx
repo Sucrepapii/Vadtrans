@@ -1541,6 +1541,30 @@ const TicketsManagement = () => {
                         </select>
                       </div>
                     </div>
+
+                    {/* Vehicle info for Inter-state */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Vehicle Name / Model"
+                        placeholder="e.g. Toyota Hiace"
+                        value={formData.vehicleName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, vehicleName: e.target.value })
+                        }
+                        disabled={saving}
+                        required
+                      />
+                      <Input
+                        label="Vehicle Plate Number"
+                        placeholder="LAG-123-XY"
+                        value={formData.vehiclePlateNumber}
+                        onChange={(e) =>
+                          setFormData({ ...formData, vehiclePlateNumber: e.target.value })
+                        }
+                        disabled={saving}
+                        required
+                      />
+                    </div>
                   </div>
                 ) : (
                   <div className="space-y-4">
@@ -1681,6 +1705,30 @@ const TicketsManagement = () => {
                         disabled={saving || !formData.toState}
                       />
                     </div>
+
+                    {/* Vehicle info for International */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <Input
+                        label="Vehicle Name / Model"
+                        placeholder="e.g. Marcopolo Bus"
+                        value={formData.vehicleName}
+                        onChange={(e) =>
+                          setFormData({ ...formData, vehicleName: e.target.value })
+                        }
+                        disabled={saving}
+                        required
+                      />
+                      <Input
+                        label="Vehicle Plate Number"
+                        placeholder="LAG-123-XY"
+                        value={formData.vehiclePlateNumber}
+                        onChange={(e) =>
+                          setFormData({ ...formData, vehiclePlateNumber: e.target.value })
+                        }
+                        disabled={saving}
+                        required
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -1801,17 +1849,19 @@ const TicketsManagement = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <Input
-                    label="Duration (hours)"
-                    type="number"
-                    step="0.5"
-                    placeholder="12"
-                    value={formData.duration}
-                    onChange={(e) =>
-                      setFormData({ ...formData, duration: e.target.value })
-                    }
-                    disabled={saving}
-                  />
+                  {formData.transportType !== "carpooling" && (
+                    <Input
+                      label="Duration (hours)"
+                      type="number"
+                      step="0.5"
+                      placeholder="12"
+                      value={formData.duration}
+                      onChange={(e) =>
+                        setFormData({ ...formData, duration: e.target.value })
+                      }
+                      disabled={saving}
+                    />
+                  )}
                   <Input
                     label="Price (₦)"
                     type="number"
