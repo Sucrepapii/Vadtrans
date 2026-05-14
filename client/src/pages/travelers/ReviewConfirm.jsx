@@ -99,7 +99,7 @@ const ReviewConfirm = () => {
           totalAmount: total,
           paidAmount: amountToPay,
           isDeposit: paymentOption === "deposit",
-          paymentMethod,
+          paymentMethod: "card",
           searchParams: {
             date:
               searchDate ||

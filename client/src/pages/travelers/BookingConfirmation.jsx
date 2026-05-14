@@ -433,18 +433,26 @@ const BookingConfirmation = () => {
                                 {index + 1}
                               </span>
                             </div>
-                            <div>
-                              <p className="font-medium">
-                                {passenger.firstName ||
-                                  passenger.fullName ||
-                                  `Passenger ${index + 1}`}
-                              </p>
-                              {selectedSeats && selectedSeats[index] && (
-                                <p className="text-xs text-neutral-600">
-                                  Seat {selectedSeats[index]}
+                              <div>
+                                <p className="font-medium">
+                                  {passenger.firstName ||
+                                    passenger.fullName ||
+                                    `Passenger ${index + 1}`}
                                 </p>
-                              )}
-                            </div>
+                                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                  {passenger.phone && (
+                                    <p className="text-xs text-neutral-500 flex items-center gap-1">
+                                      <FaPhone className="text-[10px]" />
+                                      {passenger.phone}
+                                    </p>
+                                  )}
+                                  {selectedSeats && selectedSeats[index] && (
+                                    <p className="text-xs text-neutral-600 bg-neutral-200 px-1.5 rounded">
+                                      Seat {selectedSeats[index]}
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
                           </div>
                         </div>
                       ))}
@@ -515,7 +523,7 @@ const BookingConfirmation = () => {
                       <p className="font-medium">
                         {finalPaymentMethod === "card" ||
                         finalPaymentMethod === "Card"
-                          ? "Paystack"
+                          ? "Paystack (Online)"
                           : finalPaymentMethod === "bank"
                             ? "Bank Transfer"
                             : finalPaymentMethod === "mobile"

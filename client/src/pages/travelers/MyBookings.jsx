@@ -208,9 +208,23 @@ const MyBookings = () => {
                     {/* Mobile Layout */}
                     <div className="sm:hidden p-4 space-y-3">
                       <div className="flex items-center justify-between">
-                        <span className="font-semibold text-charcoal">
-                          {booking.bookingId}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="font-semibold text-charcoal">
+                            {booking.bookingId}
+                          </span>
+                          <div className="flex gap-2 mt-1">
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                              booking.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {booking.paymentStatus}
+                            </span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                              booking.bookingStatus === 'confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-neutral-100 text-neutral-600'
+                            }`}>
+                              {booking.bookingStatus}
+                            </span>
+                          </div>
+                        </div>
                         <div className="flex gap-2">
                           {canCancel(booking) ? (
                             <button
@@ -279,8 +293,22 @@ const MyBookings = () => {
 
                     {/* Desktop Layout */}
                     <div className="hidden sm:grid sm:grid-cols-[1.2fr_1.5fr_1.2fr_1fr_1fr_1fr_0.5fr] gap-4 items-center px-6 py-4">
-                      <div className="font-semibold text-charcoal">
-                        {booking.bookingId}
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-charcoal">
+                          {booking.bookingId}
+                        </span>
+                        <div className="flex gap-1.5 mt-1">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                            booking.paymentStatus === 'paid' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
+                          }`}>
+                            {booking.paymentStatus}
+                          </span>
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${
+                            booking.bookingStatus === 'confirmed' ? 'bg-blue-100 text-blue-700' : 'bg-neutral-100 text-neutral-600'
+                          }`}>
+                            {booking.bookingStatus}
+                          </span>
+                        </div>
                       </div>
                       <div className="text-neutral-700">
                         {booking.trip?.company?.name || "N/A"}
