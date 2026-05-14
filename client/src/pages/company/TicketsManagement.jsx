@@ -217,6 +217,9 @@ const TicketsManagement = () => {
         confirmationWindow: trip.confirmationWindow || 2,
         stops: trip.stops || [],
         preferences: trip.preferences || {},
+        vehiclePlateNumber: trip.vehiclePlateNumber || "",
+        pickupAddress: trip.pickupAddress || "",
+        driverContact: trip.driverContact || "",
       }));
 
       setTickets(transformedTrips);
@@ -357,13 +360,17 @@ const TicketsManagement = () => {
 
   const handleEditTicket = (ticket) => {
     setEditingTicket(ticket);
+    // Safely build departureTimes — never allow [undefined] which causes form crashes
+    const safeTime = ticket.departureTime || ticket.timeWindowStart || "";
+    const safeDepartureTimes = safeTime ? [safeTime] : [""];
+
     setFormData({
-      from: ticket.route.split(" - ")[0],
-      to: ticket.route.split(" - ")[1],
-      transportType: ticket.transportType,
-      departureTimes: [ticket.departureTime],
+      from: ticket.route ? ticket.route.split(" - ")[0] : "",
+      to: ticket.route ? ticket.route.split(" - ")[1] : "",
+      transportType: ticket.transportType || "inter-state",
+      departureTimes: safeDepartureTimes,
       departureDate: ticket.departureDate || "",
-      operatingDays: ticket.operatingDays || [],
+      operatingDays: Array.isArray(ticket.operatingDays) ? ticket.operatingDays : [],
       duration: ticket.duration || "",
       price: ticket.price || "",
       baseFare: ticket.baseFare || "",
@@ -373,11 +380,12 @@ const TicketsManagement = () => {
       seats: ticket.seats || 18,
       serviceCategory: ticket.serviceCategory || "passenger",
       freightType: ticket.freightType || "",
-      state: ticket.state || "",
+      state: ticket.state || ticket.fromState || "",
       toState: ticket.toState || "",
       fromCountry: ticket.fromCountry || "Nigeria",
       toCountry: ticket.toCountry || "",
       vehicleType: ticket.vehicleType || "Hiace Bus (18 seater)",
+      vehicleName: ticket.vehicleName || "",
       terminal: ticket.terminal || "",
       city: ticket.city || "",
       documentPrices: ticket.documentPrices || {
@@ -391,8 +399,8 @@ const TicketsManagement = () => {
       minSeats: ticket.minSeats || 1,
       vehiclePlateNumber: ticket.vehiclePlateNumber || "",
       pickupAddress: ticket.pickupAddress || "",
-      vehicleName: ticket.vehicleName || "",
-      stops: ticket.stops || [],
+      driverContact: ticket.driverContact || "",
+      stops: Array.isArray(ticket.stops) ? ticket.stops : [],
     });
     setIsModalOpen(true);
   };

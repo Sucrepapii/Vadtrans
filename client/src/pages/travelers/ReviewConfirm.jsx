@@ -120,7 +120,10 @@ const ReviewConfirm = () => {
       }
 
       // Verify payment on backend
-      const verifyRes = await bookingAPI.verifyPayment(reference.reference);
+      const verifyRes = await bookingAPI.verifyPayment(
+        reference.reference,
+        bookingId,
+      );
 
       if (verifyRes.data.success) {
         toast.success("Booking confirmed successfully!");
