@@ -2030,14 +2030,10 @@ const TicketsManagement = () => {
           {/* International Option */}
           <div
             onClick={() => handleSelectTripType("international")}
-            className="group relative border border-neutral-200 rounded-2xl overflow-hidden transition-all flex flex-col opacity-60 cursor-not-allowed">
-            {/* Coming Soon Banner */}
-            <div className="absolute top-4 right-[-35px] bg-primary text-white text-[10px] font-bold py-1 px-10 rotate-45 z-10 shadow-md">
-              COMING SOON
-            </div>
+            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col">
             <div className="p-6 flex-1">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary transition-transform">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
                   <FaBus size={24} className="rotate-12" />
                 </div>
                 <div>
