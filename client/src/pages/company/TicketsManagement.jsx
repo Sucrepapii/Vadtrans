@@ -370,7 +370,9 @@ const TicketsManagement = () => {
       transportType: ticket.transportType || "inter-state",
       departureTimes: safeDepartureTimes,
       departureDate: ticket.departureDate || "",
-      operatingDays: Array.isArray(ticket.operatingDays) ? ticket.operatingDays : [],
+      operatingDays: Array.isArray(ticket.operatingDays)
+        ? ticket.operatingDays
+        : [],
       duration: ticket.duration || "",
       price: ticket.price || "",
       baseFare: ticket.baseFare || "",
@@ -1997,8 +1999,7 @@ const TicketsManagement = () => {
           </div>
 
           {/* Inter-state Option */}
-          <div
-            className="group relative border border-neutral-200 rounded-2xl overflow-hidden transition-all flex flex-col opacity-60 cursor-not-allowed">
+          <div className="group relative border border-neutral-200 rounded-2xl overflow-hidden transition-all flex flex-col opacity-60 cursor-not-allowed">
             {/* Coming Soon Banner */}
             <div className="absolute top-4 right-[-35px] bg-primary text-white text-[10px] font-bold py-1 px-10 rotate-45 z-10 shadow-md">
               COMING SOON
@@ -2028,6 +2029,7 @@ const TicketsManagement = () => {
 
           {/* International Option */}
           <div
+            onClick={() => handleSelectTripType("international")}
             className="group relative border border-neutral-200 rounded-2xl overflow-hidden transition-all flex flex-col opacity-60 cursor-not-allowed">
             {/* Coming Soon Banner */}
             <div className="absolute top-4 right-[-35px] bg-primary text-white text-[10px] font-bold py-1 px-10 rotate-45 z-10 shadow-md">
@@ -2051,14 +2053,13 @@ const TicketsManagement = () => {
                 Cross-border transport services to neighboring countries.
               </p>
             </div>
-            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 transition-colors">
+            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
               <span className="font-bold text-sm">SELECT INTERNATIONAL</span>
             </div>
           </div>
 
           {/* Freight Option */}
-          <div
-            className="group relative border border-neutral-200 rounded-2xl overflow-hidden transition-all flex flex-col opacity-60 cursor-not-allowed">
+          <div className="group relative border border-neutral-200 rounded-2xl overflow-hidden transition-all flex flex-col opacity-60 cursor-not-allowed">
             {/* Coming Soon Banner */}
             <div className="absolute top-4 right-[-35px] bg-primary text-white text-[10px] font-bold py-1 px-10 rotate-45 z-10 shadow-md">
               COMING SOON
