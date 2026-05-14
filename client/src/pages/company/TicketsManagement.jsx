@@ -1998,11 +1998,14 @@ const TicketsManagement = () => {
 
           {/* Inter-state Option */}
           <div
-            onClick={() => handleSelectTripType("inter-state")}
-            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col">
+            className="group relative border border-neutral-200 rounded-2xl overflow-hidden transition-all flex flex-col opacity-60 cursor-not-allowed">
+            {/* Coming Soon Banner */}
+            <div className="absolute top-4 right-[-35px] bg-primary text-white text-[10px] font-bold py-1 px-10 rotate-45 z-10 shadow-md">
+              COMING SOON
+            </div>
             <div className="p-6 flex-1">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary transition-transform">
                   <FaBus size={24} />
                 </div>
                 <div>
@@ -2018,18 +2021,21 @@ const TicketsManagement = () => {
                 Regular bus services between different states in Nigeria.
               </p>
             </div>
-            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
+            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 transition-colors">
               <span className="font-bold text-sm">SELECT INTER-STATE</span>
             </div>
           </div>
 
           {/* International Option */}
           <div
-            onClick={() => handleSelectTripType("international")}
-            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col">
+            className="group relative border border-neutral-200 rounded-2xl overflow-hidden transition-all flex flex-col opacity-60 cursor-not-allowed">
+            {/* Coming Soon Banner */}
+            <div className="absolute top-4 right-[-35px] bg-primary text-white text-[10px] font-bold py-1 px-10 rotate-45 z-10 shadow-md">
+              COMING SOON
+            </div>
             <div className="p-6 flex-1">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary transition-transform">
                   <FaBus size={24} className="rotate-12" />
                 </div>
                 <div>
@@ -2045,18 +2051,21 @@ const TicketsManagement = () => {
                 Cross-border transport services to neighboring countries.
               </p>
             </div>
-            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
+            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 transition-colors">
               <span className="font-bold text-sm">SELECT INTERNATIONAL</span>
             </div>
           </div>
 
           {/* Freight Option */}
           <div
-            onClick={() => handleSelectTripType("freight")}
-            className="group cursor-pointer border border-neutral-200 hover:border-primary rounded-2xl overflow-hidden transition-all hover:shadow-lg flex flex-col">
+            className="group relative border border-neutral-200 rounded-2xl overflow-hidden transition-all flex flex-col opacity-60 cursor-not-allowed">
+            {/* Coming Soon Banner */}
+            <div className="absolute top-4 right-[-35px] bg-primary text-white text-[10px] font-bold py-1 px-10 rotate-45 z-10 shadow-md">
+              COMING SOON
+            </div>
             <div className="p-6 flex-1">
               <div className="flex items-center gap-4 mb-4">
-                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center text-primary transition-transform">
                   <FaTruck size={24} />
                 </div>
                 <div>
@@ -2073,7 +2082,7 @@ const TicketsManagement = () => {
                 trucks.
               </p>
             </div>
-            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
+            <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 transition-colors">
               <span className="font-bold text-sm">SELECT FREIGHT</span>
             </div>
           </div>

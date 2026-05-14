@@ -179,9 +179,9 @@ const LandingPage = () => {
                     }
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary sm:text-base text-base">
                     <option value="all">All Types</option>
-                    <option value="inter-state">Inter-State (Nigeria)</option>
-                    <option value="international">
-                      International (West Africa)
+                    <option value="inter-state" disabled>Inter-State (Nigeria) - Coming Soon</option>
+                    <option value="international" disabled>
+                      International (West Africa) - Coming Soon
                     </option>
                     <option value="carpooling">
                       Carpooling (Lagos & Beyond)
