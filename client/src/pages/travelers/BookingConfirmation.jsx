@@ -19,6 +19,7 @@ import {
   FaPrint,
   FaArrowRight,
   FaPhone,
+  FaIdCard,
 } from "react-icons/fa";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
@@ -311,13 +312,26 @@ const BookingConfirmation = () => {
                   </span>
                 </div>
 
-                {finalTrip.driverContact && (
-                  <div className="flex items-center gap-2 text-sm text-neutral-800 bg-primary/5 p-3 rounded-lg border border-primary/10 mb-4">
-                    <FaPhone className="text-primary" />
-                    <div className="flex flex-col">
-                      <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Driver's Contact</span>
-                      <span className="font-bold text-base">{finalTrip.driverContact}</span>
-                    </div>
+                {(finalTrip.driverContact || finalTrip.vehiclePlateNumber) && (
+                  <div className="flex flex-col sm:flex-row gap-3 mb-4">
+                    {finalTrip.driverContact && (
+                      <div className="flex items-center gap-2 text-sm text-neutral-800 bg-primary/5 p-3 rounded-lg border border-primary/10 flex-1">
+                        <FaPhone className="text-primary flex-shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Driver's Contact</span>
+                          <span className="font-bold text-base">{finalTrip.driverContact}</span>
+                        </div>
+                      </div>
+                    )}
+                    {finalTrip.vehiclePlateNumber && (
+                      <div className="flex items-center gap-2 text-sm text-neutral-800 bg-amber-50 p-3 rounded-lg border border-amber-200 flex-1">
+                        <FaIdCard className="text-amber-600 flex-shrink-0" />
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-bold text-amber-600 uppercase tracking-widest">Plate Number</span>
+                          <span className="font-bold text-base tracking-widest uppercase">{finalTrip.vehiclePlateNumber}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
