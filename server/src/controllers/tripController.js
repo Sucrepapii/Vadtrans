@@ -339,6 +339,7 @@ exports.createTrip = async (req, res) => {
       preferences: req.body.preferences || {},
       stops: req.body.stops || [],
       companyId: req.user.id,
+      driverContact: req.body.driverContact || null,
       status: "active",
     });
 
@@ -414,6 +415,7 @@ exports.updateTrip = async (req, res) => {
       confirmationWindow,
       vehiclePlateNumber,
       pickupAddress,
+      driverContact,
       preferences,
       stops,
     } = req.body;
@@ -450,6 +452,7 @@ exports.updateTrip = async (req, res) => {
     if (confirmationWindow !== undefined) trip.confirmationWindow = confirmationWindow;
     if (vehiclePlateNumber !== undefined) trip.vehiclePlateNumber = vehiclePlateNumber;
     if (pickupAddress !== undefined) trip.pickupAddress = pickupAddress;
+    if (driverContact !== undefined) trip.driverContact = driverContact;
     if (preferences !== undefined) trip.preferences = preferences;
     if (stops !== undefined) trip.stops = stops;
     
