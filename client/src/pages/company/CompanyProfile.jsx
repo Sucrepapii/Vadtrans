@@ -1367,8 +1367,9 @@ const CompanyProfile = () => {
                                 disabled={saving}
                                 required
                               />
-                              <div>
-                                <Input
+                            </div>
+                            <div className="mt-4">
+                              <Input
                                   label="Vehicle Plate Number"
                                   type="text"
                                   placeholder="e.g. LAG-123-AB"
