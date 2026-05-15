@@ -1116,33 +1116,6 @@ const CompanyProfile = () => {
                           <div className="flex gap-2">
                             <Button
                               variant="secondary"
-                              onClick={() => {
-                                setEditingTrip(trip);
-                                setFormData({
-                                  from: trip.from || "",
-                                  to: trip.to || "",
-                                  transportType:
-                                    trip.transportType || "inter-state",
-                                  departureTime: trip.departureTime || "",
-                                  departureDate: trip.departureDate || "",
-                                  operatingDays: Array.isArray(
-                                    trip.operatingDays,
-                                  )
-                                    ? trip.operatingDays
-                                    : trip.operatingDays
-                                      ? trip.operatingDays.split(",")
-                                      : [],
-                                  duration: trip.duration || "",
-                                  price: trip.price,
-                                  seats: trip.seats || 18,
-                                  serviceCategory:
-                                    trip.serviceCategory || "passenger",
-                                  freightType: trip.freightType || "",
-                                  vehicleType:
-                                    trip.vehicleType || "Hiace Bus (18 seater)",
-                                  terminal: trip.terminal || "",
-                                  city: trip.city || "",
-                                  state: trip.state || "",
                               onClick={() => handleDeleteTrip(trip.id)}
                               className="text-red-600 hover:bg-red-50">
                               <FaTrash />
