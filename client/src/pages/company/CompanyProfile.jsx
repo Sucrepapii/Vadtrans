@@ -1143,29 +1143,6 @@ const CompanyProfile = () => {
                                   terminal: trip.terminal || "",
                                   city: trip.city || "",
                                   state: trip.state || "",
-                                  documentPrices: trip.documentPrices || {
-                                    "Regular Passport": "",
-                                    "Virgin Passport": "",
-                                    NIN: "",
-                                    "No Document": "",
-                                  },
-                                  vehicleName: trip.vehicleName || "",
-                                  vehiclePlateNumber: trip.vehiclePlateNumber || "",
-                                  toState: trip.toState || trip.to || "",
-                                  timeWindowStart: trip.timeWindowStart || "",
-                                  timeWindowEnd: trip.timeWindowEnd || "",
-                                  minSeats: trip.minSeats || 1,
-                                  depositAmount: trip.depositAmount || 0,
-                                  cancellationWindow: trip.cancellationWindow || 12,
-                                  confirmationWindow: trip.confirmationWindow || 2,
-                                  driverContact: trip.driverContact || "",
-                                });
-                                setShowModal(true);
-                              }}>
-                              <FaEdit />
-                            </Button>
-                            <Button
-                              variant="secondary"
                               onClick={() => handleDeleteTrip(trip.id)}
                               className="text-red-600 hover:bg-red-50">
                               <FaTrash />

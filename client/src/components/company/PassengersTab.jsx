@@ -42,8 +42,8 @@ const PassengersTab = () => {
         );
       case "pending":
         return (
-          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-neutral-100 text-neutral-600">
-            <FaSpinner className="text-[10px] animate-spin" /> Pending
+          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full uppercase bg-green-100 text-green-700">
+            <FaCheckCircle className="text-[10px]" /> Paid
           </span>
         );
       case "cancelled":
@@ -71,8 +71,8 @@ const PassengersTab = () => {
         );
       case "pending":
         return (
-          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full uppercase bg-amber-100 text-amber-700 border border-amber-200">
-            Pending
+          <span className="flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-full uppercase bg-green-100 text-green-700 border border-green-200">
+            Paid
           </span>
         );
       case "refunded":
