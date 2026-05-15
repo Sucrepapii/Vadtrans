@@ -6,7 +6,7 @@ const compression = require("compression");
 const rateLimit = require("express-rate-limit");
 const dotenv = require("dotenv");
 const { sequelize, testConnection, dbType } = require("./config/database");
-const { Op } = require("sequelize");
+const { Op, DataTypes } = require("sequelize");
 
 // Load env vars
 dotenv.config();
