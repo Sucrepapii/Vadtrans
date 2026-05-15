@@ -79,7 +79,7 @@ export const bookingAPI = {
   getBooking: (id) => api.get(`/bookings/${id}`),
   cancelBooking: (id, reason) => api.put(`/bookings/${id}/cancel`, { reason }),
   verifyPayment: (reference, bookingId) =>
-    api.get(`/payments/verify/${reference}`, { params: { bookingId } }),
+    api.get(`/payment/verify/${reference}`, { params: { bookingId } }),
 };
 
 // Admin API

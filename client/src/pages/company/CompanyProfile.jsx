@@ -131,6 +131,9 @@ const CompanyProfile = () => {
     depositAmount: 0,
     cancellationWindow: 12,
     confirmationWindow: 2,
+    vehicleName: "",
+    vehiclePlateNumber: "",
+    driverContact: "",
   });
 
   const tabs = [
@@ -1146,6 +1149,16 @@ const CompanyProfile = () => {
                                     NIN: "",
                                     "No Document": "",
                                   },
+                                  vehicleName: trip.vehicleName || "",
+                                  vehiclePlateNumber: trip.vehiclePlateNumber || "",
+                                  toState: trip.toState || trip.to || "",
+                                  timeWindowStart: trip.timeWindowStart || "",
+                                  timeWindowEnd: trip.timeWindowEnd || "",
+                                  minSeats: trip.minSeats || 1,
+                                  depositAmount: trip.depositAmount || 0,
+                                  cancellationWindow: trip.cancellationWindow || 12,
+                                  confirmationWindow: trip.confirmationWindow || 2,
+                                  driverContact: trip.driverContact || "",
                                 });
                                 setShowModal(true);
                               }}>
@@ -1354,9 +1367,40 @@ const CompanyProfile = () => {
                                 disabled={saving}
                                 required
                               />
+                              <div>
+                                <Input
+                                  label="Vehicle Plate Number"
+                                  type="text"
+                                  placeholder="e.g. LAG-123-AB"
+                                  value={formData.vehiclePlateNumber}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      vehiclePlateNumber: e.target.value,
+                                    })
+                                  }
+                                  disabled={saving}
+                                  required
+                                />
+                              </div>
+                              <div className="md:col-span-2 mt-4">
+                                <Input
+                                  label="Driver Contact Number"
+                                  type="text"
+                                  placeholder="e.g. 08012345678"
+                                  value={formData.driverContact}
+                                  onChange={(e) =>
+                                    setFormData({
+                                      ...formData,
+                                      driverContact: e.target.value,
+                                    })
+                                  }
+                                  disabled={saving}
+                                  required
+                                />
+                              </div>
                             </div>
                           </div>
-                        </div>
 
                         {/* FROM/TO LOCATION */}
                         {formData.transportType === "carpooling" ? (
@@ -1380,7 +1424,7 @@ const CompanyProfile = () => {
                                 required
                                 disabled={saving}>
                                 <option value="">Select state</option>
-                                {locationOptions.map((state) => (
+                                {locationOptions?.map((state) => (
                                   <option key={state} value={state}>
                                     {state}
                                   </option>
@@ -1408,7 +1452,7 @@ const CompanyProfile = () => {
                                   <option value="">
                                     Select departure city
                                   </option>
-                                  {fromCities.map((city) => (
+                                  {fromCities?.map((city) => (
                                     <option key={city} value={city}>
                                       {city}
                                     </option>
@@ -1437,7 +1481,7 @@ const CompanyProfile = () => {
                                   <option value="">
                                     Select destination city
                                   </option>
-                                  {fromCities.map((city) => (
+                                  {fromCities?.map((city) => (
                                     <option key={city} value={city}>
                                       {city}
                                     </option>
@@ -1465,7 +1509,7 @@ const CompanyProfile = () => {
                                 required
                                 disabled={saving}>
                                 <option value="">Select departure state</option>
-                                {locationOptions.map((state) => (
+                                {locationOptions?.map((state) => (
                                   <option key={state} value={state}>
                                     {state}
                                   </option>
@@ -1492,7 +1536,7 @@ const CompanyProfile = () => {
                                   <option value="">
                                     Select departure city
                                   </option>
-                                  {fromCities.map((city) => (
+                                  {fromCities?.map((city) => (
                                     <option key={city} value={city}>
                                       {city}
                                     </option>
@@ -1520,7 +1564,7 @@ const CompanyProfile = () => {
                                 <option value="">
                                   Select destination state
                                 </option>
-                                {locationOptions.map((state) => (
+                                {locationOptions?.map((state) => (
                                   <option key={state} value={state}>
                                     {state}
                                   </option>
@@ -1547,7 +1591,7 @@ const CompanyProfile = () => {
                                   <option value="">
                                     Select destination city
                                   </option>
-                                  {toCities.map((city) => (
+                                  {toCities?.map((city) => (
                                     <option key={city} value={city}>
                                       {city}
                                     </option>
@@ -1576,7 +1620,7 @@ const CompanyProfile = () => {
                                 <option value="">
                                   Select departure country
                                 </option>
-                                {locationOptions.map((location) => (
+                                {locationOptions?.map((location) => (
                                   <option key={location} value={location}>
                                     {location}
                                   </option>
@@ -1602,7 +1646,7 @@ const CompanyProfile = () => {
                                 <option value="">
                                   Select destination country
                                 </option>
-                                {locationOptions.map((location) => (
+                                {locationOptions?.map((location) => (
                                   <option key={location} value={location}>
                                     {location}
                                   </option>

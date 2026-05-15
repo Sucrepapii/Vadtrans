@@ -229,6 +229,11 @@ const Trip = sequelize.define(
         key: "id",
       },
     },
+    driverContact: {
+      type: DataTypes.STRING,
+      allowNull: true,
+      comment: "Contact number for the driver/captain",
+    },
   },
   {
     timestamps: true,
