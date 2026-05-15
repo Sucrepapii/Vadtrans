@@ -73,6 +73,13 @@ const BookingConfirmation = () => {
       type: "inter-state",
     };
 
+  // Robust check for driver contact number from all possible sources
+  const driverNumber = 
+    finalTrip?.driverContact || 
+    trip?.driverContact || 
+    fetchedBooking?.trip?.driverContact ||
+    null;
+
   // Handle company name - it could be an object or string
   const companyName =
     typeof finalTrip.company === "object" && finalTrip.company !== null
@@ -328,12 +335,12 @@ const BookingConfirmation = () => {
                   </span>
                 </div>
 
-                {finalTrip.driverContact && (
+                {driverNumber && (
                   <div className="flex items-center gap-2 text-sm text-neutral-800 bg-primary/5 p-3 rounded-lg border border-primary/10 mb-4">
                     <FaPhone className="text-primary flex-shrink-0" />
                     <div className="flex flex-col">
                       <span className="text-[10px] font-bold text-primary uppercase tracking-widest">Driver's Contact</span>
-                      <span className="font-bold text-base">{finalTrip.driverContact}</span>
+                      <span className="font-bold text-base">{driverNumber}</span>
                     </div>
                   </div>
                 )}

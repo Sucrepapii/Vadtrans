@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { FaQuoteLeft, FaHeart, FaRegHeart, FaUserCircle } from "react-icons/fa";
 import { toast } from "react-toastify";
 import { useAuth } from "../context/AuthContext";
@@ -7,6 +8,7 @@ import StarRating from "./StarRating";
 import Button from "./Button";
 
 const ReviewSection = () => {
+  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuth();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -188,7 +190,12 @@ const ReviewSection = () => {
               <p className="text-neutral-600 mb-4">
                 Please log in to submit a review.
               </p>
-              {/* You might want to add a login button or link here */}
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => navigate("/signin")}>
+                Login to Review
+              </Button>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">

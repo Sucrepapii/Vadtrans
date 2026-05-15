@@ -69,6 +69,13 @@ const Footer = () => {
                   Refund Policy
                 </a>
               </li>
+              <li>
+                <a
+                  href="/#reviews"
+                  className="text-neutral-300 hover:text-primary transition-colors">
+                  Feedback
+                </a>
+              </li>
             </ul>
           </div>
 
