@@ -128,19 +128,26 @@ const corsOptions = {
       return callback(null, true);
     }
 
-    // Check if origin is in allowed list
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Allow any origin ending in .vadtrans.com or vadtrans.com
+    const isVadtrans = origin.endsWith("vadtrans.com");
+    // Allow Vercel preview deployments
+    const isVercel = origin.includes(".vercel.app");
+    
+    // Check if origin is in allowed list or is a valid subdomain
+    if (allowedOrigins.indexOf(origin) !== -1 || isVadtrans || isVercel) {
       console.log("✅ CORS allowed for:", origin);
       callback(null, true);
     } else {
       console.log("❌ CORS blocked for:", origin);
-      callback(new Error("Not allowed by CORS"));
+      // In production, we might want to be strict, but for debugging we provide info
+      callback(new Error(`Origin ${origin} not allowed by CORS policy`));
     }
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With", "Accept"],
 };
+
 
 app.use(cors(corsOptions));
 app.options("*", cors(corsOptions)); // Enable pre-flight for all routes
