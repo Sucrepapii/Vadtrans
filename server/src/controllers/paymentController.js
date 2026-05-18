@@ -105,7 +105,7 @@ exports.verifyPayment = async (req, res) => {
           {
             message: `Booking #${displayId} has been paid (₦${parseFloat(booking.totalAmount).toLocaleString()}).`,
             type: "payment",
-            relatedBookingId: booking.id,
+            // relatedBookingId: booking.id, // Removed to fix UUID Postgres error
             actionUrl: `/admin/bookings?search=${displayId}`,
           },
           { transaction },

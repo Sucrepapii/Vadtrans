@@ -53,9 +53,8 @@ const Booking = sequelize.define(
       defaultValue: "pending",
     },
     payoutStatus: {
-      type: DataTypes.ENUM("pending", "settled"),
+      type: DataTypes.STRING,
       defaultValue: "pending",
-      comment: "Tracks if Vadtrans has paid the transport company for this booking",
     },
     paymentReference: {
       type: DataTypes.STRING,

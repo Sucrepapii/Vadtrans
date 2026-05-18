@@ -396,7 +396,7 @@ exports.cancelBooking = async (req, res) => {
       {
         message: `Booking #${displayId} was cancelled by the user.`,
         type: "cancellation",
-        relatedBookingId: booking.id,
+        // relatedBookingId: booking.id, // Removed to fix UUID Postgres error
         actionUrl: `/admin/bookings?search=${displayId}`,
       },
       { transaction },
