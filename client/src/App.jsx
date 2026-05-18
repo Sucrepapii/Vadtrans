@@ -48,6 +48,7 @@ import BookingManagement from "./pages/admin/BookingManagement";
 import ShipmentManagement from "./pages/admin/ShipmentManagement";
 import FAQManagement from "./pages/admin/FAQManagement";
 import StaffManagement from "./pages/admin/StaffManagement";
+import SettlementManagement from "./pages/admin/SettlementManagement";
 
 const App = () => {
   return (
@@ -193,6 +194,14 @@ const App = () => {
           element={
             <ProtectedRoute requireAdmin={true}>
               <CompanyManagement />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/settlements"
+          element={
+            <ProtectedRoute requireAdmin={true}>
+              <SettlementManagement />
             </ProtectedRoute>
           }
         />

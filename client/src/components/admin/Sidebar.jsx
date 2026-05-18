@@ -15,6 +15,7 @@ import {
   FaSignOutAlt,
   FaBox,
   FaUserShield,
+  FaMoneyBillWave,
 } from "react-icons/fa";
 import NotificationBell from "./NotificationBell";
 import BrandLogo from "../BrandLogo";
@@ -35,6 +36,7 @@ const Sidebar = () => {
     { icon: FaBox, label: "Shipments", path: "/admin/shipments" },
     { icon: FaQuestionCircle, label: "FAQs", path: "/admin/faqs" },
     { icon: FaUserShield, label: "Staff", path: "/admin/staff" },
+    { icon: FaMoneyBillWave, label: "Settlements", path: "/admin/settlements" },
   ];
 
   const handleLogout = () => {

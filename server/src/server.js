@@ -411,6 +411,7 @@ app.use("/api/payment", paymentRoutes);
 app.use("/api/faqs", require("./routes/faqRoutes"));
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 app.use("/api/shipments", require("./routes/shipmentRoutes"));
+app.use("/api/earnings", require("./routes/earnings"));
 
 // Routes mounted below...
 
@@ -497,4 +498,23 @@ const addDriverContactColumn = async () => {
   }
 };
 addDriverContactColumn();
+
+// Manual migration to add payoutStatus to Bookings table
+const addPayoutStatusColumn = async () => {
+  try {
+    const queryInterface = sequelize.getQueryInterface();
+    const tableInfo = await queryInterface.describeTable("Bookings");
+    if (!tableInfo.payoutStatus) {
+      console.log("ℹ️ Adding missing column 'payoutStatus' to Bookings...");
+      await queryInterface.addColumn("Bookings", "payoutStatus", {
+        type: DataTypes.ENUM("pending", "settled"),
+        defaultValue: "pending",
+      });
+      console.log("✅ Column 'payoutStatus' added successfully");
+    }
+  } catch (err) {
+    console.log("ℹ️ payoutStatus migration note:", err.message);
+  }
+};
+addPayoutStatusColumn();
 

@@ -30,6 +30,7 @@ import {
   FaCopy,
   FaLink,
   FaExternalLinkAlt,
+  FaMoneyBillWave,
 } from "react-icons/fa";
 import { westAfricanCountries, westAfricanCities } from "../../data/locations";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
@@ -40,6 +41,7 @@ import { nigerianBanks } from "../../data/banks";
 import DocumentsTab from "../../components/company/DocumentsTab";
 import PassengersTab from "../../components/company/PassengersTab";
 import ShipmentsTab from "../../components/company/ShipmentsTab";
+import EarningsTab from "../../components/company/EarningsTab";
 import { FaUsers } from "react-icons/fa";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 
@@ -142,6 +144,7 @@ const CompanyProfile = () => {
     { id: "passengers", label: "Passengers", icon: FaUsers },
     { id: "shipments", label: "Shipments", icon: FaBox },
     { id: "documents", label: "Documents", icon: FaFileInvoice },
+    { id: "earnings", label: "Earnings", icon: FaMoneyBillWave },
   ];
 
   // Fetch company profile on mount
@@ -2076,6 +2079,9 @@ const CompanyProfile = () => {
 
             {/* Shipments Tab */}
             {activeTab === "shipments" && <ShipmentsTab />}
+
+            {/* Earnings Tab */}
+            {activeTab === "earnings" && <EarningsTab />}
           </div>
         </div>
       </div>
