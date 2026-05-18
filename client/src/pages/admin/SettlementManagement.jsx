@@ -10,6 +10,8 @@ const SettlementManagement = () => {
   const [companies, setCompanies] = useState([]);
   const [loading, setLoading] = useState(true);
   const [settlingId, setSettlingId] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState(null);
 
   useEffect(() => {
     fetchEarnings();
@@ -30,19 +32,22 @@ const SettlementManagement = () => {
     }
   };
 
-  const handleSettle = async (companyId, companyName, amount) => {
+  const handleSettleClick = (companyId, companyName, amount) => {
     if (amount <= 0) {
       toast.info("Balance is already zero.");
       return;
     }
+    setSelectedCompany({ id: companyId, name: companyName, amount });
+    setShowModal(true);
+  };
 
-    if (!window.confirm(`Are you sure you want to mark ₦${amount.toLocaleString()} as paid to ${companyName}?`)) {
-      return;
-    }
-
+  const confirmSettle = async () => {
+    if (!selectedCompany) return;
+    
     try {
-      setSettlingId(companyId);
-      const response = await api.put(`/earnings/companies/${companyId}/settle`);
+      setShowModal(false);
+      setSettlingId(selectedCompany.id);
+      const response = await api.put(`/earnings/companies/${selectedCompany.id}/settle`);
       if (response.data.success) {
         toast.success(response.data.message);
         fetchEarnings(); // Refresh the list
@@ -52,6 +57,7 @@ const SettlementManagement = () => {
       toast.error(error.response?.data?.message || "Failed to settle earnings");
     } finally {
       setSettlingId(null);
+      setSelectedCompany(null);
     }
   };
 
@@ -116,7 +122,7 @@ const SettlementManagement = () => {
                           <td className="px-6 py-4 text-right">
                             {company.pendingBalance > 0 ? (
                               <Button
-                                onClick={() => handleSettle(company.id, company.name, company.pendingBalance)}
+                                onClick={() => handleSettleClick(company.id, company.name, company.pendingBalance)}
                                 disabled={settlingId === company.id}
                                 className="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg flex items-center gap-2 ml-auto"
                                 size="sm"
@@ -148,6 +154,35 @@ const SettlementManagement = () => {
           </Card>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {showModal && selectedCompany && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <Card className="w-full max-w-md p-6 bg-white rounded-2xl shadow-xl">
+            <h3 className="text-xl font-bold text-gray-900 mb-4">Confirm Payout</h3>
+            <p className="text-gray-600 mb-6">
+              Are you sure you want to mark <span className="font-bold text-green-600">₦{selectedCompany.amount.toLocaleString()}</span> as paid to <span className="font-bold text-gray-900">{selectedCompany.name}</span>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowModal(false);
+                  setSelectedCompany(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={confirmSettle}
+                className="bg-green-600 hover:bg-green-700 text-white font-bold px-6"
+              >
+                Yes, Mark as Paid
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };
