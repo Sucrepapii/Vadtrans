@@ -202,6 +202,13 @@ const initializeDatabase = async () => {
         defaultValue: 0,
       });
     }
+    if (!tableInfo.payoutStatus) {
+      console.log("ℹ️ Adding missing column 'payoutStatus' to Bookings...");
+      await queryInterface.addColumn("Bookings", "payoutStatus", {
+        type: DataTypes.STRING,
+        defaultValue: "pending",
+      });
+    }
 
     // Force add missing columns for Trips
     const tripTableInfo = await queryInterface.describeTable("Trips");
@@ -498,23 +505,3 @@ const addDriverContactColumn = async () => {
   }
 };
 addDriverContactColumn();
-
-// Manual migration to add payoutStatus to Bookings table
-const addPayoutStatusColumn = async () => {
-  try {
-    const queryInterface = sequelize.getQueryInterface();
-    const tableInfo = await queryInterface.describeTable("Bookings");
-    if (!tableInfo.payoutStatus) {
-      console.log("ℹ️ Adding missing column 'payoutStatus' to Bookings...");
-      await queryInterface.addColumn("Bookings", "payoutStatus", {
-        type: DataTypes.ENUM("pending", "settled"),
-        defaultValue: "pending",
-      });
-      console.log("✅ Column 'payoutStatus' added successfully");
-    }
-  } catch (err) {
-    console.log("ℹ️ payoutStatus migration note:", err.message);
-  }
-};
-addPayoutStatusColumn();
-
