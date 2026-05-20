@@ -128,7 +128,7 @@ exports.createBooking = async (req, res) => {
         totalAmount: bookingTotalAmount,
         serviceFee,
         vat,
-        paidAmount: paidAmount !== undefined ? paidAmount : bookingTotalAmount,
+        paidAmount: paidAmount !== undefined ? paidAmount : 0,
         isDeposit: isDeposit || false,
         paymentStatus: "pending", 
         bookingStatus: "pending", 

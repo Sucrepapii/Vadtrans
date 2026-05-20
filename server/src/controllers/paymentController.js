@@ -96,6 +96,8 @@ exports.verifyPayment = async (req, res) => {
         booking.paymentStatus = "paid";
         booking.paymentReference = reference;
         booking.bookingStatus = "confirmed";
+        booking.paidAmount = booking.totalAmount;
+        booking.isConfirmed = true;
         await booking.save({ transaction });
 
         // Create Admin Notification
