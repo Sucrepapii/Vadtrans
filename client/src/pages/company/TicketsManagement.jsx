@@ -220,6 +220,7 @@ const TicketsManagement = () => {
         vehiclePlateNumber: trip.vehiclePlateNumber || "",
         pickupAddress: trip.pickupAddress || "",
         driverContact: trip.driverContact || "",
+        hasRevenue: trip.hasRevenue || false,
       }));
 
       setTickets(transformedTrips);
@@ -692,8 +693,14 @@ const TicketsManagement = () => {
           </Button>
           <Button
             variant="text"
-            onClick={() => handleDeleteTicket(row.id)}
-            className="text-red-600">
+            onClick={() => {
+              if (!row.hasRevenue) {
+                handleDeleteTicket(row.id);
+              }
+            }}
+            disabled={row.hasRevenue}
+            className={`text-red-600 ${row.hasRevenue ? "opacity-50 cursor-not-allowed" : ""}`}
+            title={row.hasRevenue ? "Cannot delete a trip that has generated revenue" : "Delete Trip"}>
             <FaTrash />
           </Button>
           <Button

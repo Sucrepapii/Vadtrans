@@ -529,12 +529,27 @@ exports.getMyTrips = async (req, res) => {
     const trips = await Trip.findAll({
       where: { companyId: req.user.id },
       order: [["createdAt", "DESC"]],
+      include: [
+        {
+          model: Booking,
+          as: "bookings",
+          attributes: ["id", "paymentStatus"],
+          required: false,
+        },
+      ],
+    });
+
+    const tripsWithRevenue = trips.map((trip) => {
+      const tripJSON = trip.toJSON ? trip.toJSON() : trip;
+      const hasRevenue = tripJSON.bookings && tripJSON.bookings.some((b) => b.paymentStatus === "paid");
+      delete tripJSON.bookings;
+      return { ...tripJSON, hasRevenue };
     });
 
     res.status(200).json({
       success: true,
-      count: trips.length,
-      trips,
+      count: tripsWithRevenue.length,
+      trips: tripsWithRevenue,
     });
   } catch (error) {
     console.error("Get my trips error:", error);
