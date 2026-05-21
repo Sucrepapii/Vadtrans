@@ -13,6 +13,7 @@ import {
   FaSearch,
   FaFilter,
 } from "react-icons/fa";
+import ConfirmationModal from "../../components/ConfirmationModal";
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
 
@@ -23,6 +24,11 @@ const TicketManagement = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("all");
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    open: false,
+    id: null,
+    deleting: false,
+  });
 
   useEffect(() => {
     fetchTrips();
@@ -40,6 +46,24 @@ const TicketManagement = () => {
       toast.error("Failed to load trips");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDeleteTrip = (id) => {
+    setDeleteConfirm({ open: true, id, deleting: false });
+  };
+
+  const confirmDelete = async () => {
+    setDeleteConfirm((prev) => ({ ...prev, deleting: true }));
+    try {
+      await adminAPI.deleteTrip(deleteConfirm.id);
+      toast.success("Trip deleted successfully!");
+      setDeleteConfirm({ open: false, id: null, deleting: false });
+      fetchTrips();
+    } catch (error) {
+      console.error("Error deleting trip:", error);
+      toast.error(error.response?.data?.message || "Failed to delete trip");
+      setDeleteConfirm((prev) => ({ ...prev, deleting: false }));
     }
   };
 
@@ -108,7 +132,10 @@ const TicketManagement = () => {
           <Button variant="text" className="text-blue-600">
             <FaEdit />
           </Button>
-          <Button variant="text" className="text-red-600">
+          <Button 
+            variant="text" 
+            onClick={() => handleDeleteTrip(row.id)}
+            className="text-red-600">
             <FaTrash />
           </Button>
         </div>
@@ -191,6 +218,18 @@ const TicketManagement = () => {
           </Card>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={deleteConfirm.open}
+        onClose={() =>
+          !deleteConfirm.deleting &&
+          setDeleteConfirm({ open: false, id: null, deleting: false })
+        }
+        onConfirm={confirmDelete}
+        title="Delete Trip"
+        message="Are you sure you want to delete this trip? This action cannot be undone."
+        loading={deleteConfirm.deleting}
+      />
     </div>
   );
 };

@@ -694,13 +694,14 @@ const TicketsManagement = () => {
           <Button
             variant="text"
             onClick={() => {
-              if (!row.hasRevenue) {
+              if (row.hasRevenue) {
+                toast.error("Contact admin to delete trips that have generated revenue.");
+              } else {
                 handleDeleteTicket(row.id);
               }
             }}
-            disabled={row.hasRevenue}
             className={`text-red-600 ${row.hasRevenue ? "opacity-50 cursor-not-allowed" : ""}`}
-            title={row.hasRevenue ? "Cannot delete a trip that has generated revenue" : "Delete Trip"}>
+            title="Delete Trip">
             <FaTrash />
           </Button>
           <Button
