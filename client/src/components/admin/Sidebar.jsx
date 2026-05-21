@@ -120,7 +120,7 @@ const Sidebar = () => {
         )}
 
         {/* Menu Items */}
-        <nav className="flex-1 py-6 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-2 space-y-0.5 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             const showLabel = !isCollapsed || isMobileOpen;
@@ -130,13 +130,13 @@ const Sidebar = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsMobileOpen(false)} // Close on mobile navigation
-                className={`relative flex items-center gap-4 px-6 py-3 transition-all duration-300 group ${
+                className={`relative flex items-center gap-4 px-6 py-2.5 transition-all duration-300 group ${
                   isActive
                     ? "text-primary bg-gradient-to-r from-primary/10 to-transparent border-r-4 border-primary"
                     : "text-neutral-400 hover:text-white hover:bg-white/5"
                 }`}>
                 <item.icon
-                  size={20}
+                  size={18}
                   className={`transition-colors ${
                     isActive ? "text-primary" : "group-hover:text-white"
                   }`}
