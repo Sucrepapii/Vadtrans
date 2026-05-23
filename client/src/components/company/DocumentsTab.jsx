@@ -27,24 +27,64 @@ const DocumentsTab = ({ user, onRefresh }) => {
 
   const documentTypes = [
     {
-      type: "business_registration",
-      label: "Business Registration",
-      description: "Certificate of Incorporation, Business License",
+      type: "cac_certificate",
+      label: "CAC Certificate",
+      description: "Company registration certificate",
     },
     {
-      type: "vehicle_permits",
-      label: "Vehicle Permits",
-      description: "Vehicle Registration, Operating Permits",
+      type: "tin",
+      label: "Tax Identification Number (TIN)",
+      description: "Tax information certificate",
+    },
+    {
+      type: "id_card",
+      label: "National ID / NIN / Passport",
+      description: "Valid government-issued identification",
+    },
+    {
+      type: "drivers_license",
+      label: "Driver's License",
+      description: "Valid driver's license",
+    },
+    {
+      type: "profile_photo",
+      label: "Profile Photo",
+      description: "Clear face picture",
+    },
+    {
+      type: "proof_of_address",
+      label: "Proof of Address",
+      description: "Utility bill or similar document",
+    },
+    {
+      type: "vehicle_license",
+      label: "Vehicle License",
+      description: "Valid vehicle license",
+    },
+    {
+      type: "road_worthiness",
+      label: "Road Worthiness Certificate",
+      description: "Certificate of road worthiness",
+    },
+    {
+      type: "vehicle_photo",
+      label: "Vehicle Photo",
+      description: "Front, back, and interior photos (combine in PDF or zip if needed)",
+    },
+    {
+      type: "guarantor_info",
+      label: "Guarantor Information",
+      description: "Name, phone number, and ID of guarantor",
+    },
+    {
+      type: "operational_permit",
+      label: "Operational Permit (Optional)",
+      description: "If applicable for your operations",
     },
     {
       type: "insurance",
-      label: "Insurance Certificates",
-      description: "Vehicle Insurance, Passenger Liability",
-    },
-    {
-      type: "other",
-      label: "Other Documents",
-      description: "Additional supporting documents",
+      label: "Insurance Certificate (Optional)",
+      description: "Vehicle and passenger liability insurance",
     },
   ];
 

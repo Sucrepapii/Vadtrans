@@ -56,6 +56,9 @@ Object.values(models).forEach((model) => {
 // Initialize express
 const app = express();
 
+// Initialize Cron Jobs
+require("./cron/tripCron");
+
 // Trust proxy for express-rate-limit behind proxies (like Railway)
 app.set("trust proxy", 1);
 

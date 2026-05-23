@@ -98,6 +98,14 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  documentDeadline: {
+    type: Date,
+    default: null,
+  },
+  documentNoticeIssuedAt: {
+    type: Date,
+    default: null,
+  },
 });
 
 // Hash password before saving

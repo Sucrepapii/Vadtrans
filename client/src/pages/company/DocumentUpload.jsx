@@ -1,245 +1,21 @@
-import React, { useState } from "react";
+import React from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
-import { authAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
-import Input from "../../components/Input";
 import Card from "../../components/Card";
-import {
-  FaCheckCircle,
-  FaUpload,
-  FaFileAlt,
-  FaArrowRight,
-  FaArrowLeft,
-} from "react-icons/fa";
+import { FaArrowRight, FaFileAlt } from "react-icons/fa";
 
 const DocumentUpload = () => {
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState({
-    businessRegistration: null,
-    vehiclePermits: null,
-    driversLicense: null,
-    taxId: "",
-  });
+  const { isAuthenticated } = useAuth();
 
-  const steps = [
-    {
-      number: 1,
-      title: "Business registration (CAC)",
-      description: "Upload your business registration certificate",
-    },
-    {
-      number: 2,
-      title: "Vehicle license permit",
-      description: "Upload vehicle permits and licenses",
-    },
-    {
-      number: 3,
-      title: "Drivers license",
-      description: "Upload drivers license",
-    },
-    {
-      number: 4,
-      title: "Tax information certificate",
-      description: "Provide tax identification number",
-    },
-  ];
-
-  const handleFileChange = (field, file) => {
-    setFormData({ ...formData, [field]: file });
-  };
-
-  const handleNext = async () => {
-    // Check if user is authenticated before proceeding
+  const handleNext = () => {
     if (!isAuthenticated) {
-      toast.info(
-        "Please sign up or log in to continue uploading your documents",
-      );
-      navigate("/signup?role=company&redirect=/company/register");
-      return;
-    }
-
-    // Validation
-    if (currentStep === 1 && !formData.businessRegistration) {
-      toast.error("Please upload your business registration certificate");
-      return;
-    }
-    if (currentStep === 2 && !formData.vehiclePermits) {
-      toast.error("Please upload your vehicle permits and licenses");
-      return;
-    }
-    if (currentStep === 3 && !formData.driversLicense) {
-      toast.error("Please upload your drivers license");
-      return;
-    }
-    if (currentStep === 4 && !formData.taxId) {
-      toast.error("Please provide your tax identification number");
-      return;
-    }
-
-    if (currentStep < 4) {
-      setCurrentStep(currentStep + 1);
+      navigate("/signup?role=company&redirect=/company/profile");
     } else {
-      // Submit logic would go here
-      // For now, redirect to company profile/tickets
-      toast.success(
-        "Documents submitted successfully! Redirecting to dashboard...",
-      );
-      navigate("/company/tickets");
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 1:
-        return (
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-              <input
-                type="file"
-                id="businessReg"
-                className="hidden"
-                onChange={(e) =>
-                  handleFileChange("businessRegistration", e.target.files[0])
-                }
-                accept=".pdf,.jpg,.jpeg,.png"
-              />
-              <label htmlFor="businessReg" className="cursor-pointer">
-                <FaUpload className="text-4xl text-neutral-400 mx-auto mb-3" />
-                <p className="font-semibold mb-1">
-                  {formData.businessRegistration
-                    ? formData.businessRegistration.name
-                    : "Click to upload"}
-                </p>
-                <p className="text-sm text-neutral-600">
-                  PDF, JPG, or PNG (max 5MB)
-                </p>
-              </label>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">
-                Required Documents:
-              </h4>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Certificate of Incorporation</li>
-                <li>• Business License</li>
-                <li>• Company Registration Number</li>
-              </ul>
-            </div>
-          </div>
-        );
-      case 2:
-        return (
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-              <input
-                type="file"
-                id="vehiclePermits"
-                className="hidden"
-                onChange={(e) =>
-                  handleFileChange("vehiclePermits", e.target.files[0])
-                }
-                accept=".pdf,.jpg,.jpeg,.png"
-              />
-              <label htmlFor="vehiclePermits" className="cursor-pointer">
-                <FaUpload className="text-4xl text-neutral-400 mx-auto mb-3" />
-                <p className="font-semibold mb-1">
-                  {formData.vehiclePermits
-                    ? formData.vehiclePermits.name
-                    : "Click to upload"}
-                </p>
-                <p className="text-sm text-neutral-600">
-                  PDF, JPG, or PNG (max 5MB)
-                </p>
-              </label>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">
-                Required Documents:
-              </h4>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Vehicle Registration Documents</li>
-                <li>• Operating Permits</li>
-                <li>• Safety Inspection Certificates</li>
-              </ul>
-            </div>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="space-y-4">
-            <div className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center hover:border-primary transition-colors cursor-pointer">
-              <input
-                type="file"
-                id="driversLicense"
-                className="hidden"
-                onChange={(e) =>
-                  handleFileChange("driversLicense", e.target.files[0])
-                }
-                accept=".pdf,.jpg,.jpeg,.png"
-              />
-              <label htmlFor="driversLicense" className="cursor-pointer">
-                <FaUpload className="text-4xl text-neutral-400 mx-auto mb-3" />
-                <p className="font-semibold mb-1">
-                  {formData.driversLicense
-                    ? formData.driversLicense.name
-                    : "Click to upload"}
-                </p>
-                <p className="text-sm text-neutral-600">
-                  PDF, JPG, or PNG (max 5MB)
-                </p>
-              </label>
-            </div>
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2">
-                Required Documents:
-              </h4>
-              <ul className="text-sm text-blue-800 space-y-1">
-                <li>• Valid Drivers License</li>
-                <li>• Professional Driving Permit (if applicable)</li>
-              </ul>
-            </div>
-          </div>
-        );
-      case 4:
-        return (
-          <div className="space-y-4">
-            <Input
-              label="Tax Identification Number"
-              name="taxId"
-              placeholder="Enter your TIN"
-              value={formData.taxId}
-              onChange={(e) =>
-                setFormData({ ...formData, taxId: e.target.value })
-              }
-              icon={FaFileAlt}
-              required
-            />
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-semibold text-green-900 mb-2">
-                Almost Done!
-              </h4>
-              <p className="text-sm text-green-800">
-                Once you submit, our team will review your documents within
-                24-48 hours. You'll receive an email notification once your
-                company is verified.
-              </p>
-            </div>
-          </div>
-        );
-      default:
-        return null;
+      navigate("/company/profile");
     }
   };
 
@@ -253,93 +29,41 @@ const DocumentUpload = () => {
             Document Upload
           </h1>
           <p className="text-neutral-600 mb-8">
-            Complete all steps to verify your company
+            Complete your verification by uploading required documents
           </p>
 
-          {!isAuthenticated && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-              <p className="text-yellow-800 text-sm">
-                <strong>Note:</strong> You can browse the requirements below,
-                but you'll need to{" "}
-                <Link
-                  to="/signup?role=company&redirect=/company/register"
-                  className="text-primary font-bold hover:underline">
-                  Sign Up as a Company
-                </Link>{" "}
-                to upload and submit your documents.
-              </p>
-            </div>
-          )}
-
-          {/* Progress Steps */}
-          <div className="mb-8">
-            <div className="flex items-center justify-between mb-4">
-              {steps.map((step, index) => (
-                <React.Fragment key={step.number}>
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center font-bold mb-2 ${
-                        step.number < currentStep
-                          ? "bg-green-600 text-white"
-                          : step.number === currentStep
-                            ? "bg-primary text-white"
-                            : "bg-neutral-200 text-neutral-600"
-                      }`}>
-                      {step.number < currentStep ? (
-                        <FaCheckCircle />
-                      ) : (
-                        step.number
-                      )}
-                    </div>
-                    <p className="text-xs text-center font-medium hidden md:block">
-                      {step.title}
-                    </p>
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div
-                      className={`flex-1 h-1 mx-2 ${
-                        step.number < currentStep
-                          ? "bg-green-600"
-                          : "bg-neutral-200"
-                      }`}
-                    />
-                  )}
-                </React.Fragment>
-              ))}
-            </div>
-          </div>
-
-          {/* Current Step Content */}
-          <Card className="mb-6">
+          <Card className="mb-6 text-center py-12">
+            <FaFileAlt className="text-6xl text-primary mx-auto mb-4" />
             <h2 className="text-xl font-semibold mb-2">
-              {steps[currentStep - 1].title}
+              Upload from your Dashboard
             </h2>
-            <p className="text-neutral-600 mb-6">
-              {steps[currentStep - 1].description}
+            <p className="text-neutral-600 mb-6 max-w-md mx-auto">
+              We've updated our document verification process. You can now upload all your required driver, vehicle, and company documents directly from your profile dashboard.
             </p>
-            {renderStepContent()}
-          </Card>
+            
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 max-w-lg mx-auto mb-8 text-left">
+              <h4 className="font-semibold text-blue-900 mb-2">
+                Required Documents include:
+              </h4>
+              <ul className="text-sm text-blue-800 space-y-1 columns-2">
+                <li>• CAC Certificate</li>
+                <li>• TIN</li>
+                <li>• Driver's License</li>
+                <li>• National ID / NIN</li>
+                <li>• Vehicle License</li>
+                <li>• Road Worthiness</li>
+                <li>• Vehicle Photos</li>
+                <li>• Guarantor Info</li>
+              </ul>
+            </div>
 
-          {/* Navigation Buttons */}
-          <div className="flex gap-4">
-            {currentStep > 1 && (
-              <Button
-                variant="secondary"
-                onClick={handleBack}
-                className="flex-1">
-                <div className="flex items-center justify-center gap-2">
-                  <FaArrowLeft />
-                  <span>Back</span>
-                </div>
-              </Button>
-            )}
-            <Button variant="primary" onClick={handleNext} className="flex-1">
+            <Button variant="primary" onClick={handleNext} className="w-full max-w-xs mx-auto">
               <div className="flex items-center justify-center gap-2">
-                <span>{currentStep === 4 ? "Submit" : "Next"}</span>
-                {currentStep < 4 && <FaArrowRight />}
+                <span>Go to Profile</span>
+                <FaArrowRight />
               </div>
             </Button>
-          </div>
+          </Card>
         </div>
       </div>
 
@@ -349,3 +73,4 @@ const DocumentUpload = () => {
 };
 
 export default DocumentUpload;
+

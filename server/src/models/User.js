@@ -141,6 +141,15 @@ const User = sequelize.define(
       type: DataTypes.TEXT,
       allowNull: true,
     },
+    documentDeadline: {
+      type: DataTypes.DATE,
+      allowNull: true,
+      comment: "Deadline to upload required documents before account penalty",
+    },
+    documentNoticeIssuedAt: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

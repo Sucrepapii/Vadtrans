@@ -301,6 +301,58 @@ exports.createTrip = async (req, res) => {
       }
     }
 
+    // --- Document Verification & Notice Logic ---
+    const user = await User.findByPk(req.user.id);
+    if (user) {
+      const requiredDocs = [
+        "id_card", "drivers_license", "profile_photo", "proof_of_address", 
+        "vehicle_license", "road_worthiness", "vehicle_photo", "guarantor_info", 
+        "cac_certificate", "tin"
+      ];
+      
+      const userDocs = user.documents || [];
+      // If user.documents is a string, parse it
+      let parsedDocs = userDocs;
+      if (typeof userDocs === "string") {
+        try { parsedDocs = JSON.parse(userDocs); } catch(e) { parsedDocs = []; }
+      }
+      
+      const uploadedDocTypes = parsedDocs.map(d => d.type);
+      const hasAllRequired = requiredDocs.every(doc => uploadedDocTypes.includes(doc));
+      
+      if (!hasAllRequired) {
+        if (!user.documentDeadline) {
+          // Issue notice automatically
+          const deadline = new Date();
+          deadline.setDate(deadline.getDate() + 7); // 7 days from now
+          
+          user.documentDeadline = deadline;
+          user.documentNoticeIssuedAt = new Date();
+          await user.save();
+          
+          // Optional: Create notification for the user
+          const Notification = require("../models/Notification");
+          try {
+            await Notification.create({
+              userId: user.id,
+              message: "Notice: You have missing required verification documents. Please upload them within 7 days to avoid account penalty.",
+              type: "system"
+            });
+          } catch (notifErr) {
+            console.error("Failed to create document notice notification:", notifErr);
+          }
+        } else if (new Date() > new Date(user.documentDeadline)) {
+          // Deadline has passed
+          return res.status(403).json({
+            success: false,
+            message: "Your 1-week grace period to upload required documents has expired. Please upload all required documents in your profile to create a trip.",
+          });
+        }
+      }
+    }
+    // --------------------------------------------
+
+
     const trip = await Trip.create({
       from,
       to,
@@ -462,7 +514,29 @@ exports.updateTrip = async (req, res) => {
       trip.seats = seats;
       trip.availableSeats = Math.max(0, seats - bookedSeats);
     }
+    
+    // Check if the trip is being marked as completed
+    const isCompleting = status === "completed" && trip.status !== "completed";
     if (status) trip.status = status;
+
+    if (isCompleting) {
+      // Mark all pending/confirmed bookings as completed so they don't block seats
+      const Booking = require("../models/Booking");
+      const { Op } = require("sequelize");
+      await Booking.update(
+        { bookingStatus: "completed" },
+        { 
+          where: { 
+            tripId: trip.id, 
+            bookingStatus: { [Op.in]: ["pending", "confirmed"] } 
+          } 
+        }
+      );
+      
+      // Reset the seats for the next journey
+      trip.bookedSeats = [];
+      trip.availableSeats = trip.seats;
+    }
 
     await trip.save();
 
@@ -588,7 +662,28 @@ exports.updateTripLocation = async (req, res) => {
     if (lat !== undefined) trip.currentLat = lat;
     if (lng !== undefined) trip.currentLng = lng;
     if (currentLocation !== undefined) trip.currentLocation = currentLocation;
+    // Check if the trip is being marked as completed
+    const isCompleting = status === "completed" && trip.status !== "completed";
     if (status !== undefined) trip.status = status;
+
+    if (isCompleting) {
+      // Mark all pending/confirmed bookings as completed so they don't block seats
+      const Booking = require("../models/Booking");
+      const { Op } = require("sequelize");
+      await Booking.update(
+        { bookingStatus: "completed" },
+        { 
+          where: { 
+            tripId: trip.id, 
+            bookingStatus: { [Op.in]: ["pending", "confirmed"] } 
+          } 
+        }
+      );
+      
+      // Reset the seats for the next journey
+      trip.bookedSeats = [];
+      trip.availableSeats = trip.seats;
+    }
 
     trip.lastUpdated = new Date();
 
