@@ -170,6 +170,29 @@ const initializeDatabase = async () => {
 
     // Force add missing columns for Bookings (for production environments where alter:true might fail)
     const queryInterface = sequelize.getQueryInterface();
+
+    // Force add missing columns for Users
+    try {
+      const userTableInfo = await queryInterface.describeTable("Users");
+      if (!userTableInfo.documentDeadline) {
+        console.log("ℹ️ Adding missing column 'documentDeadline' to Users...");
+        await queryInterface.addColumn("Users", "documentDeadline", {
+          type: DataTypes.DATE,
+          allowNull: true,
+        });
+      }
+      if (!userTableInfo.documentNoticeIssuedAt) {
+        console.log("ℹ️ Adding missing column 'documentNoticeIssuedAt' to Users...");
+        await queryInterface.addColumn("Users", "documentNoticeIssuedAt", {
+          type: DataTypes.DATE,
+          allowNull: true,
+        });
+      }
+    } catch (err) {
+      console.log("ℹ️ Note: Users table checking error:", err.message);
+    }
+
+    // Force add missing columns for Bookings (for production environments where alter:true might fail)
     const tableInfo = await queryInterface.describeTable("Bookings");
 
     if (!tableInfo.paidAmount) {
