@@ -28,32 +28,27 @@ const autoCompleteTrips = async () => {
       if (!trip.departureTime) continue;
 
       let hasPassed3Hours = false;
-      let realDepartureUtc = null;
+      let actualDepartureUtc = null;
 
       if (trip.departureDate) {
         // One-off trip: has a specific date
-        // departureTime is e.g., "14:00" or "08:30 AM"
-        // Parse the scheduled time in WAT represented as a UTC string
         const depTime24 = convertTo24Hour(trip.departureTime);
         const departureDateTime = new Date(`${trip.departureDate}T${depTime24}:00.000Z`);
         const threeHoursAfter = new Date(departureDateTime.getTime() + (3 * 60 * 60 * 1000));
         
         if (nowLagos >= threeHoursAfter) {
           hasPassed3Hours = true;
-          // For one-off, real departure UTC timestamp is 1 hour before scheduled WAT
-          realDepartureUtc = new Date(departureDateTime.getTime() - (1 * 60 * 60 * 1000));
         }
       } else if (trip.operatingDays) {
+        // Recurring trip
         const depTime24 = convertTo24Hour(trip.departureTime);
         const depParts = depTime24.split(":");
         const depHour = parseInt(depParts[0], 10);
         const depMin = parseInt(depParts[1], 10);
         
-        // Create a Date object for today's departure time normalized to WAT
         const depDateTime = new Date(nowLagos.getTime());
         depDateTime.setUTCHours(depHour, depMin, 0, 0);
 
-        // Find the most recent scheduled departure time
         let recentDeparture;
         if (nowLagos >= depDateTime) {
           recentDeparture = depDateTime;
@@ -65,46 +60,50 @@ const autoCompleteTrips = async () => {
         
         if (nowLagos >= targetDateTime) {
           hasPassed3Hours = true;
-          // Store real UTC time of departure (WAT shifted back by 1 hour) for booking completion queries
-          realDepartureUtc = new Date(recentDeparture.getTime() - (1 * 60 * 60 * 1000));
+          // Calculate the actual UTC time of departure for the past occurrence.
+          // recentDeparture is based on nowLagos (which is UTC+1), so subtract 1 hour to get true UTC.
+          actualDepartureUtc = new Date(recentDeparture.getTime() - (1 * 60 * 60 * 1000));
         }
       }
 
       if (hasPassed3Hours) {
+        console.log(`🔄 Auto-completing trip ${trip.id} (Departure: ${trip.departureTime})`);
+        
         // Find if there are any active bookings to complete
         const whereClause = {
           tripId: trip.id,
           bookingStatus: { [Op.in]: ["pending", "confirmed"] }
         };
         
-        // For recurring trips, only complete bookings created before the real UTC departure time
-        if (realDepartureUtc) {
-          whereClause.createdAt = { [Op.lte]: realDepartureUtc };
+        // For recurring trips, only complete bookings created before or exactly at the actual UTC departure time.
+        // For one-off trips, we complete ALL bookings because the trip is over forever.
+        if (!trip.departureDate && actualDepartureUtc) {
+          whereClause.createdAt = { [Op.lte]: actualDepartureUtc };
         }
 
         const pendingOrConfirmedBookings = await Booking.count({
           where: whereClause
         });
 
-        if (pendingOrConfirmedBookings > 0 || (trip.bookedSeats && trip.bookedSeats.length > 0)) {
-          console.log(`🔄 Auto-completing trip ${trip.id} (Departure: ${trip.departureTime})`);
-          
+        // If there are bookings to complete, update them
+        if (pendingOrConfirmedBookings > 0) {
           await Booking.update(
             { bookingStatus: "completed" },
             { where: whereClause }
           );
-
-          // Only change status to completed if it is a ONE-OFF trip.
-          // For recurring trips, keep it active for the next day!
-          if (trip.departureDate) {
-            trip.status = "completed";
-            await trip.save();
-          }
-
-          // Non-destructively sync and recalculate the seats using tripController's logic.
-          // This removes expired seats while preserving newly booked seats for future rides.
-          await syncTripSeats(trip.id);
         }
+
+        // Only change status to completed if it is a ONE-OFF trip.
+        // For recurring trips, keep it active for the next day!
+        if (trip.departureDate) {
+          trip.status = "completed";
+          await trip.save();
+        }
+
+        // Non-destructively sync and recalculate the seats using tripController's logic.
+        // For one-off trips, this clears the seats since all bookings are now "completed".
+        // For recurring trips, this releases seats from the completed occurrence, while preserving bookings made for the next occurrence.
+        await syncTripSeats(trip.id);
       }
     }
   } catch (error) {
@@ -141,4 +140,54 @@ cron.schedule("*/30 * * * *", autoCompleteTrips);
 
 console.log("📅 Trip auto-completion cron job initialized (runs every 30 mins).");
 
-module.exports = { autoCompleteTrips };
+// Function to cancel pending bookings that have expired (older than 15 minutes) and free their seats
+const cancelExpiredBookings = async () => {
+  try {
+    console.log("⏰ Running cancel expired bookings cron job...");
+    const fifteenMinutesAgo = new Date(Date.now() - 15 * 60 * 1000);
+
+    // Find all bookings that are pending and older than 15 minutes
+    const expiredBookings = await Booking.findAll({
+      where: {
+        bookingStatus: "pending",
+        createdAt: { [Op.lt]: fifteenMinutesAgo }
+      }
+    });
+
+    if (expiredBookings.length > 0) {
+      console.log(`Found ${expiredBookings.length} expired pending bookings. Cancelling...`);
+      
+      // Get unique trip IDs to sync
+      const tripIdsToSync = [...new Set(expiredBookings.map(b => b.tripId))];
+
+      // Update booking status to cancelled and payment status to failed
+      await Booking.update(
+        {
+          bookingStatus: "cancelled",
+          paymentStatus: "failed",
+          cancellationReason: "Payment reservation timeout (15 mins)"
+        },
+        {
+          where: {
+            id: expiredBookings.map(b => b.id)
+          }
+        }
+      );
+
+      // Sync seats for each unique trip
+      for (const tripId of tripIdsToSync) {
+        await syncTripSeats(tripId);
+      }
+      console.log(`Successfully cancelled expired bookings and synced seats for trips: ${tripIdsToSync.join(", ")}`);
+    }
+  } catch (error) {
+    console.error("❌ Error in cancel expired bookings cron:", error);
+  }
+};
+
+// Run every 1 minute
+cron.schedule("* * * * *", cancelExpiredBookings);
+
+console.log("📅 Booking expiration cron job initialized (runs every 1 min).");
+
+module.exports = { autoCompleteTrips, cancelExpiredBookings };

@@ -3,6 +3,7 @@ const Booking = require("../models/Booking");
 const Trip = require("../models/Trip");
 const Notification = require("../models/Notification");
 const { sequelize } = require("../config/database");
+const { syncTripSeats } = require("./tripController");
 
 // Startup check
 if (!process.env.PAYSTACK_SECRET_KEY) {
@@ -118,6 +119,15 @@ exports.verifyPayment = async (req, res) => {
 
       await transaction.commit();
       console.log("🏁 Transaction committed successfully");
+
+      // Sync seats for the trip immediately to reflect the confirmed seats
+      if (booking) {
+        try {
+          await syncTripSeats(booking.tripId);
+        } catch (syncErr) {
+          console.error("Failed to sync seats after payment verification:", syncErr);
+        }
+      }
 
       res.status(200).json({
         success: true,

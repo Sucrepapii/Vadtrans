@@ -8,6 +8,7 @@ const Review = require("../models/Review");
 const { Op } = require("sequelize");
 const { sequelize } = require("../config/database");
 const { sendAccountDeletedEmail } = require("../utils/emailService");
+const { syncTripSeats } = require("./tripController");
 
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/stats
@@ -273,6 +274,13 @@ exports.updateBookingStatus = async (req, res) => {
     }
 
     await booking.update({ bookingStatus: status });
+
+    // Sync seats for the trip immediately to reflect the updated booking status
+    try {
+      await syncTripSeats(booking.tripId);
+    } catch (syncErr) {
+      console.error("Failed to sync seats after admin booking status update:", syncErr);
+    }
 
     res.status(200).json({
       success: true,
