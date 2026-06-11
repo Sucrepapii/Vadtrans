@@ -56,6 +56,30 @@ const SearchResults = () => {
     freightType: "",
     companyId: companyId || "",
   });
+  const [localSearchParams, setLocalSearchParams] = useState({
+    from: "",
+    to: "",
+    date: getTodayDate(),
+    transportType: "all",
+  });
+
+  useEffect(() => {
+    setLocalSearchParams({
+      from: searchParams.from || "",
+      to: searchParams.to || "",
+      date: searchParams.date || getTodayDate(),
+      transportType: searchParams.transportType || "all",
+    });
+  }, [searchParams]);
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    setSearchParams(prev => ({
+      ...prev,
+      ...localSearchParams
+    }));
+  };
+
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStops, setSelectedStops] = useState({}); // { tripId: stopIndex }
@@ -629,7 +653,7 @@ const SearchResults = () => {
 
             {/* Premium Re-Search Bar */}
             {!searchParams.companyId && (
-              <div className="mt-6 mb-8 p-4 bg-white rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 animate-in fade-in slide-in-from-top-4 duration-500">
+              <form onSubmit={handleFormSubmit} className="mt-6 mb-8 p-4 bg-white rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 animate-in fade-in slide-in-from-top-4 duration-500">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                   <div className="relative group">
                     <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">From</label>
@@ -637,14 +661,15 @@ const SearchResults = () => {
                       <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                       <input 
                         type="text" 
-                        value={searchParams.from} 
-                        onChange={(e) => setSearchParams({...searchParams, from: e.target.value})}
+                        value={localSearchParams.from} 
+                        onChange={(e) => setLocalSearchParams({...localSearchParams, from: e.target.value})}
                         className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
                         placeholder="Departure city"
                       />
-                      {searchParams.from && (
+                      {localSearchParams.from && (
                         <button 
-                          onClick={() => setSearchParams({...searchParams, from: ""})}
+                          type="button"
+                          onClick={() => setLocalSearchParams({...localSearchParams, from: ""})}
                           className="mr-2 p-1 text-neutral-400 hover:text-primary transition-colors"
                         >
                           <FaTimes size={12} />
@@ -659,14 +684,15 @@ const SearchResults = () => {
                       <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                       <input 
                         type="text" 
-                        value={searchParams.to} 
-                        onChange={(e) => setSearchParams({...searchParams, to: e.target.value})}
+                        value={localSearchParams.to} 
+                        onChange={(e) => setLocalSearchParams({...localSearchParams, to: e.target.value})}
                         className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
                         placeholder="Destination city"
                       />
-                      {searchParams.to && (
+                      {localSearchParams.to && (
                         <button 
-                          onClick={() => setSearchParams({...searchParams, to: ""})}
+                          type="button"
+                          onClick={() => setLocalSearchParams({...localSearchParams, to: ""})}
                           className="mr-2 p-1 text-neutral-400 hover:text-primary transition-colors"
                         >
                           <FaTimes size={12} />
@@ -674,28 +700,28 @@ const SearchResults = () => {
                       )}
                     </div>
                   </div>
-
+ 
                   <div className="relative group">
                     <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">Date</label>
                     <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
                       <FaCalendar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                       <input 
                         type="date" 
-                        value={searchParams.date} 
-                        onChange={(e) => setSearchParams({...searchParams, date: e.target.value})}
+                        value={localSearchParams.date} 
+                        onChange={(e) => setLocalSearchParams({...localSearchParams, date: e.target.value})}
                         className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
                       />
                     </div>
                   </div>
-
+ 
                   <div className="flex gap-2">
                     <div className="relative group flex-1">
                       <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">Type</label>
                       <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
                         <FaCar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                         <select 
-                          value={searchParams.transportType} 
-                          onChange={(e) => setSearchParams({...searchParams, transportType: e.target.value})}
+                          value={localSearchParams.transportType} 
+                          onChange={(e) => setLocalSearchParams({...localSearchParams, transportType: e.target.value})}
                           className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none appearance-none"
                         >
                           <option value="all">All Types</option>
@@ -706,7 +732,7 @@ const SearchResults = () => {
                       </div>
                     </div>
                     <Button 
-                      onClick={() => fetchTrips()} 
+                      type="submit"
                       variant="primary" 
                       className="px-6 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-all"
                     >
@@ -714,7 +740,7 @@ const SearchResults = () => {
                     </Button>
                   </div>
                 </div>
-              </div>
+              </form>
             )}
 
             {searchParams.companyId && trips.length > 0 && (

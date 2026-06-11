@@ -92,14 +92,23 @@ exports.getAllTrips = async (req, res) => {
       date
     } = req.query;
 
+    const whereClause = { status: status || "active" };
+    if (serviceCategory) whereClause.serviceCategory = serviceCategory;
+    if (freightType) whereClause.freightType = freightType;
+    if (companyId) whereClause.companyId = companyId;
+    if (transportType && transportType !== "all") whereClause.transportType = transportType;
+    if (fromState) whereClause.fromState = fromState;
+    if (toState) whereClause.toState = toState;
+    if (fromCountry) whereClause.fromCountry = fromCountry;
+    if (toCountry) whereClause.toCountry = toCountry;
+
     // 1. Diagnostic Database Fetch
     let tripsFromDb = [];
     try {
       tripsFromDb = await Trip.findAll({
-        where: { status: status || "active" },
+        where: whereClause,
         include: [{ model: User, as: "company", attributes: ["id", "name", "avatar"] }],
-        order: [["createdAt", "DESC"]],
-        limit: 1000
+        order: [["createdAt", "DESC"]]
       });
     } catch (dbError) {
       console.error("Database Diagnostic Error:", dbError);
