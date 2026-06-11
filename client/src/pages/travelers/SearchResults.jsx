@@ -129,6 +129,10 @@ const SearchResults = () => {
         params.companyId = searchParams.companyId;
       if (searchParams.transportType !== "all")
         params.transportType = searchParams.transportType;
+      if (searchParams.fromState) params.fromState = searchParams.fromState;
+      if (searchParams.toState) params.toState = searchParams.toState;
+      if (searchParams.fromCountry) params.fromCountry = searchParams.fromCountry;
+      if (searchParams.toCountry) params.toCountry = searchParams.toCountry;
 
       let response = await tripAPI.getAllTrips(params);
       let foundTrips = response.data?.trips || [];
@@ -167,6 +171,10 @@ const SearchResults = () => {
           fallbackParams.companyId = searchParams.companyId;
         if (searchParams.transportType !== "all")
           fallbackParams.transportType = searchParams.transportType;
+        if (searchParams.fromState) fallbackParams.fromState = searchParams.fromState;
+        if (searchParams.toState) fallbackParams.toState = searchParams.toState;
+        if (searchParams.fromCountry) fallbackParams.fromCountry = searchParams.fromCountry;
+        if (searchParams.toCountry) fallbackParams.toCountry = searchParams.toCountry;
 
         const fallbackResponse = await tripAPI.getAllTrips(fallbackParams);
         let fallbackTrips = fallbackResponse.data?.trips || [];

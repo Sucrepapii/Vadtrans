@@ -99,7 +99,7 @@ exports.getAllTrips = async (req, res) => {
         where: { status: status || "active" },
         include: [{ model: User, as: "company", attributes: ["id", "name", "avatar"] }],
         order: [["createdAt", "DESC"]],
-        limit: 100
+        limit: 1000
       });
     } catch (dbError) {
       console.error("Database Diagnostic Error:", dbError);
@@ -114,17 +114,24 @@ exports.getAllTrips = async (req, res) => {
     // 2. JavaScript Filtering (Already proven stable)
     let results = tripsFromDb.map(t => (typeof t.toJSON === 'function' ? t.toJSON() : t));
 
-    // Filter by FROM location
+    // Filter by FROM location (city, state, or country)
     if (from) {
       const sFrom = from.toLowerCase().trim();
-      results = results.filter(t => t.from && t.from.toLowerCase().includes(sFrom));
+      results = results.filter(t => 
+        (t.from && t.from.toLowerCase().includes(sFrom)) ||
+        (t.fromState && t.fromState.toLowerCase().includes(sFrom)) ||
+        (t.fromCountry && t.fromCountry.toLowerCase().includes(sFrom))
+      );
     }
 
-    // Filter by TO location (including Multi-Stop logic)
+    // Filter by TO location (including Multi-Stop logic, states, and countries)
     if (to) {
       const sTo = to.toLowerCase().trim();
       results = results.filter(t => {
-        const matchesPrimary = t.to && t.to.toLowerCase().includes(sTo);
+        const matchesPrimary = 
+          (t.to && t.to.toLowerCase().includes(sTo)) ||
+          (t.toState && t.toState.toLowerCase().includes(sTo)) ||
+          (t.toCountry && t.toCountry.toLowerCase().includes(sTo));
         if (matchesPrimary) return true;
         
         if (t.stops && Array.isArray(t.stops)) {
@@ -136,6 +143,30 @@ exports.getAllTrips = async (req, res) => {
         }
         return false;
       });
+    }
+
+    // Filter by fromState
+    if (fromState) {
+      const sFromState = fromState.toLowerCase().trim();
+      results = results.filter(t => t.fromState && t.fromState.toLowerCase().includes(sFromState));
+    }
+
+    // Filter by toState
+    if (toState) {
+      const sToState = toState.toLowerCase().trim();
+      results = results.filter(t => t.toState && t.toState.toLowerCase().includes(sToState));
+    }
+
+    // Filter by fromCountry
+    if (fromCountry) {
+      const sFromCountry = fromCountry.toLowerCase().trim();
+      results = results.filter(t => t.fromCountry && t.fromCountry.toLowerCase().includes(sFromCountry));
+    }
+
+    // Filter by toCountry
+    if (toCountry) {
+      const sToCountry = toCountry.toLowerCase().trim();
+      results = results.filter(t => t.toCountry && t.toCountry.toLowerCase().includes(sToCountry));
     }
 
     // Filter by DATE
