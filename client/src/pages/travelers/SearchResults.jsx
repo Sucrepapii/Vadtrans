@@ -80,6 +80,26 @@ const SearchResults = () => {
     }));
   };
 
+  // Debounce form inputs to automatically trigger search after typing stops
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      // Only trigger if localSearchParams actually differs from searchParams
+      if (
+        localSearchParams.from !== searchParams.from ||
+        localSearchParams.to !== searchParams.to ||
+        localSearchParams.date !== searchParams.date ||
+        localSearchParams.transportType !== searchParams.transportType
+      ) {
+        setSearchParams((prev) => ({
+          ...prev,
+          ...localSearchParams,
+        }));
+      }
+    }, 450); // 450ms debounce delay
+
+    return () => clearTimeout(timer);
+  }, [localSearchParams, searchParams.from, searchParams.to, searchParams.date, searchParams.transportType]);
+
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedStops, setSelectedStops] = useState({}); // { tripId: stopIndex }
