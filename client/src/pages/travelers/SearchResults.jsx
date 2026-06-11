@@ -82,13 +82,17 @@ const SearchResults = () => {
   useEffect(() => {
     // Get search params from location state or URL
     if (location.state) {
-      setSearchParams({ ...location.state, companyId: companyId || "" });
+      const stateData = { ...location.state, companyId: companyId || "" };
+      if (stateData.transportType === "intra-state") {
+        stateData.transportType = "carpooling";
+      }
+      setSearchParams(stateData);
     } else if (companyId || urlTransportType) {
       // If no location state but params are in URL, update them
       setSearchParams(prev => ({ 
         ...prev, 
         companyId: companyId || prev.companyId,
-        transportType: urlTransportType || prev.transportType 
+        transportType: urlTransportType === "intra-state" ? "carpooling" : (urlTransportType || prev.transportType)
       }));
     }
   }, [location, companyId, urlTransportType]);
@@ -129,6 +133,20 @@ const SearchResults = () => {
       let response = await tripAPI.getAllTrips(params);
       let foundTrips = response.data?.trips || [];
 
+      // Transform backend intra-state trips to carpooling for UI consistency
+      foundTrips = foundTrips.map((trip) => {
+        const isIntraState =
+          trip.transportType === "intra-state" ||
+          (trip.transportType === "inter-state" &&
+            trip.fromState &&
+            trip.toState &&
+            trip.fromState === trip.toState);
+        return {
+          ...trip,
+          transportType: isIntraState ? "carpooling" : trip.transportType,
+        };
+      });
+
       if (searchParams.transportType && searchParams.transportType !== "all") {
         foundTrips = foundTrips.filter((trip) =>
           trip.transportType
@@ -152,6 +170,20 @@ const SearchResults = () => {
 
         const fallbackResponse = await tripAPI.getAllTrips(fallbackParams);
         let fallbackTrips = fallbackResponse.data?.trips || [];
+
+        // Transform backend intra-state trips to carpooling for UI consistency
+        fallbackTrips = fallbackTrips.map((trip) => {
+          const isIntraState =
+            trip.transportType === "intra-state" ||
+            (trip.transportType === "inter-state" &&
+              trip.fromState &&
+              trip.toState &&
+              trip.fromState === trip.toState);
+          return {
+            ...trip,
+            transportType: isIntraState ? "carpooling" : trip.transportType,
+          };
+        });
 
         if (
           searchParams.transportType &&
@@ -241,10 +273,7 @@ const SearchResults = () => {
 
     // Transport type filter
     if (activeFilter === "inter-state") {
-      return trip.transportType === "inter-state" && trip.fromState !== trip.toState;
-    }
-    if (activeFilter === "intra-state") {
-      return trip.transportType === "inter-state" && trip.fromState === trip.toState;
+      return trip.transportType === "inter-state";
     }
     if (activeFilter === "carpooling") {
       return trip.transportType === "carpooling";
@@ -566,7 +595,6 @@ const SearchResults = () => {
                 {[
                   { id: "all", label: "All" },
                   { id: "inter-state", label: "Inter-State" },
-                  { id: "intra-state", label: "Intra-State" },
                   { id: "carpooling", label: "Carpooling" },
                   { id: "international", label: "International" },
                 ].map((filter) => (
@@ -664,7 +692,6 @@ const SearchResults = () => {
                         >
                           <option value="all">All Types</option>
                           <option value="inter-state">Inter-State</option>
-                          <option value="intra-state">Intra-State</option>
                           <option value="carpooling">Carpooling</option>
                           <option value="international">International</option>
                         </select>
