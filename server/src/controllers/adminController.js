@@ -31,7 +31,7 @@ exports.getDashboardStats = async (req, res) => {
           [Op.or]: [{ paymentStatus: "paid" }, { bookingStatus: "completed" }],
         },
         attributes: [
-          [sequelize.fn("SUM", sequelize.col("totalAmount")), "total"],
+          [sequelize.fn("SUM", sequelize.col("paidAmount")), "total"],
         ],
       });
       totalRevenueNaira = revenueData[0]?.dataValues?.total

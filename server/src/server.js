@@ -368,6 +368,30 @@ const initializeDatabase = async () => {
 
     console.log("✅ Database models synchronized");
 
+    // Self-correcting migration: Update paidAmount for existing bookings
+    try {
+      console.log("ℹ️ Running self-correcting migration for Booking paidAmount...");
+      // Update non-deposit bookings
+      await sequelize.query(`
+        UPDATE "Bookings" 
+        SET "paidAmount" = "totalAmount" 
+        WHERE "paymentStatus" = 'paid' 
+          AND ("paidAmount" IS NULL OR "paidAmount" = 0)
+          AND ("isDeposit" = false OR "isDeposit" = 0 OR "isDeposit" IS NULL)
+      `);
+      // Update deposit bookings
+      await sequelize.query(`
+        UPDATE "Bookings" 
+        SET "paidAmount" = "totalAmount" * 0.05 
+        WHERE "paymentStatus" = 'paid' 
+          AND ("paidAmount" IS NULL OR "paidAmount" = 0)
+          AND ("isDeposit" = true OR "isDeposit" = 1)
+      `);
+      console.log("✅ Booking paidAmount migration completed");
+    } catch (migrateErr) {
+      console.warn("⚠️ Warning: Booking paidAmount migration note:", migrateErr.message);
+    }
+
     // Check if any users exist, if not create default admin
     const userCount = await User.count();
     if (userCount === 0) {

@@ -233,7 +233,7 @@ const BookingManagement = () => {
       .filter(
         (b) => b.paymentStatus === "paid" || b.bookingStatus === "completed",
       )
-      .reduce((sum, b) => sum + (parseFloat(b.totalAmount) || 0), 0),
+      .reduce((sum, b) => sum + (parseFloat(b.paidAmount || (b.isDeposit ? b.totalAmount * 0.05 : b.totalAmount)) || 0), 0),
   };
 
   return (

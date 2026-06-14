@@ -97,7 +97,9 @@ exports.verifyPayment = async (req, res) => {
         booking.paymentStatus = "paid";
         booking.paymentReference = reference;
         booking.bookingStatus = "confirmed";
-        booking.paidAmount = booking.totalAmount;
+        booking.paidAmount = response.data.amount 
+          ? (response.data.amount / 100) 
+          : (booking.isDeposit ? booking.totalAmount * 0.05 : booking.totalAmount);
         booking.isConfirmed = true;
         await booking.save({ transaction });
 
