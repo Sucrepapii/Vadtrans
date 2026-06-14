@@ -6,12 +6,13 @@ import {
   FaUsers,
   FaBuilding,
   FaTicketAlt,
-  FaDollarSign,
+  FaMoneyBillWave,
   FaChartLine,
   FaArrowUp,
   FaArrowDown,
   FaBox,
 } from "react-icons/fa";
+
 import { adminAPI } from "../../services/api";
 import { toast } from "react-toastify";
 
@@ -87,17 +88,11 @@ const AdminDashboard = () => {
       color: "bg-indigo-500",
     },
     {
-      icon: FaDollarSign,
+      icon: FaMoneyBillWave,
       label: "Revenue",
       value: loading
         ? "..."
         : `₦${stats.totalRevenue.toLocaleString(undefined, {
-            minimumFractionDigits: 2,
-            maximumFractionDigits: 2,
-          })}`,
-      secondaryValue: loading
-        ? null
-        : `$${(stats.totalRevenueUSD || 0).toLocaleString(undefined, {
             minimumFractionDigits: 2,
             maximumFractionDigits: 2,
           })}`,

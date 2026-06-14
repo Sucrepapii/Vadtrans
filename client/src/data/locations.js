@@ -615,6 +615,7 @@ export const nigerianStatesWithCities = {
     "Ebute Ero",
     "Ebute Metta",
     "Egbeda",
+    "Eko Hotel",
     "Epe",
     "Eric Moore",
     "Falomo",
