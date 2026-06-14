@@ -20,6 +20,7 @@ const {
   deleteUser,
   getAllStaff,
   createStaff,
+  promptAllDrivers,
 } = require("../controllers/adminController");
 const {
   getNotifications,
@@ -54,6 +55,7 @@ router.delete("/users/:id", deleteUser);
 router.get("/companies", getAllCompanies);
 router.put("/companies/:id/approve", approveCompany);
 router.put("/companies/:id/reject", rejectCompany);
+router.post("/companies/prompt-docs", promptAllDrivers);
 
 // Staff Management
 router.get("/staff", getAllStaff);

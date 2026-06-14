@@ -894,3 +894,78 @@ exports.createStaff = async (req, res) => {
     });
   }
 };
+
+// @desc    Prompt all drivers/companies with missing documents
+// @route   POST /api/admin/companies/prompt-docs
+// @access  Private/Admin
+exports.promptAllDrivers = async (req, res) => {
+  try {
+    const { sendDocumentReminderEmail } = require("../utils/emailService");
+    
+    // 1. Fetch all partners/companies
+    const companies = await User.findAll({ where: { role: "company" } });
+    
+    const requiredDocs = [
+      "id_card", "drivers_license", "profile_photo", "proof_of_address", 
+      "vehicle_license", "road_worthiness", "vehicle_photo", "guarantor_info", 
+      "cac_certificate", "tin"
+    ];
+    
+    let promptedCount = 0;
+    
+    for (const company of companies) {
+      const userDocs = company.documents || [];
+      let parsedDocs = userDocs;
+      if (typeof userDocs === "string") {
+        try { parsedDocs = JSON.parse(userDocs); } catch(e) { parsedDocs = []; }
+      }
+      
+      const uploadedDocTypes = parsedDocs.map(d => d.type);
+      const hasAllRequired = requiredDocs.every(doc => uploadedDocTypes.includes(doc));
+      
+      if (!hasAllRequired) {
+        promptedCount++;
+        
+        // 1. Initialize deadline if not already set (starts their 1-week grace period immediately)
+        if (!company.documentDeadline) {
+          const deadline = new Date();
+          deadline.setDate(deadline.getDate() + 7);
+          company.documentDeadline = deadline;
+          company.documentNoticeIssuedAt = new Date();
+          await company.save();
+        }
+        
+        // 2. Create System Notification for them
+        try {
+          await Notification.create({
+            userId: company.id,
+            message: "Action Required: Please upload your verification documents to avoid trip creation suspension. You have 7 days from the initial warning.",
+            type: "system"
+          });
+        } catch (notifErr) {
+          console.error(`Failed to notify company ${company.id}:`, notifErr.message);
+        }
+        
+        // 3. Send Email Reminder
+        try {
+          await sendDocumentReminderEmail(company);
+        } catch (emailErr) {
+          console.error(`Failed to send document email to ${company.email}:`, emailErr.message);
+        }
+      }
+    }
+    
+    res.status(200).json({
+      success: true,
+      message: `Successfully prompted ${promptedCount} companies with missing documents.`,
+      promptedCount,
+    });
+  } catch (error) {
+    console.error("Error prompting drivers:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error prompting drivers",
+      error: error.message,
+    });
+  }
+};

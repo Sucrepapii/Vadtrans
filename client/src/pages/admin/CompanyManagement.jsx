@@ -41,6 +41,7 @@ const CompanyManagement = () => {
   const [newEmailValue, setNewEmailValue] = useState("");
   const [isSavingEmail, setIsSavingEmail] = useState(false);
   const [verificationComment, setVerificationComment] = useState("");
+  const [promptingDocs, setPromptingDocs] = useState(false);
 
   useEffect(() => {
     fetchCompanies();
@@ -157,6 +158,21 @@ const CompanyManagement = () => {
     }
   };
 
+  const handlePromptMissingDocs = async () => {
+    try {
+      setPromptingDocs(true);
+      const response = await adminAPI.promptDocs();
+      if (response.data.success) {
+        toast.success(response.data.message || "Prompt emails sent successfully!");
+      }
+    } catch (error) {
+      console.error("Error prompting drivers:", error);
+      toast.error(error.response?.data?.message || "Failed to prompt drivers");
+    } finally {
+      setPromptingDocs(false);
+    }
+  };
+
   const getStatusBadge = (status) => {
     const statusConfig = {
       pending: {
@@ -204,13 +220,28 @@ const CompanyManagement = () => {
 
       <div className="flex-1 overflow-auto">
         {/* Header */}
-        <div className="bg-white border-b border-neutral-200 px-8 py-6">
-          <h1 className="text-3xl font-raleway font-bold text-charcoal">
-            Company Management
-          </h1>
-          <p className="text-neutral-600 mt-1">
-            Review and approve transport company registrations
-          </p>
+        <div className="bg-white border-b border-neutral-200 px-8 py-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-raleway font-bold text-charcoal">
+              Company Management
+            </h1>
+            <p className="text-neutral-600 mt-1">
+              Review and approve transport company registrations
+            </p>
+          </div>
+          <Button
+            onClick={handlePromptMissingDocs}
+            disabled={promptingDocs}
+            className="bg-amber-500 hover:bg-amber-600 text-white font-bold whitespace-nowrap">
+            <div className="flex items-center gap-2">
+              {promptingDocs ? (
+                <FaSpinner className="animate-spin" />
+              ) : (
+                <FaEnvelope />
+              )}
+              <span>Prompt Missing Documents</span>
+            </div>
+          </Button>
         </div>
 
         {/* Main Content */}

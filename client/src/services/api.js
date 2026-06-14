@@ -113,6 +113,7 @@ export const adminAPI = {
   getCompanies: (params) => api.get("/admin/companies", { params }),
   approveCompany: (id, comment) => api.put(`/admin/companies/${id}/approve`, { comment }),
   rejectCompany: (id, comment) => api.put(`/admin/companies/${id}/reject`, { comment }),
+  promptDocs: () => api.post("/admin/companies/prompt-docs"),
 
   // Notifications
   getNotifications: () => api.get("/admin/notifications"),

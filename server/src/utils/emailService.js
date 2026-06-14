@@ -511,6 +511,52 @@ const sendAccountDeletedEmail = async (user) => {
   }
 };
 
+const sendDocumentReminderEmail = async (user) => {
+  try {
+    if (!isConfigured()) {
+      return { success: true, mode: "console" };
+    }
+
+    const { data, error } = await resend.emails.send({
+      from: process.env.SMTP_FROM || "VadTrans <verification@resend.dev>",
+      to: [user.email],
+      subject: "Urgent Action Required: Upload Verification Documents 📄",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; line-height: 1.6; color: #333;">
+          <div style="background-color: #f59e0b; color: white; padding: 25px; text-align: center; border-radius: 5px 5px 0 0;">
+            <h2 style="margin: 0; font-size: 22px;">Verification Pending</h2>
+          </div>
+          <div style="padding: 25px; border: 1px solid #eee; border-top: none;">
+            <p>Dear ${esc(user.name)},</p>
+            <p>We noticed that your company profile has missing required verification documents on the VadTrans platform.</p>
+            <p>To ensure passenger safety and comply with regulations, all partners are required to upload verification documents. <strong>Drivers with missing documents are only allowed a 1-week grace period to operate on the platform.</strong></p>
+            <p>Please log in to your dashboard and upload the required documents as soon as possible to keep your account active and avoid suspension from creating new trips.</p>
+            <div style="text-align: center; margin: 30px 0;">
+              <a href="${process.env.CLIENT_URL || "https://www.vadtrans.com"}/signin" style="background-color: #2563eb; color: white; padding: 12px 28px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px; display: inline-block;">Upload Documents Now</a>
+            </div>
+            <p>If you have already uploaded your documents, please ignore this email while our team reviews them.</p>
+            <p>Thank you,</p>
+            <p>The VadTrans Compliance Team</p>
+            <hr style="border: 1px solid #eee; margin: 20px 0;" />
+            <p style="font-size: 12px; color: #888;">&copy; ${new Date().getFullYear()} VadTrans. All rights reserved.</p>
+          </div>
+        </div>
+      `,
+    });
+
+    if (error) {
+      console.error("❌ Resend Error:", error);
+      return { success: false, error: error.message };
+    }
+
+    console.log("✅ Document reminder email sent to:", user.email);
+    return { success: true, messageId: data.id };
+  } catch (error) {
+    console.error("❌ Error sending document reminder email:", error.message);
+    return { success: false, error: error.message };
+  }
+};
+
 module.exports = {
   sendWelcomeEmail,
   sendBookingConfirmationEmail,
@@ -519,4 +565,5 @@ module.exports = {
   sendPasswordSuccessEmail,
   sendContactFormEmail,
   sendAccountDeletedEmail,
+  sendDocumentReminderEmail,
 };
