@@ -793,9 +793,10 @@ const TicketsManagement = () => {
           {/* === Mobile: burger dropdown (below md) === */}
           <div className="md:hidden relative">
             <button
-              onClick={() =>
-                setOpenMenuId(openMenuId === row.id ? null : row.id)
-              }
+              onClick={(e) => {
+                e.stopPropagation();
+                setOpenMenuId(openMenuId === row.id ? null : row.id);
+              }}
               className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors"
               title="Actions">
               {togglingTripId === row.id ? (
