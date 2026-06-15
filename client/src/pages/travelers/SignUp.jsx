@@ -149,7 +149,7 @@ const SignUp = () => {
                       ? "bg-primary text-white"
                       : "text-neutral-600 hover:text-charcoal"
                   }`}>
-                  travelers
+                  Travelers
                 </button>
                 <button
                   type="button"
@@ -159,7 +159,7 @@ const SignUp = () => {
                       ? "bg-primary text-white"
                       : "text-neutral-600 hover:text-charcoal"
                   }`}>
-                  Company
+                  Drivers/Company
                 </button>
               </div>
 
