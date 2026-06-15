@@ -597,6 +597,54 @@ exports.updateTrip = async (req, res) => {
   }
 };
 
+// @desc    Toggle trip availability (active <-> inactive)
+// @route   PATCH /api/trips/:id/availability
+// @access  Private (Company only - own trips)
+exports.toggleAvailability = async (req, res) => {
+  try {
+    const trip = await Trip.findByPk(req.params.id);
+
+    if (!trip) {
+      return res.status(404).json({ success: false, message: "Trip not found" });
+    }
+
+    // Only allow the owning company
+    if (trip.companyId !== req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this trip",
+      });
+    }
+
+    // Only toggle between active and inactive (do not touch completed/cancelled)
+    if (trip.status === "completed" || trip.status === "cancelled") {
+      return res.status(400).json({
+        success: false,
+        message: `Cannot toggle availability on a ${trip.status} trip`,
+      });
+    }
+
+    const newStatus = trip.status === "active" ? "inactive" : "active";
+    trip.status = newStatus;
+    await trip.save();
+
+    return res.status(200).json({
+      success: true,
+      message: newStatus === "active"
+        ? "Trip marked as available — it will appear in search results."
+        : "Trip marked as not available — it is now hidden from search results.",
+      trip,
+    });
+  } catch (error) {
+    console.error("Toggle availability error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error toggling trip availability",
+      error: error.message,
+    });
+  }
+};
+
 // @desc    Delete trip
 // @route   DELETE /api/trips/:id
 // @access  Private (Company only - own trips)

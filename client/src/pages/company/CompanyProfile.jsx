@@ -102,6 +102,7 @@ const CompanyProfile = () => {
   const [trips, setTrips] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
+  const [togglingTripId, setTogglingTripId] = useState(null);
   const [formData, setFormData] = useState({
     from: "",
     to: "",
@@ -349,6 +350,29 @@ const CompanyProfile = () => {
         console.error("Error deleting trip:", error);
         toast.error("Failed to delete trip");
       }
+    }
+  };
+
+  const handleToggleAvailability = async (trip) => {
+    try {
+      setTogglingTripId(trip.id);
+      const response = await tripAPI.toggleAvailability(trip.id);
+      if (response.data.success) {
+        toast.success(response.data.message);
+        // Update the trip's status in local state immediately
+        setTrips((prev) =>
+          prev.map((t) =>
+            t.id === trip.id ? { ...t, status: response.data.trip.status } : t
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling availability:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to toggle availability"
+      );
+    } finally {
+      setTogglingTripId(null);
     }
   };
 
@@ -1104,6 +1128,21 @@ const CompanyProfile = () => {
                               <h3 className="font-semibold">
                                 {trip.from} → {trip.to}
                               </h3>
+                              {/* Availability Badge */}
+                              <span
+                                className={`ml-2 px-2 py-0.5 rounded-full text-xs font-semibold ${
+                                  trip.status === "active"
+                                    ? "bg-green-100 text-green-700"
+                                    : trip.status === "inactive"
+                                    ? "bg-orange-100 text-orange-700"
+                                    : "bg-neutral-100 text-neutral-600"
+                                }`}>
+                                {trip.status === "active"
+                                  ? "Available"
+                                  : trip.status === "inactive"
+                                  ? "Not Available"
+                                  : trip.status}
+                              </span>
                             </div>
                             <div className="grid grid-cols-2 gap-2 text-sm text-neutral-600">
                               <p>Departure: {trip.departureTime}</p>
@@ -1117,6 +1156,38 @@ const CompanyProfile = () => {
                             </div>
                           </div>
                           <div className="flex gap-2">
+                            {/* Availability Toggle */}
+                            {trip.status !== "completed" &&
+                              trip.status !== "cancelled" && (
+                                <Button
+                                  variant="secondary"
+                                  onClick={() => handleToggleAvailability(trip)}
+                                  disabled={togglingTripId === trip.id}
+                                  className={`text-sm font-semibold ${
+                                    trip.status === "active"
+                                      ? "text-orange-600 hover:bg-orange-50 border-orange-200"
+                                      : "text-green-600 hover:bg-green-50 border-green-200"
+                                  }`}>
+                                  <div className="flex items-center gap-1.5">
+                                    {togglingTripId === trip.id ? (
+                                      <FaSpinner className="animate-spin" />
+                                    ) : (
+                                      <span
+                                        className={`w-2 h-2 rounded-full ${
+                                          trip.status === "active"
+                                            ? "bg-green-500"
+                                            : "bg-orange-400"
+                                        }`}
+                                      />
+                                    )}
+                                    <span>
+                                      {trip.status === "active"
+                                        ? "Not Available"
+                                        : "Available"}
+                                    </span>
+                                  </div>
+                                </Button>
+                              )}
                             <Button
                               variant="secondary"
                               onClick={() => handleDeleteTrip(trip.id)}

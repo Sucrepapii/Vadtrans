@@ -6,9 +6,9 @@ const {
   createTrip,
   updateTrip,
   deleteTrip,
-
   getMyTrips,
   updateTripLocation,
+  toggleAvailability,
 } = require("../controllers/tripController");
 const { protect, authorize } = require("../middleware/auth");
 
@@ -31,6 +31,12 @@ router.put(
   protect,
   authorize("company", "admin"),
   updateTripLocation
+);
+router.patch(
+  "/:id/availability",
+  protect,
+  authorize("company", "admin"),
+  toggleAvailability
 );
 
 module.exports = router;
