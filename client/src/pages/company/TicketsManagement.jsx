@@ -60,6 +60,7 @@ const TicketsManagement = () => {
   const [saving, setSaving] = useState(false);
   const [togglingTripId, setTogglingTripId] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [bottomSheetTrip, setBottomSheetTrip] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
     open: false,
     id: null,
@@ -790,14 +791,14 @@ const TicketsManagement = () => {
             </button>
           </div>
 
-          {/* === Mobile: burger dropdown (below md) === */}
-          <div className="md:hidden relative">
+          {/* === Mobile: bottom sheet trigger (below md) === */}
+          <div className="md:hidden">
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                setOpenMenuId(openMenuId === row.id ? null : row.id);
+                setBottomSheetTrip(row);
               }}
-              className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors"
+              className="p-2 rounded-full hover:bg-neutral-100 text-neutral-500 transition-colors"
               title="Actions">
               {togglingTripId === row.id ? (
                 <FaSpinner className="animate-spin" size={16} />
@@ -805,79 +806,6 @@ const TicketsManagement = () => {
                 <FaEllipsisV size={16} />
               )}
             </button>
-
-            {openMenuId === row.id && (
-              <div
-                className="absolute right-0 top-8 z-50 bg-white border border-neutral-200 rounded-lg shadow-lg min-w-[170px] py-1 text-sm"
-                onClick={(e) => e.stopPropagation()}>
-                {/* Edit */}
-                <button
-                  onClick={() => {
-                    setOpenMenuId(null);
-                    handleEditTicket(row);
-                  }}
-                  className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-neutral-50 text-blue-600">
-                  <FaEdit size={13} />
-                  <span>Edit Trip</span>
-                </button>
-
-                {/* Toggle Availability */}
-                {row.status !== "completed" && row.status !== "cancelled" && (
-                  <button
-                    onClick={() => handleToggleAvailability(row)}
-                    disabled={togglingTripId === row.id}
-                    className={`flex items-center gap-3 w-full px-4 py-2.5 hover:bg-neutral-50 ${
-                      row.status === "active"
-                        ? "text-orange-600"
-                        : "text-green-600"
-                    }`}>
-                    {row.status === "active" ? (
-                      <FaBan size={13} />
-                    ) : (
-                      <FaCheckCircle size={13} />
-                    )}
-                    <span>
-                      {row.status === "active"
-                        ? "Mark Not Available"
-                        : "Mark Available"}
-                    </span>
-                  </button>
-                )}
-
-                {/* Live Location */}
-                <button
-                  onClick={() => {
-                    setOpenMenuId(null);
-                    window.open(`/company/driver-console/${row.id}`, "_blank");
-                  }}
-                  className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-neutral-50 text-green-600">
-                  <FaMapMarkerAlt size={13} />
-                  <span>Live Location</span>
-                </button>
-
-                {/* Divider */}
-                <div className="border-t border-neutral-100 my-1" />
-
-                {/* Delete */}
-                <button
-                  onClick={() => {
-                    setOpenMenuId(null);
-                    if (row.hasRevenue) {
-                      toast.error(
-                        "Contact admin to delete trips that have generated revenue."
-                      );
-                    } else {
-                      handleDeleteTicket(row.id);
-                    }
-                  }}
-                  className={`flex items-center gap-3 w-full px-4 py-2.5 hover:bg-red-50 text-red-600 ${
-                    row.hasRevenue ? "opacity-40" : ""
-                  }`}>
-                  <FaTrash size={13} />
-                  <span>Delete Trip</span>
-                </button>
-              </div>
-            )}
           </div>
         </div>
       ),
@@ -917,7 +845,7 @@ const TicketsManagement = () => {
             </Button>
           </div>
 
-          <Card>
+          <Card className="hidden md:block">
             {loading ? (
               <div className="flex items-center justify-center py-12">
                 <div className="text-center">
@@ -949,8 +877,204 @@ const TicketsManagement = () => {
               </>
             )}
           </Card>
+
+          {/* Mobile Card List (shown below md, hidden on desktop) */}
+          <div className="md:hidden space-y-3">
+            {!loading && paginatedTickets.map((ticket) => (
+              <div
+                key={ticket.id}
+                className="bg-white rounded-xl border border-neutral-200 shadow-sm p-4">
+                {/* Route + Status */}
+                <div className="flex items-start justify-between mb-3">
+                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                    {ticket.serviceCategory === "freight" ? (
+                      <FaTruck className="text-primary shrink-0" />
+                    ) : (
+                      <FaBus className="text-primary shrink-0" />
+                    )}
+                    <span className="font-semibold text-charcoal truncate">
+                      {ticket.route}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        ticket.status === "active"
+                          ? "bg-green-100 text-green-700"
+                          : ticket.status === "inactive"
+                          ? "bg-orange-100 text-orange-700"
+                          : "bg-neutral-100 text-neutral-600"
+                      }`}>
+                      {ticket.status === "active"
+                        ? "Available"
+                        : ticket.status === "inactive"
+                        ? "Not Available"
+                        : ticket.status}
+                    </span>
+                    <button
+                      onClick={() => setBottomSheetTrip(ticket)}
+                      className="p-1.5 rounded-full hover:bg-neutral-100 text-neutral-500">
+                      {togglingTripId === ticket.id ? (
+                        <FaSpinner className="animate-spin" size={16} />
+                      ) : (
+                        <FaEllipsisV size={16} />
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-neutral-600">
+                  <div className="flex items-center gap-1.5">
+                    <FaClock size={11} className="text-neutral-400 shrink-0" />
+                    <span>{ticket.departureTime}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <FaUsers size={11} className="text-neutral-400 shrink-0" />
+                    <span>{ticket.availableSeats}/{ticket.seats} seats</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <FaMoneyBillWave size={11} className="text-neutral-400 shrink-0" />
+                    <span>₦{Number(ticket.price).toLocaleString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <FaBus size={11} className="text-neutral-400 shrink-0" />
+                    <span className="truncate">{ticket.transportType}</span>
+                  </div>
+                </div>
+
+                {/* Vehicle name if set */}
+                {ticket.vehicleName && (
+                  <p className="text-xs text-neutral-400 mt-2">{ticket.vehicleName} · {ticket.vehicleType}</p>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
+
+      {/* Bottom Action Sheet (mobile only) */}
+      {bottomSheetTrip && (
+        <>
+          {/* Overlay */}
+          <div
+            className="fixed inset-0 bg-black/40 z-40 md:hidden"
+            onClick={() => setBottomSheetTrip(null)}
+          />
+          {/* Sheet */}
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl shadow-2xl md:hidden animate-slide-up">
+            {/* Handle bar */}
+            <div className="flex justify-center pt-3 pb-1">
+              <div className="w-10 h-1 rounded-full bg-neutral-300" />
+            </div>
+
+            {/* Trip name in sheet header */}
+            <div className="px-6 py-3 border-b border-neutral-100">
+              <p className="font-semibold text-charcoal text-base">
+                {bottomSheetTrip.route}
+              </p>
+              <p className="text-xs text-neutral-500 mt-0.5">
+                {bottomSheetTrip.departureTime} · {bottomSheetTrip.transportType}
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="px-2 py-2 pb-8">
+              {/* Edit */}
+              <button
+                onClick={() => {
+                  setBottomSheetTrip(null);
+                  handleEditTicket(bottomSheetTrip);
+                }}
+                className="flex items-center gap-4 w-full px-4 py-3.5 rounded-xl hover:bg-neutral-50 text-charcoal">
+                <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center">
+                  <FaEdit size={15} className="text-blue-600" />
+                </div>
+                <span className="font-medium">Edit Trip</span>
+              </button>
+
+              {/* Toggle Availability */}
+              {bottomSheetTrip.status !== "completed" && bottomSheetTrip.status !== "cancelled" && (
+                <button
+                  onClick={() => {
+                    handleToggleAvailability(bottomSheetTrip);
+                    setBottomSheetTrip(null);
+                  }}
+                  disabled={togglingTripId === bottomSheetTrip.id}
+                  className="flex items-center gap-4 w-full px-4 py-3.5 rounded-xl hover:bg-neutral-50 text-charcoal">
+                  <div
+                    className={`w-9 h-9 rounded-full flex items-center justify-center ${
+                      bottomSheetTrip.status === "active"
+                        ? "bg-orange-100"
+                        : "bg-green-100"
+                    }`}>
+                    {bottomSheetTrip.status === "active" ? (
+                      <FaBan size={15} className="text-orange-600" />
+                    ) : (
+                      <FaCheckCircle size={15} className="text-green-600" />
+                    )}
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium">
+                      {bottomSheetTrip.status === "active"
+                        ? "Mark Not Available"
+                        : "Mark Available"}
+                    </p>
+                    <p className="text-xs text-neutral-400">
+                      {bottomSheetTrip.status === "active"
+                        ? "Hide from traveller search"
+                        : "Show in traveller search"}
+                    </p>
+                  </div>
+                </button>
+              )}
+
+              {/* Live Location */}
+              <button
+                onClick={() => {
+                  setBottomSheetTrip(null);
+                  window.open(`/company/driver-console/${bottomSheetTrip.id}`, "_blank");
+                }}
+                className="flex items-center gap-4 w-full px-4 py-3.5 rounded-xl hover:bg-neutral-50 text-charcoal">
+                <div className="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center">
+                  <FaMapMarkerAlt size={15} className="text-green-600" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Live Location</p>
+                  <p className="text-xs text-neutral-400">Broadcast your current position</p>
+                </div>
+              </button>
+
+              {/* Divider */}
+              <div className="border-t border-neutral-100 mx-4 my-1" />
+
+              {/* Delete */}
+              <button
+                onClick={() => {
+                  setBottomSheetTrip(null);
+                  if (bottomSheetTrip.hasRevenue) {
+                    toast.error("Contact admin to delete trips that have generated revenue.");
+                  } else {
+                    handleDeleteTicket(bottomSheetTrip.id);
+                  }
+                }}
+                className={`flex items-center gap-4 w-full px-4 py-3.5 rounded-xl hover:bg-red-50 text-red-600 ${
+                  bottomSheetTrip.hasRevenue ? "opacity-40" : ""
+                }`}>
+                <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
+                  <FaTrash size={15} className="text-red-600" />
+                </div>
+                <div className="text-left">
+                  <p className="font-medium">Delete Trip</p>
+                  {bottomSheetTrip.hasRevenue && (
+                    <p className="text-xs text-red-400">Contact admin to delete</p>
+                  )}
+                </div>
+              </button>
+            </div>
+          </div>
+        </>
+      )}
 
       <Modal
         isOpen={isModalOpen}
