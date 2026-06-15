@@ -38,6 +38,9 @@ import {
   FaSmoking,
   FaMusic,
   FaPaw,
+  FaEllipsisV,
+  FaBan,
+  FaCheckCircle,
 } from "react-icons/fa";
 import MaterialDatePicker, {
   MaterialTimePicker,
@@ -55,6 +58,8 @@ const TicketsManagement = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [togglingTripId, setTogglingTripId] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState({
     open: false,
     id: null,
@@ -112,6 +117,14 @@ const TicketsManagement = () => {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
+
+  // Close mobile action dropdown when clicking outside
+  useEffect(() => {
+    if (!openMenuId) return;
+    const handleOutsideClick = () => setOpenMenuId(null);
+    document.addEventListener("click", handleOutsideClick);
+    return () => document.removeEventListener("click", handleOutsideClick);
+  }, [openMenuId]);
 
   useEffect(() => {
     let isMounted = true;
@@ -412,6 +425,32 @@ const TicketsManagement = () => {
     setDeleteConfirm({ open: true, id, deleting: false });
   };
 
+  const handleToggleAvailability = async (ticket) => {
+    try {
+      setTogglingTripId(ticket.id);
+      setOpenMenuId(null);
+      const response = await tripAPI.toggleAvailability(ticket.id);
+      if (response.data.success) {
+        toast.success(response.data.message);
+        // Update locally without full re-fetch
+        setTickets((prev) =>
+          prev.map((t) =>
+            t.id === ticket.id
+              ? { ...t, status: response.data.trip.status }
+              : t
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling availability:", error);
+      toast.error(
+        error.response?.data?.message || "Failed to toggle availability"
+      );
+    } finally {
+      setTogglingTripId(null);
+    }
+  };
+
   const confirmDelete = async () => {
     setDeleteConfirm((prev) => ({ ...prev, deleting: true }));
     try {
@@ -674,9 +713,15 @@ const TicketsManagement = () => {
           className={`px-3 py-1 rounded-full text-xs font-medium ${
             value === "active"
               ? "bg-green-100 text-green-800"
+              : value === "inactive"
+              ? "bg-orange-100 text-orange-700"
               : "bg-neutral-100 text-neutral-800"
           }`}>
-          {value}
+          {value === "active"
+            ? "Available"
+            : value === "inactive"
+            ? "Not Available"
+            : value}
         </span>
       ),
     },
@@ -684,35 +729,155 @@ const TicketsManagement = () => {
       key: "actions",
       label: "Actions",
       render: (_, row) => (
-        <div className="flex gap-2">
-          <Button
-            variant="text"
-            onClick={() => handleEditTicket(row)}
-            className="text-blue-600">
-            <FaEdit />
-          </Button>
-          <Button
-            variant="text"
-            onClick={() => {
-              if (row.hasRevenue) {
-                toast.error("Contact admin to delete trips that have generated revenue.");
-              } else {
-                handleDeleteTicket(row.id);
+        <div className="relative">
+          {/* === Desktop: inline buttons (md and up) === */}
+          <div className="hidden md:flex gap-1 items-center">
+            <button
+              onClick={() => handleEditTicket(row)}
+              className="p-1.5 rounded hover:bg-blue-50 text-blue-600 transition-colors"
+              title="Edit Trip">
+              <FaEdit size={14} />
+            </button>
+
+            {row.status !== "completed" && row.status !== "cancelled" && (
+              <button
+                onClick={() => handleToggleAvailability(row)}
+                disabled={togglingTripId === row.id}
+                className={`p-1.5 rounded transition-colors ${
+                  row.status === "active"
+                    ? "hover:bg-orange-50 text-orange-600"
+                    : "hover:bg-green-50 text-green-600"
+                }`}
+                title={
+                  row.status === "active"
+                    ? "Mark Not Available"
+                    : "Mark Available"
+                }>
+                {togglingTripId === row.id ? (
+                  <FaSpinner size={14} className="animate-spin" />
+                ) : row.status === "active" ? (
+                  <FaBan size={14} />
+                ) : (
+                  <FaCheckCircle size={14} />
+                )}
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                if (row.hasRevenue) {
+                  toast.error(
+                    "Contact admin to delete trips that have generated revenue."
+                  );
+                } else {
+                  handleDeleteTicket(row.id);
+                }
+              }}
+              className={`p-1.5 rounded hover:bg-red-50 text-red-600 transition-colors ${
+                row.hasRevenue ? "opacity-40 cursor-not-allowed" : ""
+              }`}
+              title="Delete Trip">
+              <FaTrash size={14} />
+            </button>
+
+            <button
+              onClick={() =>
+                window.open(`/company/driver-console/${row.id}`, "_blank")
               }
-            }}
-            className={`text-red-600 ${row.hasRevenue ? "opacity-50 cursor-not-allowed" : ""}`}
-            title="Delete Trip">
-            <FaTrash />
-          </Button>
-          <Button
-            variant="text"
-            onClick={() =>
-              window.open(`/company/driver-console/${row.id}`, "_blank")
-            }
-            className="text-green-600"
-            title="Broadcast Live Location">
-            <FaMapMarkerAlt />
-          </Button>
+              className="p-1.5 rounded hover:bg-green-50 text-green-600 transition-colors"
+              title="Broadcast Live Location">
+              <FaMapMarkerAlt size={14} />
+            </button>
+          </div>
+
+          {/* === Mobile: burger dropdown (below md) === */}
+          <div className="md:hidden relative">
+            <button
+              onClick={() =>
+                setOpenMenuId(openMenuId === row.id ? null : row.id)
+              }
+              className="p-2 rounded-full hover:bg-neutral-100 text-neutral-600 transition-colors"
+              title="Actions">
+              {togglingTripId === row.id ? (
+                <FaSpinner className="animate-spin" size={16} />
+              ) : (
+                <FaEllipsisV size={16} />
+              )}
+            </button>
+
+            {openMenuId === row.id && (
+              <div
+                className="absolute right-0 top-8 z-50 bg-white border border-neutral-200 rounded-lg shadow-lg min-w-[170px] py-1 text-sm"
+                onClick={(e) => e.stopPropagation()}>
+                {/* Edit */}
+                <button
+                  onClick={() => {
+                    setOpenMenuId(null);
+                    handleEditTicket(row);
+                  }}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-neutral-50 text-blue-600">
+                  <FaEdit size={13} />
+                  <span>Edit Trip</span>
+                </button>
+
+                {/* Toggle Availability */}
+                {row.status !== "completed" && row.status !== "cancelled" && (
+                  <button
+                    onClick={() => handleToggleAvailability(row)}
+                    disabled={togglingTripId === row.id}
+                    className={`flex items-center gap-3 w-full px-4 py-2.5 hover:bg-neutral-50 ${
+                      row.status === "active"
+                        ? "text-orange-600"
+                        : "text-green-600"
+                    }`}>
+                    {row.status === "active" ? (
+                      <FaBan size={13} />
+                    ) : (
+                      <FaCheckCircle size={13} />
+                    )}
+                    <span>
+                      {row.status === "active"
+                        ? "Mark Not Available"
+                        : "Mark Available"}
+                    </span>
+                  </button>
+                )}
+
+                {/* Live Location */}
+                <button
+                  onClick={() => {
+                    setOpenMenuId(null);
+                    window.open(`/company/driver-console/${row.id}`, "_blank");
+                  }}
+                  className="flex items-center gap-3 w-full px-4 py-2.5 hover:bg-neutral-50 text-green-600">
+                  <FaMapMarkerAlt size={13} />
+                  <span>Live Location</span>
+                </button>
+
+                {/* Divider */}
+                <div className="border-t border-neutral-100 my-1" />
+
+                {/* Delete */}
+                <button
+                  onClick={() => {
+                    setOpenMenuId(null);
+                    if (row.hasRevenue) {
+                      toast.error(
+                        "Contact admin to delete trips that have generated revenue."
+                      );
+                    } else {
+                      handleDeleteTicket(row.id);
+                    }
+                  }}
+                  className={`flex items-center gap-3 w-full px-4 py-2.5 hover:bg-red-50 text-red-600 ${
+                    row.hasRevenue ? "opacity-40" : ""
+                  }`}>
+                  <FaTrash size={13} />
+                  <span>Delete Trip</span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       ),
     },
