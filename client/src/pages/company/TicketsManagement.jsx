@@ -744,10 +744,10 @@ const TicketsManagement = () => {
               <button
                 onClick={() => handleToggleAvailability(row)}
                 disabled={togglingTripId === row.id}
-                className={`p-1.5 rounded transition-colors ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium transition-colors border ${
                   row.status === "active"
-                    ? "hover:bg-orange-50 text-orange-600"
-                    : "hover:bg-green-50 text-green-600"
+                    ? "border-orange-200 text-orange-600 hover:bg-orange-50"
+                    : "border-green-200 text-green-600 hover:bg-green-50"
                 }`}
                 title={
                   row.status === "active"
@@ -757,9 +757,15 @@ const TicketsManagement = () => {
                 {togglingTripId === row.id ? (
                   <FaSpinner size={14} className="animate-spin" />
                 ) : row.status === "active" ? (
-                  <FaBan size={14} />
+                  <>
+                    <FaBan size={14} />
+                    <span>Not Available</span>
+                  </>
                 ) : (
-                  <FaCheckCircle size={14} />
+                  <>
+                    <FaCheckCircle size={14} />
+                    <span>Available</span>
+                  </>
                 )}
               </button>
             )}
