@@ -5,6 +5,7 @@ const path = require("path");
 dotenv.config();
 
 const { sequelize } = require("./config/database");
+const { Op } = require("sequelize");
 const User = require("./models/User");
 const Trip = require("./models/Trip");
 const Booking = require("./models/Booking");
@@ -70,10 +71,13 @@ async function test() {
         continue;
       }
 
+      const isRecurring = trip.transportType === "carpooling" || (trip.operatingDays && trip.operatingDays.length > 0);
+      const isOneOff = !isRecurring;
+
       let hasPassed3Hours = false;
       let realDepartureUtc = null;
 
-      if (trip.departureDate) {
+      if (isOneOff && trip.departureDate) {
         const depTime24 = convertTo24Hour(trip.departureTime);
         const departureDateTime = new Date(`${trip.departureDate}T${depTime24}:00.000Z`);
         const threeHoursAfter = new Date(departureDateTime.getTime() + (3 * 60 * 60 * 1000));
@@ -86,7 +90,7 @@ async function test() {
           hasPassed3Hours = true;
           realDepartureUtc = new Date(departureDateTime.getTime() - (1 * 60 * 60 * 1000));
         }
-      } else if (trip.operatingDays) {
+      } else if (isRecurring) {
         const depTime24 = convertTo24Hour(trip.departureTime);
         const depParts = depTime24.split(":");
         const depHour = parseInt(depParts[0], 10);
@@ -121,7 +125,7 @@ async function test() {
           tripId: trip.id,
           bookingStatus: { [Op.in]: ["pending", "confirmed"] }
         };
-        if (realDepartureUtc) {
+        if (isRecurring && realDepartureUtc) {
           whereClause.createdAt = { [Op.lte]: realDepartureUtc };
           console.log(`realDepartureUtc: ${realDepartureUtc.toISOString()}`);
         }

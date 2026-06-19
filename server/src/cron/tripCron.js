@@ -27,10 +27,13 @@ const autoCompleteTrips = async () => {
     for (const trip of activeTrips) {
       if (!trip.departureTime) continue;
 
+      const isRecurring = trip.transportType === "carpooling" || (trip.operatingDays && trip.operatingDays.length > 0);
+      const isOneOff = !isRecurring;
+
       let hasPassed3Hours = false;
       let actualDepartureUtc = null;
 
-      if (trip.departureDate) {
+      if (isOneOff && trip.departureDate) {
         // One-off trip: has a specific date
         const depTime24 = convertTo24Hour(trip.departureTime);
         const departureDateTime = new Date(`${trip.departureDate}T${depTime24}:00.000Z`);
@@ -39,8 +42,8 @@ const autoCompleteTrips = async () => {
         if (nowLagos >= threeHoursAfter) {
           hasPassed3Hours = true;
         }
-      } else if (trip.operatingDays) {
-        // Recurring trip
+      } else if (isRecurring) {
+        // Recurring trip (carpooling or has operating days)
         const depTime24 = convertTo24Hour(trip.departureTime);
         const depParts = depTime24.split(":");
         const depHour = parseInt(depParts[0], 10);
@@ -77,7 +80,7 @@ const autoCompleteTrips = async () => {
         
         // For recurring trips, only complete bookings created before or exactly at the actual UTC departure time.
         // For one-off trips, we complete ALL bookings because the trip is over forever.
-        if (!trip.departureDate && actualDepartureUtc) {
+        if (isRecurring && actualDepartureUtc) {
           whereClause.createdAt = { [Op.lte]: actualDepartureUtc };
         }
 
@@ -95,7 +98,7 @@ const autoCompleteTrips = async () => {
 
         // Only change status to completed if it is a ONE-OFF trip.
         // For recurring trips, keep it active for the next day!
-        if (trip.departureDate) {
+        if (isOneOff) {
           trip.status = "completed";
           await trip.save();
         }
