@@ -576,6 +576,11 @@ exports.updateTrip = async (req, res) => {
       // Reset the seats for the next journey
       trip.bookedSeats = [];
       trip.availableSeats = trip.seats;
+
+      // For carpooling, automatically set the trip to inactive instead of completed so it can be re-activated the next day
+      if (trip.transportType === "carpooling") {
+        trip.status = "inactive";
+      }
     }
 
     await trip.save();
@@ -616,8 +621,9 @@ exports.toggleAvailability = async (req, res) => {
       });
     }
 
-    // Only toggle between active and inactive (do not touch completed/cancelled)
-    if (trip.status === "completed" || trip.status === "cancelled") {
+    // Only toggle between active and inactive (do not touch cancelled)
+    // Completed trips can be toggled to make them active again for the next day
+    if (trip.status === "cancelled") {
       return res.status(400).json({
         success: false,
         message: `Cannot toggle availability on a ${trip.status} trip`,
@@ -771,6 +777,11 @@ exports.updateTripLocation = async (req, res) => {
       // Reset the seats for the next journey
       trip.bookedSeats = [];
       trip.availableSeats = trip.seats;
+
+      // For carpooling, automatically set the trip to inactive instead of completed so it can be re-activated the next day
+      if (trip.transportType === "carpooling") {
+        trip.status = "inactive";
+      }
     }
 
     trip.lastUpdated = new Date();
