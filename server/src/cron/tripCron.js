@@ -138,8 +138,8 @@ function convertTo24Hour(timeStr) {
   return `${hours.toString().padStart(2, "0")}:${minutes}`;
 }
 
-// Run every 30 minutes
-cron.schedule("*/30 * * * *", autoCompleteTrips);
+// Run every 30 minutes (Disabled: only humans should mark trips as completed)
+// cron.schedule("*/30 * * * *", autoCompleteTrips);
 
 console.log("📅 Trip auto-completion cron job initialized (runs every 30 mins).");
 
