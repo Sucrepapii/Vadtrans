@@ -740,7 +740,7 @@ const TicketsManagement = () => {
               <FaEdit size={14} />
             </button>
 
-            {row.status !== "completed" && row.status !== "cancelled" && (
+            {row.status !== "cancelled" && (
               <button
                 onClick={() => handleToggleAvailability(row)}
                 disabled={togglingTripId === row.id}
@@ -1000,7 +1000,7 @@ const TicketsManagement = () => {
               </button>
 
               {/* Toggle Availability */}
-              {bottomSheetTrip.status !== "completed" && bottomSheetTrip.status !== "cancelled" && (
+              {bottomSheetTrip.status !== "cancelled" && (
                 <button
                   onClick={() => {
                     handleToggleAvailability(bottomSheetTrip);

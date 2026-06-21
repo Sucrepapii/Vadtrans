@@ -1157,8 +1157,7 @@ const CompanyProfile = () => {
                           </div>
                           <div className="flex gap-2">
                             {/* Availability Toggle */}
-                            {trip.status !== "completed" &&
-                              trip.status !== "cancelled" && (
+                            {trip.status !== "cancelled" && (
                                 <Button
                                   variant="secondary"
                                   onClick={() => handleToggleAvailability(trip)}
