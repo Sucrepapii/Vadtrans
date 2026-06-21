@@ -923,7 +923,7 @@ exports.promptAllDrivers = async (req, res) => {
       const uploadedDocTypes = parsedDocs.map(d => d.type);
       const hasAllRequired = requiredDocs.every(doc => uploadedDocTypes.includes(doc));
       
-      if (!hasAllRequired) {
+      if (!hasAllRequired && company.verificationStatus !== "verified") {
         promptedCount++;
         
         // 1. Initialize deadline if not already set (starts their 1-week grace period immediately)

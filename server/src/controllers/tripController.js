@@ -343,7 +343,7 @@ exports.createTrip = async (req, res) => {
 
     // --- Document Verification & Notice Logic ---
     const user = await User.findByPk(req.user.id);
-    if (user) {
+    if (user && user.verificationStatus !== "verified") {
       const requiredDocs = [
         "id_card", "drivers_license", "profile_photo", "proof_of_address", 
         "vehicle_license", "road_worthiness", "vehicle_photo", "guarantor_info", 
