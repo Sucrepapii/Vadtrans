@@ -67,6 +67,11 @@ const TicketsManagement = () => {
     id: null,
     deleting: false,
   });
+  const [endTripConfirm, setEndTripConfirm] = useState({
+    open: false,
+    id: null,
+    ending: false,
+  });
 
   const [formData, setFormData] = useState({
     from: "",
@@ -453,24 +458,23 @@ const TicketsManagement = () => {
     }
   };
 
-  const handleEndTrip = async (tripId) => {
-    try {
-      const confirmEnd = window.confirm(
-        "Are you sure you want to end this trip? This will complete all active bookings and reset the seats for the next journey."
-      );
-      if (!confirmEnd) return;
+  const handleEndTrip = (tripId) => {
+    setEndTripConfirm({ open: true, id: tripId, ending: false });
+  };
 
-      setTogglingTripId(tripId);
-      const response = await tripAPI.updateLocation(tripId, { status: "completed" });
+  const confirmEndTrip = async () => {
+    setEndTripConfirm((prev) => ({ ...prev, ending: true }));
+    try {
+      const response = await tripAPI.updateLocation(endTripConfirm.id, { status: "completed" });
       if (response.data.success) {
         toast.success("Trip completed successfully!");
+        setEndTripConfirm({ open: false, id: null, ending: false });
         fetchTrips(); // Refresh the list
       }
     } catch (error) {
       console.error("Error ending trip:", error);
       toast.error(error.response?.data?.message || "Failed to end trip");
-    } finally {
-      setTogglingTripId(null);
+      setEndTripConfirm((prev) => ({ ...prev, ending: false }));
     }
   };
 
@@ -2509,6 +2513,19 @@ const TicketsManagement = () => {
         cancelText="Cancel"
         type="danger"
         isProcessing={deleteConfirm.deleting}
+      />
+      <ConfirmationModal
+        isOpen={endTripConfirm.open}
+        onClose={() =>
+          setEndTripConfirm({ open: false, id: null, ending: false })
+        }
+        onConfirm={confirmEndTrip}
+        title="End Trip"
+        message="Are you sure you want to end this trip? This will complete all active bookings and reset the seats for the next journey."
+        confirmText="End Trip"
+        cancelText="Cancel"
+        type="warning"
+        isProcessing={endTripConfirm.ending}
       />
 
       <Footer />

@@ -8,6 +8,7 @@ import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
+import ConfirmationModal from "../../components/ConfirmationModal";
 import {
   FaBuilding,
   FaEnvelope,
@@ -104,6 +105,16 @@ const CompanyProfile = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingTrip, setEditingTrip] = useState(null);
   const [togglingTripId, setTogglingTripId] = useState(null);
+  const [deleteConfirm, setDeleteConfirm] = useState({
+    open: false,
+    id: null,
+    deleting: false,
+  });
+  const [endTripConfirm, setEndTripConfirm] = useState({
+    open: false,
+    id: null,
+    ending: false,
+  });
   const [formData, setFormData] = useState({
     from: "",
     to: "",
@@ -341,16 +352,21 @@ const CompanyProfile = () => {
     }
   };
 
-  const handleDeleteTrip = async (tripId) => {
-    if (window.confirm("Are you sure you want to delete this trip?")) {
-      try {
-        await tripAPI.deleteTrip(tripId);
-        toast.success("Trip deleted successfully!");
-        fetchTrips();
-      } catch (error) {
-        console.error("Error deleting trip:", error);
-        toast.error("Failed to delete trip");
-      }
+  const handleDeleteTrip = (tripId) => {
+    setDeleteConfirm({ open: true, id: tripId, deleting: false });
+  };
+
+  const confirmDeleteTrip = async () => {
+    setDeleteConfirm((prev) => ({ ...prev, deleting: true }));
+    try {
+      await tripAPI.deleteTrip(deleteConfirm.id);
+      toast.success("Trip deleted successfully!");
+      setDeleteConfirm({ open: false, id: null, deleting: false });
+      fetchTrips();
+    } catch (error) {
+      console.error("Error deleting trip:", error);
+      toast.error("Failed to delete trip");
+      setDeleteConfirm((prev) => ({ ...prev, deleting: false }));
     }
   };
 
@@ -377,28 +393,27 @@ const CompanyProfile = () => {
     }
   };
 
-  const handleEndTrip = async (tripId) => {
-    try {
-      const confirmEnd = window.confirm(
-        "Are you sure you want to end this trip? This will complete all active bookings and reset the seats for the next journey."
-      );
-      if (!confirmEnd) return;
+  const handleEndTrip = (tripId) => {
+    setEndTripConfirm({ open: true, id: tripId, ending: false });
+  };
 
-      setTogglingTripId(tripId);
-      const response = await tripAPI.updateLocation(tripId, { status: "completed" });
+  const confirmEndTrip = async () => {
+    setEndTripConfirm((prev) => ({ ...prev, ending: true }));
+    try {
+      const response = await tripAPI.updateLocation(endTripConfirm.id, { status: "completed" });
       if (response.data.success) {
         toast.success("Trip completed successfully!");
         setTrips((prev) =>
           prev.map((t) =>
-            t.id === tripId ? response.data.trip : t
+            t.id === endTripConfirm.id ? response.data.trip : t
           )
         );
+        setEndTripConfirm({ open: false, id: null, ending: false });
       }
     } catch (error) {
       console.error("Error ending trip:", error);
       toast.error(error.response?.data?.message || "Failed to end trip");
-    } finally {
-      setTogglingTripId(null);
+      setEndTripConfirm((prev) => ({ ...prev, ending: false }));
     }
   };
 
@@ -2195,6 +2210,33 @@ const CompanyProfile = () => {
           </div>
         </div>
       </div>
+
+      <ConfirmationModal
+        isOpen={deleteConfirm.open}
+        onClose={() =>
+          setDeleteConfirm({ open: false, id: null, deleting: false })
+        }
+        onConfirm={confirmDeleteTrip}
+        title="Delete Trip"
+        message="Are you sure you want to delete this trip? This action cannot be undone."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isProcessing={deleteConfirm.deleting}
+      />
+      <ConfirmationModal
+        isOpen={endTripConfirm.open}
+        onClose={() =>
+          setEndTripConfirm({ open: false, id: null, ending: false })
+        }
+        onConfirm={confirmEndTrip}
+        title="End Trip"
+        message="Are you sure you want to end this trip? This will complete all active bookings and reset the seats for the next journey."
+        confirmText="End Trip"
+        cancelText="Cancel"
+        type="warning"
+        isProcessing={endTripConfirm.ending}
+      />
 
       <Footer />
     </div>
