@@ -31,6 +31,7 @@ import {
   FaLink,
   FaExternalLinkAlt,
   FaMoneyBillWave,
+  FaStop,
 } from "react-icons/fa";
 import { westAfricanCountries, westAfricanCities } from "../../data/locations";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
@@ -371,6 +372,31 @@ const CompanyProfile = () => {
       toast.error(
         error.response?.data?.message || "Failed to toggle availability"
       );
+    } finally {
+      setTogglingTripId(null);
+    }
+  };
+
+  const handleEndTrip = async (tripId) => {
+    try {
+      const confirmEnd = window.confirm(
+        "Are you sure you want to end this trip? This will complete all active bookings and reset the seats for the next journey."
+      );
+      if (!confirmEnd) return;
+
+      setTogglingTripId(tripId);
+      const response = await tripAPI.updateLocation(tripId, { status: "completed" });
+      if (response.data.success) {
+        toast.success("Trip completed successfully!");
+        setTrips((prev) =>
+          prev.map((t) =>
+            t.id === tripId ? response.data.trip : t
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error ending trip:", error);
+      toast.error(error.response?.data?.message || "Failed to end trip");
     } finally {
       setTogglingTripId(null);
     }
@@ -1150,7 +1176,7 @@ const CompanyProfile = () => {
                                 Price: ₦{Number(trip.price).toLocaleString()}
                               </p>
                               <p>
-                                Seats: {trip.availableSeats}/{trip.seats}
+                                Seats Booked: {trip.seats - trip.availableSeats}/{trip.seats}
                               </p>
                               <p>Type: {trip.transportType}</p>
                             </div>
@@ -1187,6 +1213,20 @@ const CompanyProfile = () => {
                                   </div>
                                 </Button>
                               )}
+
+                            {/* End Trip */}
+                            {trip.status === "active" && (
+                              <Button
+                                variant="secondary"
+                                onClick={() => handleEndTrip(trip.id)}
+                                disabled={togglingTripId === trip.id}
+                                className="text-red-600 hover:bg-red-50 border-red-200 text-sm font-semibold">
+                                <div className="flex items-center gap-1.5">
+                                  <FaStop size={12} />
+                                  <span>End Trip</span>
+                                </div>
+                              </Button>
+                            )}
                             <Button
                               variant="secondary"
                               onClick={() => handleDeleteTrip(trip.id)}

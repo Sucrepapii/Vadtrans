@@ -518,7 +518,7 @@ const BookingConfirmation = () => {
                         </div>
                       )}
                       <p className="text-xs text-neutral-600 mt-1">
-                        {passengerCount} traveller
+                        {passengerCount} passenger
                         {passengerCount > 1 ? "s" : ""}
                       </p>
                     </div>

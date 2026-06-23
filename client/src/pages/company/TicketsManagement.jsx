@@ -41,6 +41,7 @@ import {
   FaEllipsisV,
   FaBan,
   FaCheckCircle,
+  FaStop,
 } from "react-icons/fa";
 import MaterialDatePicker, {
   MaterialTimePicker,
@@ -452,6 +453,27 @@ const TicketsManagement = () => {
     }
   };
 
+  const handleEndTrip = async (tripId) => {
+    try {
+      const confirmEnd = window.confirm(
+        "Are you sure you want to end this trip? This will complete all active bookings and reset the seats for the next journey."
+      );
+      if (!confirmEnd) return;
+
+      setTogglingTripId(tripId);
+      const response = await tripAPI.updateLocation(tripId, { status: "completed" });
+      if (response.data.success) {
+        toast.success("Trip completed successfully!");
+        fetchTrips(); // Refresh the list
+      }
+    } catch (error) {
+      console.error("Error ending trip:", error);
+      toast.error(error.response?.data?.message || "Failed to end trip");
+    } finally {
+      setTogglingTripId(null);
+    }
+  };
+
   const confirmDelete = async () => {
     setDeleteConfirm((prev) => ({ ...prev, deleting: true }));
     try {
@@ -703,8 +725,8 @@ const TicketsManagement = () => {
     },
     {
       key: "availableSeats",
-      label: "Seats",
-      render: (value, row) => `${value}/${row.seats}`,
+      label: "Seats Booked",
+      render: (_, row) => `${row.seats - row.availableSeats}/${row.seats}`,
     },
     {
       key: "status",
@@ -767,6 +789,16 @@ const TicketsManagement = () => {
                     <span>Available</span>
                   </>
                 )}
+              </button>
+            )}
+
+            {row.status === "active" && (
+              <button
+                onClick={() => handleEndTrip(row.id)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded text-sm font-medium border border-red-200 text-red-600 hover:bg-red-50 transition-colors"
+                title="End Trip">
+                <FaStop size={12} />
+                <span>End Trip</span>
               </button>
             )}
 
@@ -937,7 +969,7 @@ const TicketsManagement = () => {
                   </div>
                   <div className="flex items-center gap-1.5">
                     <FaUsers size={11} className="text-neutral-400 shrink-0" />
-                    <span>{ticket.availableSeats}/{ticket.seats} seats</span>
+                    <span>{ticket.seats - ticket.availableSeats}/{ticket.seats} seats booked</span>
                   </div>
                   <div className="flex items-center gap-1.5">
                     <FaMoneyBillWave size={11} className="text-neutral-400 shrink-0" />
@@ -1028,9 +1060,27 @@ const TicketsManagement = () => {
                     </p>
                     <p className="text-xs text-neutral-400">
                       {bottomSheetTrip.status === "active"
-                        ? "Hide from traveller search"
-                        : "Show in traveller search"}
+                        ? "Hide from passenger search"
+                        : "Show in passenger search"}
                     </p>
+                  </div>
+                </button>
+              )}
+
+              {/* End Trip */}
+              {bottomSheetTrip.status === "active" && (
+                <button
+                  onClick={() => {
+                    handleEndTrip(bottomSheetTrip.id);
+                    setBottomSheetTrip(null);
+                  }}
+                  className="flex items-center gap-4 w-full px-4 py-3.5 rounded-xl hover:bg-red-50 text-red-600">
+                  <div className="w-9 h-9 rounded-full bg-red-100 flex items-center justify-center">
+                    <FaStop size={15} className="text-red-600" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium">End Trip</p>
+                    <p className="text-xs text-red-400">Complete journey & reset seats</p>
                   </div>
                 </button>
               )}

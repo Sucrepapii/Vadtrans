@@ -159,7 +159,7 @@ const Sidebar = () => {
               <button
                 onClick={() => handlePortalAccess("/")}
                 className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-neutral-300 transition-all border border-transparent hover:border-white/10">
-                <span>Traveler</span>
+                <span>Passenger</span>
                 <span className="text-xs">↗</span>
               </button>
               <button
