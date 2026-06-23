@@ -7,7 +7,7 @@ import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import TrackingMap from "../../components/TrackingMap";
-import { FaMapMarkerAlt, FaStop, FaPlay, FaSpinner } from "react-icons/fa";
+import { FaMapMarkerAlt, FaStop, FaPlay, FaSpinner, FaCheckCircle } from "react-icons/fa";
 
 const DriverConsole = () => {
   const { id } = useParams();
@@ -92,6 +92,25 @@ const DriverConsole = () => {
     }
   };
 
+  const handleEndTrip = async () => {
+    try {
+      const confirmEnd = window.confirm(
+        "Are you sure you want to end this trip? This will complete all active bookings and reset the seats for the next journey."
+      );
+      if (!confirmEnd) return;
+
+      stopTracking();
+      const response = await tripAPI.updateLocation(id, { status: "completed" });
+      if (response.data.success) {
+        toast.success("Trip completed successfully!");
+        setTrip(response.data.trip);
+      }
+    } catch (error) {
+      console.error("Error ending trip:", error);
+      toast.error(error.response?.data?.message || "Failed to end trip");
+    }
+  };
+
   if (!trip) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -128,22 +147,33 @@ const DriverConsole = () => {
               </p>
             </div>
 
-            <div className="flex gap-4 mb-6">
-              {!isTracking ? (
+            <div className="flex flex-col gap-3 mb-6">
+              <div className="flex gap-4">
+                {!isTracking ? (
+                  <Button
+                    variant="primary"
+                    fullWidth
+                    onClick={startTracking}
+                    className="flex justify-center items-center gap-2">
+                    <FaPlay /> Start Trip Broadcast
+                  </Button>
+                ) : (
+                  <Button
+                    variant="danger"
+                    fullWidth
+                    onClick={stopTracking}
+                    className="flex justify-center items-center gap-2">
+                    <FaStop /> Stop Broadcast
+                  </Button>
+                )}
+              </div>
+              {trip.status === "active" && (
                 <Button
-                  variant="primary"
+                  variant="secondary"
                   fullWidth
-                  onClick={startTracking}
-                  className="flex justify-center items-center gap-2">
-                  <FaPlay /> Start Trip Broadcast
-                </Button>
-              ) : (
-                <Button
-                  variant="danger"
-                  fullWidth
-                  onClick={stopTracking}
-                  className="flex justify-center items-center gap-2">
-                  <FaStop /> Stop Broadcast
+                  onClick={handleEndTrip}
+                  className="flex justify-center items-center gap-2 border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300">
+                  <FaCheckCircle /> End Trip / Complete Journey
                 </Button>
               )}
             </div>

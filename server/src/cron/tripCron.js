@@ -138,10 +138,74 @@ function convertTo24Hour(timeStr) {
   return `${hours.toString().padStart(2, "0")}:${minutes}`;
 }
 
-// Run every 30 minutes (Disabled: only humans should mark trips as completed)
-// cron.schedule("*/30 * * * *", autoCompleteTrips);
+// Function to run at midnight WAT (Africa/Lagos) to clean up forgot-to-end trips
+const autoMidnightComplete = async () => {
+  try {
+    console.log("⏰ Running auto-midnight complete trips cron job...");
+    
+    // Find all active trips
+    const activeTrips = await Trip.findAll({
+      where: { status: "active" }
+    });
 
-console.log("📅 Trip auto-completion cron job initialized (runs every 30 mins).");
+    const nowLagos = getWATDate();
+    const todayStr = nowLagos.toISOString().slice(0, 10);
+    
+    for (const trip of activeTrips) {
+      const isRecurring = trip.transportType === "carpooling" || (trip.operatingDays && trip.operatingDays.length > 0);
+      
+      if (!isRecurring) {
+        // One-off trip: complete it if departureDate is in the past
+        if (trip.departureDate && trip.departureDate < todayStr) {
+          console.log(`🔄 Auto-completing past one-off trip ${trip.id} (Departure Date: ${trip.departureDate})`);
+          
+          await Booking.update(
+            { bookingStatus: "completed" },
+            { 
+              where: { 
+                tripId: trip.id, 
+                bookingStatus: { [Op.in]: ["pending", "confirmed"] } 
+              } 
+            }
+          );
+          
+          trip.status = "completed";
+          await trip.save();
+          await syncTripSeats(trip.id);
+        }
+      } else if (trip.transportType === "carpooling") {
+        // Carpooling trip: since it's midnight, the daily journey has ended.
+        // We deactivate the trip and reset the seats.
+        console.log(`🔄 Auto-deactivating and resetting carpool trip ${trip.id} at midnight`);
+
+        await Booking.update(
+          { bookingStatus: "completed" },
+          { 
+            where: { 
+              tripId: trip.id, 
+              bookingStatus: { [Op.in]: ["pending", "confirmed"] } 
+            } 
+          }
+        );
+
+        trip.bookedSeats = [];
+        trip.availableSeats = trip.seats;
+        trip.status = "inactive";
+        await trip.save();
+        await syncTripSeats(trip.id);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Error in auto-midnight complete trips cron:", error);
+  }
+};
+
+// Run at 12:00 AM (midnight) every day in Africa/Lagos (Nigeria) timezone
+cron.schedule("0 0 * * *", autoMidnightComplete, {
+  timezone: "Africa/Lagos"
+});
+
+console.log("📅 Midnight trip auto-completion cron job initialized (runs daily at 12:00 AM WAT).");
 
 // Function to cancel pending bookings that have expired (older than 15 minutes) and free their seats
 const cancelExpiredBookings = async () => {
@@ -193,4 +257,4 @@ cron.schedule("* * * * *", cancelExpiredBookings);
 
 console.log("📅 Booking expiration cron job initialized (runs every 1 min).");
 
-module.exports = { autoCompleteTrips, cancelExpiredBookings };
+module.exports = { autoCompleteTrips, autoMidnightComplete, cancelExpiredBookings };
