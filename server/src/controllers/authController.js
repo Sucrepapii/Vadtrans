@@ -6,6 +6,7 @@ const {
   sendPasswordSuccessEmail,
 } = require("../utils/emailService");
 const crypto = require("crypto");
+const cloudinary = require("cloudinary").v2;
 
 // @desc    Register a new user
 // @route   POST /api/auth/signup
@@ -601,7 +602,8 @@ exports.uploadDocument = async (req, res) => {
     const document = {
       type: documentType,
       name: req.file.originalname,
-      url: `/uploads/documents/${req.file.filename}`,
+      url: req.file.path, // Cloudinary secure URL
+      public_id: req.file.filename, // Cloudinary public_id
       uploadedAt: new Date(),
     };
 
@@ -654,13 +656,18 @@ exports.deleteDocument = async (req, res) => {
     const docToDelete = documents.find((doc) => doc.type === type);
 
     if (docToDelete) {
-      // Delete file from filesystem
-      const fs = require("fs");
-      const path = require("path");
-      const filePath = path.join(__dirname, "../../", docToDelete.url);
+      if (docToDelete.public_id) {
+        // Delete from Cloudinary
+        await cloudinary.uploader.destroy(docToDelete.public_id);
+      } else {
+        // Fallback for older local files
+        const fs = require("fs");
+        const path = require("path");
+        const filePath = path.join(__dirname, "../../", docToDelete.url);
 
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
+        }
       }
     }
 
