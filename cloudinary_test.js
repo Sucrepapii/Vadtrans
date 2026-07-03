@@ -1,12 +1,5 @@
 const cloudinary = require('cloudinary').v2;
 
-// 1. Configure Cloudinary
-cloudinary.config({ 
-  cloud_name: 'dovxusfu6', 
-  api_key: '899134836261224', 
-  api_secret: 'lb_9fPJp-KoUzefYb6l0-POEJIg' 
-});
-
 async function run() {
   try {
     // 2. Upload an image
