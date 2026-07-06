@@ -74,6 +74,14 @@ const SearchResults = () => {
 
   const handleFormSubmit = (e) => {
     e.preventDefault();
+    if (localSearchParams.transportType === "private") {
+      navigate("/request-private-ride", { state: { 
+        from: localSearchParams.from, 
+        to: localSearchParams.to, 
+        date: localSearchParams.date 
+      } });
+      return;
+    }
     setSearchParams(prev => ({
       ...prev,
       ...localSearchParams
@@ -90,6 +98,15 @@ const SearchResults = () => {
         localSearchParams.date !== searchParams.date ||
         localSearchParams.transportType !== searchParams.transportType
       ) {
+        if (localSearchParams.transportType === "private") {
+          navigate("/request-private-ride", { state: { 
+            from: localSearchParams.from, 
+            to: localSearchParams.to, 
+            date: localSearchParams.date 
+          } });
+          return;
+        }
+        
         setSearchParams((prev) => ({
           ...prev,
           ...localSearchParams,
@@ -98,7 +115,7 @@ const SearchResults = () => {
     }, 450); // 450ms debounce delay
 
     return () => clearTimeout(timer);
-  }, [localSearchParams, searchParams.from, searchParams.to, searchParams.date, searchParams.transportType]);
+  }, [localSearchParams, searchParams.from, searchParams.to, searchParams.date, searchParams.transportType, navigate]);
 
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -649,10 +666,19 @@ const SearchResults = () => {
                   { id: "inter-state", label: "Inter-State" },
                   { id: "carpooling", label: "Carpooling" },
                   { id: "international", label: "International" },
+                  { id: "private", label: "⭐ Private Ride" },
                 ].map((filter) => (
                   <button
                     key={filter.id}
                     onClick={() => {
+                      if (filter.id === "private") {
+                        navigate("/request-private-ride", { state: { 
+                          from: searchParams.from, 
+                          to: searchParams.to, 
+                          date: searchParams.date 
+                        } });
+                        return;
+                      }
                       setActiveFilter(filter.id);
                       setCurrentPage(1);
                     }}
@@ -748,6 +774,7 @@ const SearchResults = () => {
                           <option value="inter-state">Inter-State</option>
                           <option value="carpooling">Carpooling</option>
                           <option value="international">International</option>
+                          <option value="private" className="font-bold text-primary">⭐ Private Ride</option>
                         </select>
                       </div>
                     </div>
