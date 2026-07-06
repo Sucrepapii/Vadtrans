@@ -194,6 +194,20 @@ const initializeDatabase = async () => {
           allowNull: true,
         });
       }
+      if (!userTableInfo.isOnline) {
+        console.log("ℹ️ Adding missing column 'isOnline' to Users...");
+        await queryInterface.addColumn("Users", "isOnline", {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false,
+        });
+      }
+      if (!userTableInfo.ridePreference) {
+        console.log("ℹ️ Adding missing column 'ridePreference' to Users...");
+        await queryInterface.addColumn("Users", "ridePreference", {
+          type: DataTypes.STRING,
+          defaultValue: "both",
+        });
+      }
     } catch (err) {
       console.log("ℹ️ Note: Users table checking error:", err.message);
     }
