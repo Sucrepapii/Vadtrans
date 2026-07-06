@@ -112,10 +112,10 @@ const ReviewConfirm = () => {
     };
 
     try {
-      console.log("💳 Paystack Success Callback Started");
-      console.log("📍 Reference:", reference.reference);
-      console.log("🆔 Session BookingId:", bookingId);
-      console.log("🔖 Session SavedRef:", savedRef);
+      
+      
+      
+      
 
       if (!bookingId) {
         // No booking ID but Paystack approved — still show ticket
@@ -126,12 +126,12 @@ const ReviewConfirm = () => {
       }
 
       // Verify payment on backend
-      console.log("🔍 Triggering Backend Verification...");
+      
       const verifyRes = await bookingAPI.verifyPayment(
         reference.reference,
         bookingId,
       );
-      console.log("✅ Backend Verification Response:", verifyRes.data);
+      
 
       if (verifyRes.data.success) {
         toast.success("Booking confirmed successfully!");
@@ -165,7 +165,7 @@ const ReviewConfirm = () => {
         await api.delete(`/bookings/${bookingId}/abandon`);
         sessionStorage.removeItem("lastPendingBookingId");
         sessionStorage.removeItem("lastPendingBookingRef");
-        console.log("Seats released after manual cancellation");
+        
       } catch (err) {
         console.error("Failed to release seats:", err);
       }

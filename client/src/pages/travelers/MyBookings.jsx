@@ -53,11 +53,8 @@ const MyBookings = () => {
   const fetchBookings = async () => {
     try {
       setLoading(true);
-      console.log("🔍 Fetching bookings...");
       const response = await bookingAPI.getUserBookings();
-      console.log("✅ Bookings response:", response.data);
       setBookings(response.data.bookings || []);
-      console.log("📝 Bookings set:", response.data.bookings?.length || 0);
     } catch (error) {
       console.error("❌ Error fetching bookings:", error);
       console.error("Error details:", error.response?.data);

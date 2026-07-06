@@ -89,8 +89,8 @@ const DocumentsTab = ({ user, onRefresh }) => {
   ];
 
   useEffect(() => {
-    console.log("👤 User prop received:", user);
-    console.log("📋 User.documents:", user?.documents);
+    
+    
     setUploadedDocuments(user?.documents || []);
   }, [user]);
 
@@ -120,18 +120,18 @@ const DocumentsTab = ({ user, onRefresh }) => {
       const response = await authAPI.uploadDocument(file, documentType);
 
       if (response.data.success) {
-        console.log("✅ Upload successful! Response:", response.data);
+        
         toast.success("Document uploaded successfully!");
 
         // Manually update the local state with the new document
         const newDocument = response.data.document;
-        console.log("📄 New document to add:", newDocument);
+        
 
         setUploadedDocuments((prevDocs) => {
-          console.log("📋 Previous documents:", prevDocs);
+          
           const filtered = prevDocs.filter((doc) => doc.type !== documentType);
           const updated = [...filtered, newDocument];
-          console.log("📋 Updated documents:", updated);
+          
           return updated;
         });
 
@@ -174,7 +174,7 @@ const DocumentsTab = ({ user, onRefresh }) => {
     return uploadedDocuments?.find((doc) => doc.type === type);
   };
 
-  console.log("🔄 Rendering. uploadedDocuments:", uploadedDocuments);
+  
 
   return (
     <Card>
