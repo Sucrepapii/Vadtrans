@@ -54,6 +54,7 @@ const LandingPage = () => {
     toCountry: "",
     serviceCategory: "passenger", // passenger or freight
     freightType: "",
+    rideType: "shared", // "shared" or "private"
   });
 
   const { states, getCitiesForState } = useLocationsAPI();
@@ -101,7 +102,11 @@ const LandingPage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    navigate("/search", { state: searchData });
+    if (searchData.rideType === "private") {
+      navigate("/request-private-ride", { state: searchData });
+    } else {
+      navigate("/search", { state: searchData });
+    }
   };
 
   return (
@@ -160,8 +165,39 @@ const LandingPage = () => {
                 <form
                 onSubmit={handleSearch}
                 className="bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-3 sm:space-y-4">
+                
+                {(() => {
+                  const activeTransportType = searchData.rideType === "private" ? "carpooling" : searchData.transportType;
+                  return (
+                    <>
+                      {/* Ride Type Toggle */}
+                      <div className="flex p-1 bg-neutral-100 rounded-lg mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setSearchData({ ...searchData, rideType: "shared" })}
+                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${
+                      searchData.rideType === "shared"
+                        ? "bg-white text-primary shadow-sm"
+                        : "text-neutral-500 hover:text-charcoal"
+                    }`}
+                  >
+                    Shared Ride
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSearchData({ ...searchData, rideType: "private" })}
+                    className={`flex-1 py-2 text-sm font-bold rounded-md transition-colors ${
+                      searchData.rideType === "private"
+                        ? "bg-white text-primary shadow-sm"
+                        : "text-neutral-500 hover:text-charcoal"
+                    }`}
+                  >
+                    Private Ride
+                  </button>
+                </div>
+
                 {/* Transport Type */}
-                <div>
+                <div className={searchData.rideType === "private" ? "hidden" : "block"}>
                   <label className="block text-sm font-medium text-charcoal mb-2">
                     Transport Type
                   </label>
@@ -191,7 +227,7 @@ const LandingPage = () => {
                 </div>
 
                 {/* FROM LOCATION */}
-                {searchData.transportType === "international" ? (
+                {activeTransportType === "international" ? (
                   <div className="space-y-3 sm:space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-charcoal mb-2">
@@ -252,7 +288,7 @@ const LandingPage = () => {
                       </div>
                     )}
                   </div>
-                ) : searchData.transportType === "all" ? (
+                ) : activeTransportType === "all" ? (
                   <div>
                     <label className="block text-sm font-medium text-charcoal mb-2">
                       From
@@ -279,7 +315,7 @@ const LandingPage = () => {
                   <>
                     <div>
                       <label className="block text-sm font-medium text-charcoal mb-2">
-                        {searchData.transportType === "carpooling" ? "State (for carpooling trip)" : "Departure State"}
+                        {activeTransportType === "carpooling" ? "State" : "Departure State"}
                       </label>
                       <div className="relative">
                         <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
@@ -289,9 +325,9 @@ const LandingPage = () => {
                             setSearchData({
                               ...searchData,
                               fromState: e.target.value,
-                              toState: searchData.transportType === "carpooling" ? e.target.value : searchData.toState,
+                              toState: activeTransportType === "carpooling" ? e.target.value : searchData.toState,
                               from: "",
-                              to: searchData.transportType === "carpooling" ? "" : searchData.to,
+                              to: activeTransportType === "carpooling" ? "" : searchData.to,
                             })
                           }
                           className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"
@@ -337,7 +373,7 @@ const LandingPage = () => {
                 )}
 
                 {/* TO LOCATION */}
-                {searchData.transportType === "international" ? (
+                {activeTransportType === "international" ? (
                   <div className="space-y-3 sm:space-y-4">
                     <div>
                       <label className="block text-sm font-medium text-charcoal mb-2">
@@ -398,7 +434,7 @@ const LandingPage = () => {
                       </div>
                     )}
                   </div>
-                ) : searchData.transportType === "all" ? (
+                ) : activeTransportType === "all" ? (
                   <div>
                     <label className="block text-sm font-medium text-charcoal mb-2">
                       To
@@ -423,7 +459,7 @@ const LandingPage = () => {
                   </div>
                 ) : (
                   <>
-                    {searchData.transportType === "inter-state" && (
+                    {activeTransportType === "inter-state" && (
                       <div>
                         <label className="block text-sm font-medium text-charcoal mb-2">
                           Destination State
@@ -513,8 +549,11 @@ const LandingPage = () => {
                 <button
                   type="submit"
                   className="w-full py-3 sm:py-4 bg-primary text-white rounded-lg font-medium hover:bg-primary-dark transition-colors sm:text-base text-base">
-                  Search Trips
+                  {searchData.rideType === "private" ? "Request Private Ride" : "Search Trips"}
                 </button>
+                    </>
+                  );
+                })()}
               </form>
             </div>
 

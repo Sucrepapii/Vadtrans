@@ -104,8 +104,8 @@ exports.createBooking = async (req, res) => {
       subtotal = parseFloat(totalAmount) || 0; // Fallback to frontend total if calculation fails
     }
 
-    const serviceFee = Math.round(subtotal * 0.05);
-    const vat = Math.round(serviceFee * 0.075);
+    const serviceFee = 0; // Math.round(subtotal * 0.05);
+    const vat = 0; // Math.round(serviceFee * 0.075);
     const bookingTotalAmount = subtotal + serviceFee + vat;
 
     console.log("Pricing calculation:", { subtotal, serviceFee, vat, total: bookingTotalAmount });

@@ -23,6 +23,7 @@ import Tracking from "./pages/travelers/Tracking";
 import Notifications from "./pages/travelers/Notifications";
 import UserProfile from "./pages/travelers/UserProfile";
 import MyBookings from "./pages/travelers/MyBookings";
+import PrivateRideBooking from "./pages/travelers/PrivateRideBooking";
 import HelpSupport from "./pages/travelers/HelpSupport";
 import ContactUs from "./pages/travelers/ContactUs";
 import FAQPage from "./pages/travelers/FAQPage";
@@ -67,6 +68,7 @@ const App = () => {
         <Route path="/reset-password/:token" element={<ResetPassword />} />
         <Route path="/search" element={<SearchResults />} />
         <Route path="/freight" element={<FreightLanding />} />
+        <Route path="/request-private-ride" element={<PrivateRideBooking />} />
         {/* New 3-step payment flow - requires auth */}
         <Route
           path="/booking/passenger-info"

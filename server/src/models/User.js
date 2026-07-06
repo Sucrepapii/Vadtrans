@@ -115,6 +115,16 @@ const User = sequelize.define(
       type: DataTypes.ENUM("traveler", "company", "admin", "finance", "moderator"),
       defaultValue: "traveler",
     },
+    isOnline: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: "For companies/drivers to indicate if they are available for private rides",
+    },
+    ridePreference: {
+      type: DataTypes.ENUM("shared", "private", "both"),
+      defaultValue: "both",
+      comment: "Driver preference for receiving ride requests",
+    },
     avatar: {
       type: DataTypes.TEXT,
       allowNull: true,

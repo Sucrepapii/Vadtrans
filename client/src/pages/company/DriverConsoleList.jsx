@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { tripAPI } from "../../services/api";
+import api from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
@@ -13,17 +14,57 @@ import {
   FaArrowRight,
   FaSearch,
   FaMapMarkerAlt,
+  FaUserSecret,
 } from "react-icons/fa";
+import { useAuth } from "../../context/AuthContext";
 
 const DriverConsoleList = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [trips, setTrips] = useState([]);
+  const [privateRequests, setPrivateRequests] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("shared");
+  const [isOnline, setIsOnline] = useState(user?.isOnline || false);
+  const [bidAmount, setBidAmount] = useState({});
 
   useEffect(() => {
     fetchTrips();
+    fetchPrivateRequests();
   }, []);
+
+  const fetchPrivateRequests = async () => {
+    try {
+      const res = await api.get("/private-rides");
+      setPrivateRequests(res.data.requests || []);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const toggleOnline = async () => {
+    try {
+      const newStatus = !isOnline;
+      await api.put("/auth/profile", { isOnline: newStatus });
+      setIsOnline(newStatus);
+      toast.success(newStatus ? "You are now ONLINE" : "You are now OFFLINE");
+    } catch (err) {
+      toast.error("Failed to update status");
+    }
+  };
+
+  const handleBid = async (requestId) => {
+    try {
+      const amount = bidAmount[requestId];
+      if (!amount) return toast.error("Please enter a bid amount");
+      await api.post(`/private-rides/${requestId}/bid`, { bidAmount: amount });
+      toast.success("Bid placed successfully!");
+      fetchPrivateRequests();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to place bid");
+    }
+  };
 
   const fetchTrips = async () => {
     try {
@@ -58,10 +99,31 @@ const DriverConsoleList = () => {
                 Driver Console
               </h1>
               <p className="text-neutral-600">
-                Select a trip to start broadcasting your location.
+                Manage your trips and private requests.
               </p>
             </div>
-            <div className="relative w-full md:w-64">
+            
+            <div className="flex flex-col md:flex-row items-center gap-4">
+              <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg border border-neutral-200">
+                <span className="text-sm font-bold text-charcoal">Status:</span>
+                <button
+                  onClick={toggleOnline}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                    isOnline ? "bg-green-500" : "bg-neutral-300"
+                  }`}
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      isOnline ? "translate-x-6" : "translate-x-1"
+                    }`}
+                  />
+                </button>
+                <span className={`text-sm font-bold ${isOnline ? "text-green-600" : "text-neutral-500"}`}>
+                  {isOnline ? "ONLINE" : "OFFLINE"}
+                </span>
+              </div>
+
+              <div className="relative w-full md:w-64">
               <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
               <input
                 type="text"
@@ -72,74 +134,155 @@ const DriverConsoleList = () => {
               />
             </div>
           </div>
+        </div>
+
+          {/* Tabs */}
+          <div className="flex gap-4 mb-6 border-b border-neutral-200 pb-2">
+            <button
+              onClick={() => setActiveTab("shared")}
+              className={`px-4 py-2 font-bold transition-colors ${
+                activeTab === "shared" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-charcoal"
+              }`}
+            >
+              Shared Trips
+            </button>
+            <button
+              onClick={() => setActiveTab("private")}
+              className={`px-4 py-2 font-bold transition-colors ${
+                activeTab === "private" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-charcoal"
+              }`}
+            >
+              Private Requests
+            </button>
+          </div>
 
           {loading ? (
             <div className="text-center py-12">
               <p className="text-neutral-500">Loading trips...</p>
             </div>
-          ) : filteredTrips.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-neutral-100">
-              <FaBus className="mx-auto text-4xl text-neutral-300 mb-4" />
-              <h3 className="text-lg font-semibold text-charcoal mb-2">
-                No trips found
-              </h3>
-              <p className="text-neutral-500 mb-6">
-                You haven't created any trips yet, or none matched your search.
-              </p>
-              <Button
-                variant="primary"
-                onClick={() => navigate("/company/tickets")}>
-                Create New Trip
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredTrips.map((trip) => (
-                <div
-                  key={trip.id}
-                  className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden hover:shadow-md transition-all group">
-                  <div className="p-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full uppercase tracking-wider">
-                        {trip.transportType}
-                      </span>
-                      <span
-                        className={`text-xs font-medium px-2 py-1 rounded ${
-                          trip.status === "active"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-neutral-100 text-neutral-600"
-                        }`}>
-                        {trip.status}
-                      </span>
-                    </div>
+          ) : activeTab === "shared" ? (
+            filteredTrips.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-neutral-100">
+                <FaBus className="mx-auto text-4xl text-neutral-300 mb-4" />
+                <h3 className="text-lg font-semibold text-charcoal mb-2">
+                  No trips found
+                </h3>
+                <p className="text-neutral-500 mb-6">
+                  You haven't created any trips yet, or none matched your search.
+                </p>
+                <Button
+                  variant="primary"
+                  onClick={() => navigate("/company/tickets")}>
+                  Create New Trip
+                </Button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredTrips.map((trip) => (
+                  <div
+                    key={trip.id}
+                    className="bg-white rounded-xl shadow-sm border border-neutral-200 overflow-hidden hover:shadow-md transition-all group">
+                    <div className="p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-bold rounded-full uppercase tracking-wider">
+                          {trip.transportType}
+                        </span>
+                        <span
+                          className={`text-xs font-medium px-2 py-1 rounded ${
+                            trip.status === "active"
+                              ? "bg-green-100 text-green-700"
+                              : "bg-neutral-100 text-neutral-600"
+                          }`}>
+                          {trip.status}
+                        </span>
+                      </div>
 
-                    <h3 className="text-lg font-bold text-charcoal mb-1 flex items-center gap-2">
-                      {trip.from}{" "}
-                      <FaArrowRight className="text-sm text-neutral-400" />{" "}
-                      {trip.to}
-                    </h3>
+                      <h3 className="text-lg font-bold text-charcoal mb-1 flex items-center gap-2">
+                        {trip.from}{" "}
+                        <FaArrowRight className="text-sm text-neutral-400" />{" "}
+                        {trip.to}
+                      </h3>
 
-                    <div className="flex items-center gap-2 text-neutral-500 text-sm mb-6">
-                      <FaClock className="text-primary" />
-                      {trip.departureTime}
-                    </div>
+                      <div className="flex items-center gap-2 text-neutral-500 text-sm mb-6">
+                        <FaClock className="text-primary" />
+                        {trip.departureTime}
+                      </div>
 
-                    <div className="border-t border-neutral-100 pt-4 mt-auto">
-                      <Button
-                        variant="primary"
-                        fullWidth
-                        onClick={() =>
-                          navigate(`/company/driver-console/${trip.id}`)
-                        }
-                        className="flex items-center justify-center gap-2 group-hover:bg-primary-dark transition-colors">
-                        <FaMapMarkerAlt /> Start Trip
-                      </Button>
+                      <div className="border-t border-neutral-100 pt-4 mt-auto">
+                        <Button
+                          variant="primary"
+                          fullWidth
+                          onClick={() =>
+                            navigate(`/company/driver-console/${trip.id}`)
+                          }
+                          className="flex items-center justify-center gap-2 group-hover:bg-primary-dark transition-colors">
+                          <FaMapMarkerAlt /> Start Trip
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )
+          ) : activeTab === "private" ? (
+            privateRequests.length === 0 ? (
+              <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-neutral-100">
+                <FaUserSecret className="mx-auto text-4xl text-neutral-300 mb-4" />
+                <h3 className="text-lg font-semibold text-charcoal mb-2">No Private Requests</h3>
+                <p className="text-neutral-500">Go online to receive private ride requests.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {privateRequests.map(req => (
+                  <div key={req.id} className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
+                    <div className="flex justify-between items-start mb-4">
+                      <div>
+                        <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full uppercase">
+                          {req.rideType}
+                        </span>
+                        <span className={`ml-2 text-xs font-bold px-2 py-1 rounded ${
+                          req.status === "searching" ? "bg-yellow-100 text-yellow-700" :
+                          req.status === "driver_assigned" ? "bg-blue-100 text-blue-700" :
+                          "bg-green-100 text-green-700"
+                        }`}>
+                          {req.status.replace("_", " ").toUpperCase()}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <h3 className="text-lg font-bold text-charcoal mb-1 flex items-center gap-2">
+                      {req.pickupLocation} <FaArrowRight className="text-sm text-neutral-400" /> {req.destination}
+                    </h3>
+                    <div className="flex gap-4 text-sm text-neutral-600 mb-4">
+                      <span className="flex items-center gap-1"><FaClock /> {req.pickupDate} at {req.pickupTime}</span>
+                      <span>Passengers: {req.passengersCount}</span>
+                    </div>
+
+                    {req.status === "searching" && (
+                      <div className="mt-4 pt-4 border-t border-neutral-100 flex gap-2">
+                        <input
+                          type="number"
+                          placeholder="Your bid (₦)"
+                          value={bidAmount[req.id] || ""}
+                          onChange={(e) => setBidAmount({...bidAmount, [req.id]: e.target.value})}
+                          className="flex-1 px-3 py-2 border border-neutral-300 rounded focus:border-primary focus:outline-none"
+                        />
+                        <Button onClick={() => handleBid(req.id)} variant="primary">Place Bid</Button>
+                      </div>
+                    )}
+
+                    {req.status !== "searching" && req.driverId === user?.id && (
+                      <div className="mt-4 pt-4 border-t border-neutral-100">
+                        <Button variant="primary" fullWidth onClick={() => navigate(`/company/private-driver-console/${req.id}`)}>
+                          Go to Tracking Console
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )
+          ) : null}
         </div>
       </div>
       <Footer />

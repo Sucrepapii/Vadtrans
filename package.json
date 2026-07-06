@@ -1,7 +1,17 @@
 {
+  "name": "vadtrans",
+  "version": "1.0.0",
+  "scripts": {
+    "dev:server": "cd server && npm run dev",
+    "dev:client": "cd client && npm run dev",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\""
+  },
   "dependencies": {
     "@cloudinary/react": "^1.14.4",
     "@cloudinary/url-gen": "^1.22.0",
     "cloudinary": "^2.10.0"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
   }
 }
