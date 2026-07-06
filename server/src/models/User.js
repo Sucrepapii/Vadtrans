@@ -97,10 +97,6 @@ const User = sequelize.define(
       type: DataTypes.JSON,
       allowNull: true,
     },
-    status: {
-      type: DataTypes.ENUM("active", "suspended", "inactive"),
-      defaultValue: "active",
-    },
     verificationStatus: {
       type: DataTypes.ENUM("pending", "verified", "rejected"),
       defaultValue: "pending",
