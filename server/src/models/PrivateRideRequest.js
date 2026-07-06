@@ -22,13 +22,26 @@ const PrivateRideRequest = sequelize.define(
         key: "id",
       },
     },
+    pickupState: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     pickupLocation: {
       type: DataTypes.STRING,
       allowNull: false,
     },
+    destinationState: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
     destination: {
       type: DataTypes.STRING,
       allowNull: false,
+    },
+    stops: {
+      type: DataTypes.JSON,
+      allowNull: true,
+      defaultValue: [],
     },
     pickupDate: {
       type: DataTypes.DATEONLY,

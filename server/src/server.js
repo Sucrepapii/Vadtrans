@@ -212,6 +212,35 @@ const initializeDatabase = async () => {
       console.log("ℹ️ Note: Users table checking error:", err.message);
     }
 
+    // Force add missing columns for PrivateRideRequests
+    try {
+      const prrTableInfo = await queryInterface.describeTable("PrivateRideRequests");
+      if (!prrTableInfo.pickupState) {
+        console.log("ℹ️ Adding missing column 'pickupState' to PrivateRideRequests...");
+        await queryInterface.addColumn("PrivateRideRequests", "pickupState", {
+          type: DataTypes.STRING,
+          allowNull: true,
+        });
+      }
+      if (!prrTableInfo.destinationState) {
+        console.log("ℹ️ Adding missing column 'destinationState' to PrivateRideRequests...");
+        await queryInterface.addColumn("PrivateRideRequests", "destinationState", {
+          type: DataTypes.STRING,
+          allowNull: true,
+        });
+      }
+      if (!prrTableInfo.stops) {
+        console.log("ℹ️ Adding missing column 'stops' to PrivateRideRequests...");
+        await queryInterface.addColumn("PrivateRideRequests", "stops", {
+          type: DataTypes.JSON,
+          allowNull: true,
+          defaultValue: [],
+        });
+      }
+    } catch (err) {
+      console.log("ℹ️ Note: PrivateRideRequests table checking error:", err.message);
+    }
+
     // Force add missing columns for Bookings (for production environments where alter:true might fail)
     const tableInfo = await queryInterface.describeTable("Bookings");
 

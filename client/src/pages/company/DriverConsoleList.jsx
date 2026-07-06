@@ -250,10 +250,32 @@ const DriverConsoleList = () => {
                       </div>
                     </div>
                     
-                    <h3 className="text-lg font-bold text-charcoal mb-1 flex items-center gap-2">
-                      {req.pickupLocation} <FaArrowRight className="text-sm text-neutral-400" /> {req.destination}
+                    <h3 className="text-lg font-bold text-charcoal mb-1 flex flex-col gap-1">
+                      <span className="flex items-start gap-2">
+                        <span className="text-green-600 mt-1">●</span> 
+                        <span className="text-sm">{req.pickupLocation}{req.pickupState ? `, ${req.pickupState}` : ''}</span>
+                      </span>
+                      <span className="flex items-start gap-2">
+                        <FaMapMarkerAlt className="text-red-500 mt-1" />
+                        <span className="text-sm">{req.destination}{req.destinationState ? `, ${req.destinationState}` : ''}</span>
+                      </span>
                     </h3>
-                    <div className="flex gap-4 text-sm text-neutral-600 mb-4">
+                    
+                    {req.stops && req.stops.length > 0 && (
+                      <div className="mb-3 p-3 bg-neutral-50 rounded-lg border border-neutral-100">
+                        <p className="text-xs font-bold text-neutral-500 uppercase tracking-wider mb-2">Intermediate Stops</p>
+                        <ul className="text-sm text-charcoal space-y-1">
+                          {req.stops.map((stop, i) => (
+                            <li key={i} className="flex items-center gap-2">
+                              <span className="w-4 h-4 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center text-[10px] font-bold">{i+1}</span>
+                              {stop}
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+
+                    <div className="flex gap-4 text-sm text-neutral-600 mb-4 mt-2 border-t border-neutral-100 pt-3">
                       <span className="flex items-center gap-1"><FaClock /> {req.pickupDate} at {req.pickupTime}</span>
                       <span>Passengers: {req.passengersCount}</span>
                     </div>

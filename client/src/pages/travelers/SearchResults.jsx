@@ -666,7 +666,7 @@ const SearchResults = () => {
                   { id: "inter-state", label: "Inter-State" },
                   { id: "carpooling", label: "Carpooling" },
                   { id: "international", label: "International" },
-                  { id: "private", label: "⭐ Private Ride" },
+                  { id: "private", label: " Private Ride" },
                 ].map((filter) => (
                   <button
                     key={filter.id}
@@ -774,7 +774,7 @@ const SearchResults = () => {
                           <option value="inter-state">Inter-State</option>
                           <option value="carpooling">Carpooling</option>
                           <option value="international">International</option>
-                          <option value="private" className="font-bold text-primary">⭐ Private Ride</option>
+                          <option value="private" className="font-bold text-primary"> Private Ride</option>
                         </select>
                       </div>
                     </div>

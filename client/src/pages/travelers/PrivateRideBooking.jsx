@@ -30,26 +30,25 @@ const PrivateRideBooking = () => {
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeRequest, setActiveRequest] = useState(null);
+  const [stops, setStops] = useState([]); // Array of strings for intermediate stops
 
-  const { states, getCitiesForState } = useLocationsAPI();
-  const [pickupCities, setPickupCities] = useState([]);
-  const [destinationCities, setDestinationCities] = useState([]);
+  const { states } = useLocationsAPI();
 
-  useEffect(() => {
-    if (formData.pickupState) {
-      getCitiesForState(formData.pickupState).then(cities => setPickupCities(cities || []));
-    } else {
-      setPickupCities([]);
-    }
-  }, [formData.pickupState, getCitiesForState]);
+  const handleAddStop = () => {
+    setStops([...stops, ""]);
+  };
 
-  useEffect(() => {
-    if (formData.destinationState) {
-      getCitiesForState(formData.destinationState).then(cities => setDestinationCities(cities || []));
-    } else {
-      setDestinationCities([]);
-    }
-  }, [formData.destinationState, getCitiesForState]);
+  const handleRemoveStop = (index) => {
+    const newStops = [...stops];
+    newStops.splice(index, 1);
+    setStops(newStops);
+  };
+
+  const handleStopChange = (index, value) => {
+    const newStops = [...stops];
+    newStops[index] = value;
+    setStops(newStops);
+  };
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -89,7 +88,13 @@ const PrivateRideBooking = () => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await api.post("/private-rides/request", formData);
+      // Filter out any empty stops
+      const validStops = stops.filter(s => s.trim() !== "");
+      
+      const res = await api.post("/private-rides/request", {
+        ...formData,
+        stops: validStops
+      });
       toast.success("Request sent to drivers! Waiting for bids.");
       setActiveRequest({ ...res.data.request, bids: [] });
     } catch (error) {
@@ -125,7 +130,7 @@ const PrivateRideBooking = () => {
                   <select
                     name="pickupState"
                     value={formData.pickupState}
-                    onChange={(e) => setFormData(prev => ({ ...prev, pickupState: e.target.value, pickupLocation: "" }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, pickupState: e.target.value }))}
                     className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
                     required
                   >
@@ -134,17 +139,15 @@ const PrivateRideBooking = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-charcoal mb-2">Pickup City</label>
-                  <select
+                  <Input
+                    label="Pickup Address (Exact Location)"
+                    type="text"
                     name="pickupLocation"
                     value={formData.pickupLocation}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
+                    placeholder="E.g. 123 Main St, Ikeja"
                     required
-                  >
-                    <option value="">Select City</option>
-                    {pickupCities.map(city => <option key={city} value={city}>{city}</option>)}
-                  </select>
+                  />
                 </div>
               </div>
 
@@ -154,7 +157,7 @@ const PrivateRideBooking = () => {
                   <select
                     name="destinationState"
                     value={formData.destinationState}
-                    onChange={(e) => setFormData(prev => ({ ...prev, destinationState: e.target.value, destination: "" }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, destinationState: e.target.value }))}
                     className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
                     required
                   >
@@ -163,18 +166,52 @@ const PrivateRideBooking = () => {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-charcoal mb-2">Destination City</label>
-                  <select
+                  <Input
+                    label="Drop Off Address (Exact Location)"
+                    type="text"
                     name="destination"
                     value={formData.destination}
                     onChange={handleChange}
-                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
+                    placeholder="E.g. 456 Broad St, Marina"
                     required
-                  >
-                    <option value="">Select City</option>
-                    {destinationCities.map(city => <option key={city} value={city}>{city}</option>)}
-                  </select>
+                  />
                 </div>
+              </div>
+
+              {/* Stops Section */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className="block text-sm font-medium text-charcoal">Intermediate Stops</label>
+                  <button 
+                    type="button" 
+                    onClick={handleAddStop}
+                    className="text-xs font-bold text-primary hover:text-primary-dark transition-colors bg-primary/10 px-3 py-1 rounded-full"
+                  >
+                    + Add Stop
+                  </button>
+                </div>
+                {stops.map((stop, index) => (
+                  <div key={index} className="flex items-center gap-2 animate-in slide-in-from-top-2">
+                    <div className="flex-1">
+                      <input
+                        type="text"
+                        value={stop}
+                        onChange={(e) => handleStopChange(index, e.target.value)}
+                        placeholder={`Stop ${index + 1} Address`}
+                        className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
+                        required
+                      />
+                    </div>
+                    <button 
+                      type="button" 
+                      onClick={() => handleRemoveStop(index)}
+                      className="p-3 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                      title="Remove Stop"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -292,7 +329,10 @@ const PrivateRideBooking = () => {
                       )}
                       <div>
                         <h4 className="font-bold text-lg text-charcoal">{bid.driver?.name}</h4>
-                        <p className="text-sm text-neutral-500">{bid.driver?.vehicles} Vehicles Available</p>
+                        <p className="text-sm text-neutral-500 mb-1">{bid.driver?.vehicles} Vehicles Available</p>
+                        <p className="text-sm font-bold text-primary flex items-center gap-1">
+                          <span className="text-xs">📞</span> {bid.driver?.phone}
+                        </p>
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 w-full md:w-auto">

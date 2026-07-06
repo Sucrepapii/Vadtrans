@@ -8,12 +8,15 @@ const { Op } = require("sequelize");
 // @access  Private (Traveler)
 exports.createRequest = async (req, res) => {
   try {
-    const { pickupLocation, destination, pickupDate, pickupTime, rideType, passengersCount, luggageInfo, specialNotes, needsAC } = req.body;
+    const { pickupState, pickupLocation, destinationState, destination, stops, pickupDate, pickupTime, rideType, passengersCount, luggageInfo, specialNotes, needsAC } = req.body;
     
     const request = await PrivateRideRequest.create({
       passengerId: req.user.id,
+      pickupState,
       pickupLocation,
+      destinationState,
       destination,
+      stops,
       pickupDate,
       pickupTime,
       rideType,
