@@ -97,9 +97,8 @@ exports.acceptBid = async (req, res) => {
     }
 
     // Update request
-    bid.request.driverId = bid.driverId;
     bid.request.agreedPrice = bid.bidAmount;
-    bid.request.status = "driver_assigned";
+    bid.request.status = "awaiting_payment";
     await bid.request.save();
 
     // Update bid status
@@ -159,8 +158,13 @@ exports.cancelRequest = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
-    if (request.status !== "searching") {
-      return res.status(400).json({ success: false, message: "Can only cancel requests that are searching" });
+    if (request.status !== "searching" && request.status !== "awaiting_payment") {
+      return res.status(400).json({ success: false, message: "Can only cancel requests that are searching or awaiting payment" });
+    }
+
+    // If there is an accepted bid, we should probably mark it as rejected or cancelled
+    if (request.status === "awaiting_payment") {
+      await RideBid.update({ status: "rejected" }, { where: { requestId: request.id, status: "accepted" }});
     }
 
     request.status = "cancelled";
@@ -244,9 +248,19 @@ exports.verifyPayment = async (req, res) => {
         return res.status(400).json({ success: false, message: "Private Ride ID missing" });
       }
 
-      const request = await PrivateRideRequest.findByPk(privateRideId);
+      const request = await PrivateRideRequest.findByPk(privateRideId, {
+        include: [{ model: RideBid, as: "bids", where: { status: "accepted" }, required: false }]
+      });
+      
       if (request) {
         request.paymentStatus = "paid";
+        request.status = "driver_assigned"; // Officially assign driver now
+
+        // Find the accepted bid and assign the driver
+        if (request.bids && request.bids.length > 0) {
+          request.driverId = request.bids[0].driverId;
+        }
+
         // Calculate 20% commission on the agreed price
         request.commissionAmount = request.agreedPrice * 0.20;
         await request.save();

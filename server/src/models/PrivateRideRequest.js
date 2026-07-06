@@ -73,7 +73,7 @@ const PrivateRideRequest = sequelize.define(
       defaultValue: true,
     },
     status: {
-      type: DataTypes.ENUM("searching", "driver_assigned", "en_route", "arrived", "started", "completed", "cancelled"),
+      type: DataTypes.ENUM("searching", "awaiting_payment", "driver_assigned", "en_route", "arrived", "started", "completed", "cancelled"),
       defaultValue: "searching",
     },
     driverId: {

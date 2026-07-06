@@ -32,12 +32,21 @@ const DriverConsoleList = () => {
   useEffect(() => {
     fetchTrips();
     fetchPrivateRequests();
+
+    // Poll for private requests every 5 seconds so they see new ones and cancelled ones clear out
+    const interval = setInterval(() => {
+      fetchPrivateRequests();
+    }, 5000);
+
+    return () => clearInterval(interval);
   }, []);
 
   const fetchPrivateRequests = async () => {
     try {
       const res = await api.get("/private-rides");
-      setPrivateRequests(res.data.requests || []);
+      // Only keep non-cancelled requests in the driver's view unless they are assigned
+      const activeRequests = res.data.requests?.filter(req => req.status !== "cancelled" || req.driverId === user?.id) || [];
+      setPrivateRequests(activeRequests);
     } catch (error) {
       console.error(error);
     }

@@ -118,11 +118,9 @@ const PrivateRideBooking = () => {
 
   const cancelRequest = async () => {
     try {
-      if (window.confirm("Are you sure you want to cancel this request?")) {
-        await api.post(`/private-rides/${activeRequest.id}/cancel`);
-        toast.info("Request cancelled successfully.");
-        setActiveRequest(null);
-      }
+      await api.post(`/private-rides/${activeRequest.id}/cancel`);
+      toast.info("Request cancelled successfully.");
+      setActiveRequest(null);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to cancel request");
     }
