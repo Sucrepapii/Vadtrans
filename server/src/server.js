@@ -600,6 +600,15 @@ const addDriverContactColumn = async () => {
       });
       console.log("✅ Column 'driverContact' added successfully");
     }
+    const userTableInfo = await queryInterface.describeTable("Users");
+    if (!userTableInfo.pushSubscription) {
+      console.log("ℹ️ Adding missing column 'pushSubscription' to Users...");
+      await queryInterface.addColumn("Users", "pushSubscription", {
+        type: DataTypes.JSON,
+        allowNull: true,
+      });
+      console.log("✅ Column 'pushSubscription' added successfully");
+    }
   } catch (err) {
     console.log("ℹ️ driverContact migration note:", err.message);
   }

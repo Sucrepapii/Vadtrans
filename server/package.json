@@ -37,7 +37,8 @@
     "pg-hstore": "^2.3.4",
     "resend": "^6.8.0",
     "sequelize": "^6.37.7",
-    "sqlite3": "^5.1.7"
+    "sqlite3": "^5.1.7",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.3"

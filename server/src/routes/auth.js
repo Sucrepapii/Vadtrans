@@ -28,6 +28,7 @@ router.post("/reset-password/:token", resetPassword);
 router.get("/me", protect, getMe);
 router.put("/profile", protect, updateProfile);
 router.put("/change-password", protect, changePassword);
+router.post("/push-subscribe", protect, require("../controllers/authController").subscribeToPush);
 
 // Document upload routes
 router.post(

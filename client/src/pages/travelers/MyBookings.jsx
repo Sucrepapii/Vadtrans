@@ -5,7 +5,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Modal from "../../components/Modal";
 import Button from "../../components/Button";
-import { bookingAPI } from "../../services/api";
+import api, { bookingAPI } from "../../services/api";
 import {
   FaEye,
   FaSpinner,
@@ -21,6 +21,9 @@ const MyBookings = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("latest");
+  const [activeTab, setActiveTab] = useState("shared"); // "shared" or "private"
+  const [privateRides, setPrivateRides] = useState([]);
+  const [loadingPrivate, setLoadingPrivate] = useState(false);
 
   // Cancellation Modal State
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -32,7 +35,20 @@ const MyBookings = () => {
 
   useEffect(() => {
     fetchBookings();
+    fetchPrivateRides();
   }, []);
+
+  const fetchPrivateRides = async () => {
+    try {
+      setLoadingPrivate(true);
+      const res = await api.get("/private-rides");
+      setPrivateRides(res.data.requests || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoadingPrivate(false);
+    }
+  };
 
   const fetchBookings = async () => {
     try {
@@ -134,11 +150,33 @@ const MyBookings = () => {
               <FaArrowLeft />
             </button>
             <h1 className="text-2xl sm:text-3xl font-raleway font-bold text-charcoal">
-              Tickets List
+              My Bookings
             </h1>
           </div>
 
-          {/* Filters */}
+          {/* Tabs */}
+          <div className="flex border-b border-neutral-200 mb-6">
+            <button
+              onClick={() => setActiveTab("shared")}
+              className={`px-6 py-3 font-bold text-sm uppercase tracking-wider transition-colors border-b-2 ${
+                activeTab === "shared" ? "border-primary text-primary" : "border-transparent text-neutral-500 hover:text-charcoal"
+              }`}
+            >
+              Shared Tickets
+            </button>
+            <button
+              onClick={() => setActiveTab("private")}
+              className={`px-6 py-3 font-bold text-sm uppercase tracking-wider transition-colors border-b-2 ${
+                activeTab === "private" ? "border-primary text-primary" : "border-transparent text-neutral-500 hover:text-charcoal"
+              }`}
+            >
+              Private Rides
+            </button>
+          </div>
+
+          {activeTab === "shared" ? (
+            <>
+              {/* Filters */}
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
             <div className="flex items-center gap-2">
               <select
@@ -407,6 +445,80 @@ const MyBookings = () => {
                 </div>
               )}
             </>
+          )}
+          </>
+          ) : (
+            // Private Rides Tab Content
+            <div>
+              {loadingPrivate ? (
+                <div className="flex items-center justify-center py-16 bg-white rounded-lg">
+                  <FaSpinner className="animate-spin text-4xl text-primary" />
+                </div>
+              ) : privateRides.length === 0 ? (
+                <div className="bg-white rounded-lg border border-neutral-200 p-16 text-center">
+                  <p className="text-neutral-600 text-lg mb-2">No private rides found</p>
+                  <button
+                    onClick={() => navigate("/request-private-ride")}
+                    className="px-6 py-2 bg-primary text-white rounded-lg mt-4 hover:bg-primary-dark transition-colors">
+                    Request a Private Ride
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {privateRides.map(ride => (
+                    <div key={ride.id} className="bg-white border border-neutral-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                      <div>
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase ${
+                            ride.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            ride.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                            ride.status === 'searching' ? 'bg-yellow-100 text-yellow-800 animate-pulse' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {ride.status.replace("_", " ")}
+                          </span>
+                          <span className="text-sm font-bold text-neutral-500">{formatDate(ride.createdAt)}</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-lg font-bold text-charcoal">
+                          <span>{ride.pickupLocation}</span>
+                          <FaArrowRight className="text-primary text-sm" />
+                          <span>{ride.destination}</span>
+                        </div>
+                        <div className="text-sm text-neutral-600 mt-1">
+                          {ride.rideType.replace("-", " ")} • {ride.passengersCount} Passenger(s)
+                        </div>
+                      </div>
+                      
+                      <div className="flex flex-col items-end gap-2">
+                        {ride.driverId ? (
+                          <div className="text-right">
+                            <p className="text-sm text-neutral-500">Driver Assigned</p>
+                            <p className="font-bold text-charcoal">{ride.driver?.name || "View details"}</p>
+                            <p className="text-xs text-primary font-bold">📞 {ride.driver?.phone}</p>
+                          </div>
+                        ) : ride.status === "awaiting_payment" ? (
+                          <p className="text-amber-600 font-bold text-sm">Awaiting Payment</p>
+                        ) : null}
+                        
+                        <div className="flex gap-2 mt-2">
+                          {ride.status === 'searching' || ride.status === 'awaiting_payment' ? (
+                            <button
+                              onClick={() => {
+                                // Direct them to the booking flow modal
+                                navigate('/request-private-ride');
+                              }}
+                              className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg"
+                            >
+                              View Request
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           )}
         </div>
       </div>

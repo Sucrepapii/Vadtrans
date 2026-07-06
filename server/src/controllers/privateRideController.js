@@ -3,6 +3,8 @@ const RideBid = require("../models/RideBid");
 const User = require("../models/User");
 const { Op } = require("sequelize");
 
+const { sendPushNotification } = require("../utils/pushService");
+
 // @desc    Create private ride request
 // @route   POST /api/private-rides/request
 // @access  Private (Traveler)
@@ -25,6 +27,28 @@ exports.createRequest = async (req, res) => {
       specialNotes,
       needsAC
     });
+
+    // Find all online drivers who accept private rides
+    const onlineDrivers = await User.findAll({
+      where: {
+        role: "company",
+        isOnline: true,
+        ridePreference: { [Op.in]: ["private", "both"] },
+        pushSubscription: { [Op.ne]: null }
+      }
+    });
+
+    // Send push notification to all matching drivers
+    const pushPromises = onlineDrivers.map(driver => {
+      return sendPushNotification(driver.pushSubscription, {
+        title: "New Private Ride Request!",
+        body: `Pickup: ${pickupLocation}\nDropoff: ${destination}`,
+        url: "/company/driver-console"
+      });
+    });
+
+    // Execute push notifications asynchronously without blocking the response
+    Promise.allSettled(pushPromises).catch(err => console.error("Push Error:", err));
 
     res.status(201).json({ success: true, request });
   } catch (error) {

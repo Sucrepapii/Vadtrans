@@ -826,3 +826,29 @@ exports.resetPassword = async (req, res) => {
     });
   }
 };
+
+// @desc    Subscribe to push notifications
+// @route   POST /api/auth/push-subscribe
+// @access  Private
+exports.subscribeToPush = async (req, res) => {
+  try {
+    const { subscription } = req.body;
+    
+    if (!subscription) {
+      return res.status(400).json({ success: false, message: "Subscription object is required" });
+    }
+
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.pushSubscription = subscription;
+    await user.save();
+
+    res.status(200).json({ success: true, message: "Push subscription saved successfully" });
+  } catch (error) {
+    console.error("Push subscribe error:", error);
+    res.status(500).json({ success: false, message: "Error saving subscription", error: error.message });
+  }
+};

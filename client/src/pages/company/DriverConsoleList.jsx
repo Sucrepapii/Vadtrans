@@ -17,6 +17,7 @@ import {
   FaUserSecret,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
+import { subscribeUserToPush } from "../../utils/pushHelper";
 
 const DriverConsoleList = () => {
   const navigate = useNavigate();
@@ -58,6 +59,14 @@ const DriverConsoleList = () => {
       await api.put("/auth/profile", { isOnline: newStatus });
       setIsOnline(newStatus);
       toast.success(newStatus ? "You are now ONLINE" : "You are now OFFLINE");
+
+      // Subscribe to push notifications if they just went online
+      if (newStatus) {
+        const subscription = await subscribeUserToPush();
+        if (subscription) {
+          await api.post("/auth/push-subscribe", { subscription });
+        }
+      }
     } catch (err) {
       toast.error("Failed to update status");
     }
