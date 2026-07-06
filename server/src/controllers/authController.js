@@ -423,6 +423,8 @@ exports.updateProfile = async (req, res) => {
       routes,
       bankDetails,
       freightCapabilities,
+      isOnline,
+      ridePreference,
     } = req.body;
 
     const user = await User.findByPk(req.user.id);
@@ -466,6 +468,8 @@ exports.updateProfile = async (req, res) => {
         accountName:
           bankDetails?.accountName || user.bankDetails?.accountName || "",
       };
+      if (isOnline !== undefined) user.isOnline = isOnline;
+      if (ridePreference !== undefined) user.ridePreference = ridePreference;
     }
 
     await user.save();

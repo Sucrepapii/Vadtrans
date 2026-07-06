@@ -20,4 +20,7 @@ router.put("/:id/status", authorize("company", "admin"), privateRideController.u
 // Shared route (get own requests)
 router.get("/", privateRideController.getMyRides);
 
+// Cancel route
+router.post("/:id/cancel", authorize("traveler", "admin"), privateRideController.cancelRequest);
+
 module.exports = router;

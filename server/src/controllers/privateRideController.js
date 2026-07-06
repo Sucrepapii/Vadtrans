@@ -144,13 +144,49 @@ exports.updateRideStatus = async (req, res) => {
   }
 };
 
+// @desc    Passenger cancel request
+// @route   POST /api/private-rides/:id/cancel
+// @access  Private (Traveler)
+exports.cancelRequest = async (req, res) => {
+  try {
+    const request = await PrivateRideRequest.findByPk(req.params.id);
+    
+    if (!request) {
+      return res.status(404).json({ success: false, message: "Request not found" });
+    }
+    
+    if (request.passengerId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    if (request.status !== "searching") {
+      return res.status(400).json({ success: false, message: "Can only cancel requests that are searching" });
+    }
+
+    request.status = "cancelled";
+    await request.save();
+
+    res.status(200).json({ success: true, message: "Request cancelled" });
+  } catch (error) {
+    console.error("Cancel Request Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 // @desc    Get passenger's or driver's ride requests
 // @route   GET /api/private-rides
 // @access  Private
 exports.getMyRides = async (req, res) => {
   try {
     const isCompany = req.user.role === "company";
-    const where = isCompany ? { driverId: req.user.id } : { passengerId: req.user.id };
+    const where = isCompany 
+      ? { 
+          [Op.or]: [
+            { status: "searching" },
+            { driverId: req.user.id }
+          ]
+        } 
+      : { passengerId: req.user.id };
 
     // Include bids if it's a passenger so they can see driver responses
     const requests = await PrivateRideRequest.findAll({

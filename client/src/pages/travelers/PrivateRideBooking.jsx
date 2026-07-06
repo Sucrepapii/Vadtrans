@@ -116,6 +116,18 @@ const PrivateRideBooking = () => {
     }
   };
 
+  const cancelRequest = async () => {
+    try {
+      if (window.confirm("Are you sure you want to cancel this request?")) {
+        await api.post(`/private-rides/${activeRequest.id}/cancel`);
+        toast.info("Request cancelled successfully.");
+        setActiveRequest(null);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to cancel request");
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
       <Navbar variant="desktop" />
@@ -303,11 +315,19 @@ const PrivateRideBooking = () => {
         ) : (
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-charcoal">Waiting for Bids</h2>
-                <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-bold animate-pulse">
-                  Searching...
-                </span>
+              <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
+                <div className="flex items-center gap-4">
+                  <h2 className="text-2xl font-bold text-charcoal">Waiting for Bids</h2>
+                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-bold animate-pulse">
+                    Searching...
+                  </span>
+                </div>
+                <button
+                  onClick={cancelRequest}
+                  className="px-4 py-2 bg-red-50 text-red-600 hover:bg-red-100 font-bold rounded-lg transition-colors text-sm"
+                >
+                  Cancel Request
+                </button>
               </div>
               <p className="text-neutral-600">
                 Your request has been sent to nearby drivers. They will review it and propose their best prices.
