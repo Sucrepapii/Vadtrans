@@ -301,15 +301,15 @@ const DriverConsoleList = () => {
                     </div>
 
                     {req.status === "searching" && (
-                      <div className="mt-4 pt-4 border-t border-neutral-100 flex gap-2">
+                      <div className="mt-4 pt-4 border-t border-neutral-100 flex flex-col sm:flex-row gap-2 sm:gap-3">
                         <input
                           type="number"
                           placeholder="Your bid (₦)"
                           value={bidAmount[req.id] || ""}
                           onChange={(e) => setBidAmount({...bidAmount, [req.id]: e.target.value})}
-                          className="flex-1 px-3 py-2 border border-neutral-300 rounded focus:border-primary focus:outline-none"
+                          className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                         />
-                        <Button onClick={() => handleBid(req.id)} variant="primary">Place Bid</Button>
+                        <Button onClick={() => handleBid(req.id)} variant="primary" className="w-full sm:w-auto py-3 sm:py-2">Place Bid</Button>
                       </div>
                     )}
 

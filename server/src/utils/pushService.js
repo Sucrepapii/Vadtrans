@@ -2,9 +2,9 @@ const webpush = require("web-push");
 require("dotenv").config();
 
 // Configure web-push with VAPID keys
-// Note: These must be in your .env file
-const publicVapidKey = process.env.VAPID_PUBLIC_KEY;
-const privateVapidKey = process.env.VAPID_PRIVATE_KEY;
+// Using hardcoded keys as a fallback because Railway might not have the .env vars injected
+const publicVapidKey = process.env.VAPID_PUBLIC_KEY || "BAyFaRbp8t8JF7yh2QnThH2Jd9TKOj0_cm3m6axlUvbK7I5LKbhKpDhRLkbc6PIPLBcfoWOk6IERQP5whM7N2A8";
+const privateVapidKey = process.env.VAPID_PRIVATE_KEY || "fY6JQ6dzOo14qRb00SJ6RKfcn4hm75luDtCmcw9PLc0";
 
 if (publicVapidKey && privateVapidKey) {
   webpush.setVapidDetails(
