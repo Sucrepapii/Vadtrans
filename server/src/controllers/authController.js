@@ -333,6 +333,8 @@ exports.login = async (req, res) => {
         },
         verificationStatus: user.verificationStatus,
         documents: user.documents || [],
+        isOnline: user.isOnline,
+        ridePreference: user.ridePreference,
       },
     });
   } catch (error) {
@@ -385,6 +387,8 @@ exports.getMe = async (req, res) => {
         freightCapabilities: user.freightCapabilities || {},
         verificationStatus: user.verificationStatus,
         documents: user.documents || [],
+        isOnline: user.isOnline,
+        ridePreference: user.ridePreference,
       },
     });
     console.log("✅ getMe response sent. Documents field:", user.documents);

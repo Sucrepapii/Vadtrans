@@ -609,6 +609,22 @@ const addDriverContactColumn = async () => {
       });
       console.log("✅ Column 'pushSubscription' added successfully");
     }
+    if (!userTableInfo.isOnline) {
+      console.log("ℹ️ Adding missing column 'isOnline' to Users...");
+      await queryInterface.addColumn("Users", "isOnline", {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false,
+      });
+      console.log("✅ Column 'isOnline' added successfully");
+    }
+    if (!userTableInfo.ridePreference) {
+      console.log("ℹ️ Adding missing column 'ridePreference' to Users...");
+      await queryInterface.addColumn("Users", "ridePreference", {
+        type: DataTypes.STRING,
+        defaultValue: "both",
+      });
+      console.log("✅ Column 'ridePreference' added successfully");
+    }
   } catch (err) {
     console.log("ℹ️ driverContact migration note:", err.message);
   }
