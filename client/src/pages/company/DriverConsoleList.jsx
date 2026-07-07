@@ -121,37 +121,39 @@ const DriverConsoleList = () => {
               </p>
             </div>
             
-            <div className="flex flex-col md:flex-row items-center gap-4">
-              <div className="flex items-center gap-3 bg-white px-4 py-2 rounded-lg border border-neutral-200">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 w-full md:w-auto mt-4 md:mt-0">
+              <div className="flex items-center justify-between sm:justify-center gap-3 bg-white px-4 py-3 sm:py-2 rounded-lg border border-neutral-200 shadow-sm">
                 <span className="text-sm font-bold text-charcoal">Status:</span>
-                <button
-                  onClick={toggleOnline}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                    isOnline ? "bg-green-500" : "bg-neutral-300"
-                  }`}
-                >
-                  <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      isOnline ? "translate-x-6" : "translate-x-1"
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={toggleOnline}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                      isOnline ? "bg-green-500" : "bg-neutral-300"
                     }`}
-                  />
-                </button>
-                <span className={`text-sm font-bold ${isOnline ? "text-green-600" : "text-neutral-500"}`}>
-                  {isOnline ? "ONLINE" : "OFFLINE"}
-                </span>
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        isOnline ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                  <span className={`text-sm font-bold ${isOnline ? "text-green-600" : "text-neutral-500"}`}>
+                    {isOnline ? "ONLINE" : "OFFLINE"}
+                  </span>
+                </div>
               </div>
 
-              <div className="relative w-full md:w-64">
-              <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
-              <input
-                type="text"
-                placeholder="Search routes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
-              />
+              <div className="relative w-full sm:w-64 shadow-sm">
+                <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" />
+                <input
+                  type="text"
+                  placeholder="Search routes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-11 pr-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
             </div>
-          </div>
         </div>
 
           {/* Tabs */}

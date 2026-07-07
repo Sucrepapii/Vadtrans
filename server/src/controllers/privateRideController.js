@@ -209,9 +209,16 @@ exports.getMyRides = async (req, res) => {
     const isCompany = req.user.role === "company";
     const where = isCompany 
       ? { 
-          [Op.or]: [
-            { status: "searching" },
-            { driverId: req.user.id }
+          [Op.and]: [
+            {
+              [Op.or]: [
+                { status: "searching" },
+                { driverId: req.user.id }
+              ]
+            },
+            {
+              status: { [Op.notIn]: ["cancelled", "completed"] }
+            }
           ]
         } 
       : { passengerId: req.user.id };
