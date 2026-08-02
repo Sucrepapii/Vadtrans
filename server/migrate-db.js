@@ -24,6 +24,7 @@ const runMigration = async () => {
     try {
       sourceClient = new Client({
         connectionString: SOURCE_URL,
+        connectionTimeoutMillis: 5000, // 5 seconds timeout to prevent hanging
         ssl: { rejectUnauthorized: false }
       });
       await sourceClient.connect();
@@ -34,7 +35,8 @@ const runMigration = async () => {
         try { await sourceClient.end(); } catch (_) {}
       }
       sourceClient = new Client({
-        connectionString: SOURCE_URL
+        connectionString: SOURCE_URL,
+        connectionTimeoutMillis: 5000 // 5 seconds timeout
       });
       await sourceClient.connect();
       console.log("✅ Connected to SOURCE database (without SSL)");
@@ -46,6 +48,7 @@ const runMigration = async () => {
     try {
       destClient = new Client({
         connectionString: DEST_URL,
+        connectionTimeoutMillis: 5000, // 5 seconds timeout
         ssl: { rejectUnauthorized: false }
       });
       await destClient.connect();
@@ -56,7 +59,8 @@ const runMigration = async () => {
         try { await destClient.end(); } catch (_) {}
       }
       destClient = new Client({
-        connectionString: DEST_URL
+        connectionString: DEST_URL,
+        connectionTimeoutMillis: 5000 // 5 seconds timeout
       });
       await destClient.connect();
       console.log("✅ Connected to DESTINATION database (without SSL)");
