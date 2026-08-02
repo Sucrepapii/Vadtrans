@@ -1,8 +1,16 @@
 {
+  "buildCommand": "cd client && npm run build",
+  "outputDirectory": "client/dist",
+  "installCommand": "cd client && npm install",
+  "framework": "vite",
   "rewrites": [
     {
       "source": "/api/:path*",
       "destination": "https://vadtrans-api.vercel.app/api/:path*"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }
