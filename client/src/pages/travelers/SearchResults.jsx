@@ -235,8 +235,33 @@ const SearchResults = () => {
           fallbackParams.freightType = searchParams.freightType;
         if (searchParams.companyId)
           fallbackParams.companyId = searchParams.companyId;
-        if (searchParams.transportType !== "all")
+
+        // Categorize the search type
+        const isInternational =
+          searchParams.transportType === "international" ||
+          (searchParams.toCountry && searchParams.toCountry.toLowerCase() !== "nigeria") ||
+          (searchParams.fromCountry && searchParams.fromCountry.toLowerCase() !== "nigeria" && searchParams.fromCountry.toLowerCase() !== "") ||
+          (searchParams.to && /ghana|togo|benin|cotonou|accra|lome/i.test(searchParams.to)) ||
+          (searchParams.from && /ghana|togo|benin|cotonou|accra|lome/i.test(searchParams.from));
+
+        const isCarpooling =
+          searchParams.transportType === "carpooling" ||
+          (!isInternational && searchParams.transportType !== "inter-state");
+
+        const isInterState =
+          searchParams.transportType === "inter-state";
+
+        // Determine fallback transport type for query
+        if (isInternational) {
+          fallbackParams.transportType = "international";
+        } else if (isCarpooling) {
+          fallbackParams.transportType = "carpooling";
+        } else if (isInterState) {
+          fallbackParams.transportType = "inter-state";
+        } else if (searchParams.transportType !== "all") {
           fallbackParams.transportType = searchParams.transportType;
+        }
+
         if (searchParams.fromState) fallbackParams.fromState = searchParams.fromState;
         if (searchParams.toState) fallbackParams.toState = searchParams.toState;
         if (searchParams.fromCountry) fallbackParams.fromCountry = searchParams.fromCountry;
@@ -259,7 +284,14 @@ const SearchResults = () => {
           };
         });
 
-        if (
+        // Strictly filter to ensure no mixed categories in fallback list
+        if (isInternational) {
+          fallbackTrips = fallbackTrips.filter((trip) => trip.transportType === "international");
+        } else if (isCarpooling) {
+          fallbackTrips = fallbackTrips.filter((trip) => trip.transportType === "carpooling");
+        } else if (isInterState) {
+          fallbackTrips = fallbackTrips.filter((trip) => trip.transportType === "inter-state");
+        } else if (
           searchParams.transportType &&
           searchParams.transportType !== "all"
         ) {
