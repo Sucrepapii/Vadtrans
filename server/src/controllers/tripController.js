@@ -320,6 +320,8 @@ exports.createTrip = async (req, res) => {
       confirmationWindow,
       vehiclePlateNumber,
       pickupAddress,
+      isSharedRideAvailable,
+      isPrivateRideAvailable,
     } = req.body;
 
     // Validate required fields
@@ -432,6 +434,8 @@ exports.createTrip = async (req, res) => {
       stops: req.body.stops || [],
       companyId: req.user.id,
       driverContact: req.body.driverContact || null,
+      isSharedRideAvailable: isSharedRideAvailable !== undefined ? isSharedRideAvailable : true,
+      isPrivateRideAvailable: isPrivateRideAvailable !== undefined ? isPrivateRideAvailable : true,
       status: "active",
     });
 
@@ -510,6 +514,8 @@ exports.updateTrip = async (req, res) => {
       driverContact,
       preferences,
       stops,
+      isSharedRideAvailable,
+      isPrivateRideAvailable,
     } = req.body;
 
     if (from) trip.from = from;
@@ -547,6 +553,8 @@ exports.updateTrip = async (req, res) => {
     if (driverContact !== undefined) trip.driverContact = driverContact;
     if (preferences !== undefined) trip.preferences = preferences;
     if (stops !== undefined) trip.stops = stops;
+    if (isSharedRideAvailable !== undefined) trip.isSharedRideAvailable = isSharedRideAvailable;
+    if (isPrivateRideAvailable !== undefined) trip.isPrivateRideAvailable = isPrivateRideAvailable;
     
     if (seats !== undefined) {
       // Calculate booked seats BEFORE overwriting trip.seats
@@ -802,3 +810,48 @@ exports.updateTripLocation = async (req, res) => {
     });
   }
 };
+
+// @desc    Toggle ride availability for a trip
+// @route   PATCH /api/trips/:id/availability
+// @access  Private (Company)
+exports.toggleAvailability = async (req, res) => {
+  try {
+    const trip = await Trip.findByPk(req.params.id);
+
+    if (!trip) {
+      return res.status(404).json({
+        success: false,
+        message: "Trip not found",
+      });
+    }
+
+    // Make sure user owns this trip
+    if (trip.companyId !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to update this trip",
+      });
+    }
+
+    const { isSharedRideAvailable, isPrivateRideAvailable } = req.body;
+
+    if (isSharedRideAvailable !== undefined) trip.isSharedRideAvailable = isSharedRideAvailable;
+    if (isPrivateRideAvailable !== undefined) trip.isPrivateRideAvailable = isPrivateRideAvailable;
+
+    await trip.save();
+
+    res.status(200).json({
+      success: true,
+      message: "Trip availability updated successfully",
+      trip,
+    });
+  } catch (error) {
+    console.error("Toggle availability error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error updating trip availability",
+      error: error.message,
+    });
+  }
+};
+

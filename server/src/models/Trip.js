@@ -203,6 +203,16 @@ const Trip = sequelize.define(
       type: DataTypes.ENUM("active", "inactive", "cancelled", "completed"),
       defaultValue: "active",
     },
+    isSharedRideAvailable: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
+    isPrivateRideAvailable: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: true,
+    },
     // Tracking fields
     currentLat: {
       type: DataTypes.FLOAT,

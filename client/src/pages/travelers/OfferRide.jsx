@@ -719,7 +719,7 @@ const OfferRide = () => {
                         Price Recommendation
                       </p>
                       <p className="text-xs text-amber-700 leading-relaxed">
-                        For Mainland ↔ Island routes, Morning & Evening hours:
+                        For Mainland ↔ Island routes, Morning, Afternoon & Evening hours:
                       </p>
                       <p className="text-xs font-bold text-amber-800 mt-1">
                         Minimum: ₦1,500 | Maximum: ₦5,000

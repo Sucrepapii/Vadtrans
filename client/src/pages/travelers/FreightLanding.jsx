@@ -171,11 +171,11 @@ const FreightLanding = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left side - Content */}
             <div className="text-white">
-              <div className="inline-flex items-center gap-2 bg-primary/20 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6 border border-primary/30">
-                <FaTruck />
+              <div className="inline-flex items-center gap-2 bg-white/10 text-white px-3 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider mb-6 border border-white/10">
+                <FaTruck className="text-primary animate-pulse" />
                 Global Shipping
               </div>
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-raleway font-black mb-6 leading-tight">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-raleway font-black mb-6 leading-tight text-white">
                 Ship Now, <br />
                 <span className="text-primary">Worldwide.</span>
               </h1>

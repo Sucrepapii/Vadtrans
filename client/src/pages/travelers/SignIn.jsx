@@ -7,6 +7,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Input from "../../components/Input";
 import { FaEnvelope, FaLock, FaSpinner } from "react-icons/fa";
+import VisualShowcase from "../../components/VisualShowcase";
 
 const SignIn = () => {
   const [searchParams] = useSearchParams();
@@ -108,23 +109,26 @@ const SignIn = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-neutral-50">
+    <div className="min-h-screen flex flex-col premium-gradient-bg">
       <Navbar variant="desktop" />
 
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <div className="flex-grow flex items-center justify-center px-4 py-16">
+        <div className="w-full max-w-5xl bg-white/70 backdrop-blur-md rounded-2xl shadow-premium border border-white/50 p-6 md:p-10 grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left side - Form */}
-          <div className="w-full max-w-md">
-            <h1 className="text-4xl font-raleway font-bold text-charcoal mb-8">
+          <div className="w-full max-w-md mx-auto">
+            <h1 className="text-3xl sm:text-4xl font-raleway font-black text-charcoal mb-2">
               Hello! Welcome Back
             </h1>
+            <p className="text-sm text-neutral-500 mb-8 font-medium">
+              Access your account to book and manage your trips
+            </p>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit} className="space-y-5">
               <Input
                 label="Email"
                 type="email"
                 name="email"
-                placeholder="Email"
+                placeholder="E.g. passenger@email.com"
                 value={formData.email}
                 onChange={handleChange}
                 required
@@ -134,28 +138,28 @@ const SignIn = () => {
                 label="Password"
                 type="password"
                 name="password"
-                placeholder="Password"
+                placeholder="••••••••"
                 value={formData.password}
                 onChange={handleChange}
                 required
               />
 
               <div className="flex items-center justify-between">
-                <label className="flex items-center">
+                <label className="flex items-center cursor-pointer select-none">
                   <input
                     type="checkbox"
                     name="remember"
                     checked={formData.remember}
                     onChange={handleChange}
-                    className="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary"
+                    className="w-4 h-4 text-primary border-neutral-300 rounded focus:ring-primary/20 accent-primary"
                   />
-                  <span className="ml-2 text-sm text-charcoal">
+                  <span className="ml-2 text-xs font-semibold text-neutral-600">
                     Remember me
                   </span>
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="text-sm text-charcoal hover:text-primary">
+                  className="text-xs font-bold text-primary hover:text-primary-dark transition-colors">
                   Forgot password?
                 </Link>
               </div>
@@ -163,7 +167,7 @@ const SignIn = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full bg-primary text-white py-3 rounded-lg font-medium hover:bg-primary-dark transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+                className="w-full bg-primary text-white py-3.5 rounded-button font-bold text-sm hover:bg-primary-dark hover:-translate-y-0.5 shadow-md hover:shadow-lg shadow-primary/10 hover:shadow-primary/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
                 {loading ? (
                   <>
                     <FaSpinner className="animate-spin" />
@@ -179,7 +183,7 @@ const SignIn = () => {
                   type="button"
                   onClick={handleResendVerification}
                   disabled={resendLoading}
-                  className="w-full bg-blue-100 text-blue-700 py-3 rounded-lg font-medium hover:bg-blue-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4">
+                  className="w-full bg-blue-50 text-blue-700 py-3 rounded-button font-semibold text-sm hover:bg-blue-100/50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 border border-blue-200/50">
                   {resendLoading ? (
                     <>
                       <FaSpinner className="animate-spin" />
@@ -191,114 +195,20 @@ const SignIn = () => {
                 </button>
               )}
             </form>
+
+            <p className="mt-8 text-center text-xs font-medium text-neutral-500">
+              New to VadTrans?{" "}
+              <Link
+                to="/signup"
+                className="text-primary hover:text-primary-dark font-bold hover:underline">
+                Create Account
+              </Link>
+            </p>
           </div>
 
-          {/* Right side - Illustration */}
-          <div className="hidden lg:flex items-center justify-center">
-            <div className="relative">
-              {/* Phone mockup illustration */}
-              <div className="w-96 h-auto">
-                <svg viewBox="0 0 400 600" className="w-full h-auto">
-                  {/* Phone frame */}
-                  <rect
-                    x="50"
-                    y="20"
-                    width="300"
-                    height="560"
-                    rx="30"
-                    fill="#f5f5f5"
-                    stroke="#e0e0e0"
-                    strokeWidth="2"
-                  />
-
-                  {/* Screen */}
-                  <rect
-                    x="70"
-                    y="50"
-                    width="260"
-                    height="500"
-                    rx="10"
-                    fill="white"
-                  />
-
-                  {/* Sign in text */}
-                  <text
-                    x="200"
-                    y="120"
-                    textAnchor="middle"
-                    fontSize="24"
-                    fontWeight="bold"
-                    fill="#333">
-                    Sign in
-                  </text>
-
-                  {/* Input fields representation */}
-                  <rect
-                    x="100"
-                    y="150"
-                    width="200"
-                    height="40"
-                    rx="5"
-                    fill="#f0f0f0"
-                  />
-                  <rect
-                    x="100"
-                    y="210"
-                    width="200"
-                    height="40"
-                    rx="5"
-                    fill="#f0f0f0"
-                  />
-
-                  {/* Sign in button */}
-                  <rect
-                    x="100"
-                    y="280"
-                    width="200"
-                    height="45"
-                    rx="8"
-                    fill="#FF3D3D"
-                  />
-                </svg>
-
-                {/* Person illustration */}
-                <div className="absolute bottom-0 right-0">
-                  <svg viewBox="0 0 200 300" className="w-48 h-auto">
-                    {/* Person sitting */}
-                    <ellipse cx="100" cy="80" rx="30" ry="35" fill="#4A4A4A" />
-                    <rect
-                      x="70"
-                      y="110"
-                      width="60"
-                      height="80"
-                      rx="10"
-                      fill="#5A5A5A"
-                    />
-                    <ellipse cx="100" cy="250" rx="40" ry="15" fill="#FFB4B4" />
-                  </svg>
-                </div>
-              </div>
-
-              {/* Decorative plants */}
-              <div className="absolute -left-20 bottom-32">
-                <svg viewBox="0 0 80 120" className="w-20 h-auto">
-                  <ellipse cx="40" cy="110" rx="30" ry="10" fill="#FF6B6B" />
-                  <rect x="35" y="60" width="10" height="50" fill="#2D4A3E" />
-                  <path
-                    d="M 40 60 Q 25 40 30 20"
-                    stroke="#2D4A3E"
-                    strokeWidth="8"
-                    fill="none"
-                  />
-                  <path
-                    d="M 40 60 Q 55 40 50 20"
-                    stroke="#2D4A3E"
-                    strokeWidth="8"
-                    fill="none"
-                  />
-                </svg>
-              </div>
-            </div>
+          {/* Right side - Visual Illustration */}
+          <div className="hidden lg:block h-[500px]">
+            <VisualShowcase mode="traveler" />
           </div>
         </div>
       </div>

@@ -91,6 +91,30 @@ exports.placeBid = async (req, res) => {
       return res.status(404).json({ success: false, message: "Request not found" });
     }
 
+    // Check if the driver has an active trip in progress
+    const Trip = require("../models/Trip");
+    const activeTrip = await Trip.findOne({
+      where: {
+        companyId: req.user.id,
+        status: "active",
+      }
+    });
+
+    // Check if driver has an active private ride in progress
+    const activePrivateRide = await PrivateRideRequest.findOne({
+      where: {
+        driverId: req.user.id,
+        status: { [Op.in]: ["en_route", "arrived", "started"] }
+      }
+    });
+
+    if (activeTrip || activePrivateRide) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot bid on a new request while you have an active trip/ride in progress. Please complete your current journey first."
+      });
+    }
+
     const bid = await RideBid.create({
       requestId,
       driverId: req.user.id,

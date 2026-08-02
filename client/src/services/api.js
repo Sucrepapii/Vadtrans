@@ -69,7 +69,7 @@ export const tripAPI = {
   updateTrip: (id, tripData) => api.put(`/trips/${id}`, tripData),
   updateLocation: (id, data) => api.put(`/trips/${id}/location`, data),
   deleteTrip: (id) => api.delete(`/trips/${id}`),
-  toggleAvailability: (id) => api.patch(`/trips/${id}/availability`),
+  toggleAvailability: (id, data) => api.patch(`/trips/${id}/availability`, data),
 };
 
 // Booking API

@@ -112,6 +112,8 @@ const TicketsManagement = () => {
     vehicleName: "",
     driverContact: "",
     stops: [], // [{ city: "", price: "" }]
+    isSharedRideAvailable: true,
+    isPrivateRideAvailable: true,
   });
 
   const { states, getCitiesForState } = useLocationsAPI();
@@ -213,6 +215,8 @@ const TicketsManagement = () => {
         status: trip.status,
         duration: trip.duration || "",
         serviceCategory: trip.serviceCategory || "passenger",
+        isSharedRideAvailable: trip.isSharedRideAvailable,
+        isPrivateRideAvailable: trip.isPrivateRideAvailable,
         freightType: trip.freightType || "",
         vehicleType: trip.vehicleType || "Hiace Bus (18 seater)",
         vehicleName: trip.vehicleName || "",
@@ -289,6 +293,8 @@ const TicketsManagement = () => {
         "No Document": "",
       },
       stops: [],
+      isSharedRideAvailable: true,
+      isPrivateRideAvailable: true,
     });
     setIsModalOpen(false);
     setShowTypeSelection(true);
@@ -424,6 +430,8 @@ const TicketsManagement = () => {
       pickupAddress: ticket.pickupAddress || "",
       driverContact: ticket.driverContact || "",
       stops: Array.isArray(ticket.stops) ? ticket.stops : [],
+      isSharedRideAvailable: ticket.isSharedRideAvailable !== false,
+      isPrivateRideAvailable: ticket.isPrivateRideAvailable !== false,
     });
     setIsModalOpen(true);
   };
@@ -453,6 +461,36 @@ const TicketsManagement = () => {
       toast.error(
         error.response?.data?.message || "Failed to toggle availability"
       );
+    } finally {
+      setTogglingTripId(null);
+    }
+  };
+
+  const handleToggleRideMode = async (ticket, mode) => {
+    try {
+      setTogglingTripId(ticket.id);
+      
+      const payload = {};
+      if (mode === 'shared') {
+        payload.isSharedRideAvailable = ticket.isSharedRideAvailable === false ? true : false;
+      } else {
+        payload.isPrivateRideAvailable = ticket.isPrivateRideAvailable === false ? true : false;
+      }
+
+      const response = await tripAPI.toggleAvailability(ticket.id, payload);
+      if (response.data.success) {
+        toast.success("Ride availability updated");
+        setTickets((prev) =>
+          prev.map((t) =>
+            t.id === ticket.id
+              ? { ...t, ...payload }
+              : t
+          )
+        );
+      }
+    } catch (error) {
+      console.error("Error toggling ride mode:", error);
+      toast.error(error.response?.data?.message || "Failed to update availability");
     } finally {
       setTogglingTripId(null);
     }
@@ -579,6 +617,8 @@ const TicketsManagement = () => {
         depositAmount: 5, // Reserve with 5% deposit
         cancellationWindow: 12, // Free cancellation up to 12 hours
         confirmationWindow: 2,
+        isSharedRideAvailable: formData.isSharedRideAvailable,
+        isPrivateRideAvailable: formData.isPrivateRideAvailable,
       };
 
       if (formData.transportType === "carpooling") {
@@ -751,6 +791,34 @@ const TicketsManagement = () => {
             : value}
         </span>
       ),
+    },
+    {
+      key: "rideModes",
+      label: "Modes",
+      render: (_, row) => (
+        <div className="flex flex-col gap-1 text-[11px] font-medium text-neutral-600">
+          <label className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors">
+            <input 
+              type="checkbox" 
+              className="rounded text-primary focus:ring-primary w-3.5 h-3.5"
+              checked={row.isSharedRideAvailable !== false} 
+              onChange={() => handleToggleRideMode(row, 'shared')}
+              disabled={togglingTripId === row.id}
+            />
+            Shared
+          </label>
+          <label className="flex items-center gap-1.5 cursor-pointer hover:text-primary transition-colors">
+            <input 
+              type="checkbox" 
+              className="rounded text-primary focus:ring-primary w-3.5 h-3.5"
+              checked={row.isPrivateRideAvailable !== false} 
+              onChange={() => handleToggleRideMode(row, 'private')}
+              disabled={togglingTripId === row.id}
+            />
+            Private
+          </label>
+        </div>
+      )
     },
     {
       key: "actions",
@@ -1528,6 +1596,39 @@ const TicketsManagement = () => {
                   />
                 </div>
 
+                {/* Ride Modes Selection */}
+                <div className="bg-white p-4 rounded-xl border border-neutral-100 space-y-2">
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-1">
+                    Ride Availability Settings
+                  </span>
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-neutral-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isSharedRideAvailable}
+                        onChange={(e) =>
+                          setFormData({ ...formData, isSharedRideAvailable: e.target.checked })
+                        }
+                        disabled={saving}
+                        className="rounded text-primary focus:ring-primary w-4 h-4"
+                      />
+                      Enable Shared Ride / Carpooling
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-neutral-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isPrivateRideAvailable}
+                        onChange={(e) =>
+                          setFormData({ ...formData, isPrivateRideAvailable: e.target.checked })
+                        }
+                        disabled={saving}
+                        className="rounded text-primary focus:ring-primary w-4 h-4"
+                      />
+                      Enable Private Ride Bidding
+                    </label>
+                  </div>
+                </div>
+
                 {/* Total Trip Summary */}
                 <div className="bg-white p-5 rounded-2xl border border-neutral-100 space-y-4">
                   <div className="flex justify-between items-center border-b border-neutral-50 pb-3">
@@ -2240,6 +2341,39 @@ const TicketsManagement = () => {
                     required
                     disabled={saving}
                   />
+                </div>
+
+                {/* Ride Modes Selection */}
+                <div className="bg-white p-4 rounded-xl border border-neutral-100 space-y-2">
+                  <span className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest block mb-1">
+                    Ride Availability Settings
+                  </span>
+                  <div className="flex gap-6">
+                    <label className="flex items-center gap-2 text-xs font-semibold text-neutral-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isSharedRideAvailable}
+                        onChange={(e) =>
+                          setFormData({ ...formData, isSharedRideAvailable: e.target.checked })
+                        }
+                        disabled={saving}
+                        className="rounded text-primary focus:ring-primary w-4 h-4"
+                      />
+                      Enable Shared Ride
+                    </label>
+                    <label className="flex items-center gap-2 text-xs font-semibold text-neutral-600 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={formData.isPrivateRideAvailable}
+                        onChange={(e) =>
+                          setFormData({ ...formData, isPrivateRideAvailable: e.target.checked })
+                        }
+                        disabled={saving}
+                        className="rounded text-primary focus:ring-primary w-4 h-4"
+                      />
+                      Enable Private Ride
+                    </label>
+                  </div>
                 </div>
 
                 {/* Price Breakdown */}

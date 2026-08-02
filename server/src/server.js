@@ -35,6 +35,7 @@ const Notification = require("./models/Notification");
 const Shipment = require("./models/Shipment");
 const PrivateRideRequest = require("./models/PrivateRideRequest");
 const RideBid = require("./models/RideBid");
+const Lead = require("./models/Lead");
 
 // Set up model associations
 const models = {
@@ -48,6 +49,7 @@ const models = {
   Shipment,
   PrivateRideRequest,
   RideBid,
+  Lead,
 };
 
 // Call associate methods if they exist
@@ -171,6 +173,7 @@ const initializeDatabase = async () => {
     await Booking.sync({ alter: true });
     await PrivateRideRequest.sync({ alter: true });
     await RideBid.sync({ alter: true });
+    await Lead.sync({ alter: true });
     // We do NOT use Trip.sync({ alter: true }) here because it causes syntax errors in Postgres ENUM updates.
     // Instead, we use manual migration logic below.
 
@@ -519,6 +522,7 @@ app.use("/api/reviews", require("./routes/reviewRoutes"));
 app.use("/api/shipments", require("./routes/shipmentRoutes"));
 app.use("/api/earnings", require("./routes/earnings"));
 app.use("/api/private-rides", require("./routes/privateRides.routes"));
+app.use("/api/leads", require("./routes/leadRoutes"));
 
 // Routes mounted below...
 

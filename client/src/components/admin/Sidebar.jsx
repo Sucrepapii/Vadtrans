@@ -75,7 +75,7 @@ const Sidebar = () => {
         ${isMobileOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0"}
         `}>
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-white/10">
+        <div className="flex items-center justify-between py-4 px-5 border-b border-white/10">
           {(!isCollapsed || isMobileOpen) && (
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
@@ -84,7 +84,7 @@ const Sidebar = () => {
               <div>
                   <BrandLogo 
                     variant="white" 
-                    className="h-10" 
+                    className="h-9" 
                   />
               </div>
             </div>
@@ -114,13 +114,13 @@ const Sidebar = () => {
 
         {/* Notifications (Desktop & Mobile) */}
         {(!isCollapsed || isMobileOpen) && (
-          <div className="flex justify-center border-b border-white/10 py-3 relative z-50">
+          <div className="flex justify-center border-b border-white/10 py-2 relative z-50">
             <NotificationBell />
           </div>
         )}
 
         {/* Menu Items */}
-        <nav className="flex-1 py-2 space-y-0.5 overflow-y-auto">
+        <nav className="flex-1 py-1 space-y-0 overflow-y-auto no-scrollbar">
           {menuItems.map((item) => {
             const isActive = location.pathname === item.path;
             const showLabel = !isCollapsed || isMobileOpen;
@@ -130,13 +130,13 @@ const Sidebar = () => {
                 key={item.path}
                 to={item.path}
                 onClick={() => setIsMobileOpen(false)} // Close on mobile navigation
-                className={`relative flex items-center gap-4 px-6 py-2.5 transition-all duration-300 group ${
+                className={`relative flex items-center gap-4 px-5 py-1.5 transition-all duration-300 group ${
                   isActive
                     ? "text-primary bg-gradient-to-r from-primary/10 to-transparent border-r-4 border-primary"
                     : "text-neutral-400 hover:text-white hover:bg-white/5"
                 }`}>
                 <item.icon
-                  size={18}
+                  size={17}
                   className={`transition-colors ${
                     isActive ? "text-primary" : "group-hover:text-white"
                   }`}
@@ -151,32 +151,29 @@ const Sidebar = () => {
 
         {/* Quick Navigation */}
         {(!isCollapsed || isMobileOpen) && (
-          <div className="px-6 py-4 mx-4 mb-4 rounded-xl bg-gradient-to-br from-neutral-800 to-neutral-900 border border-white/5">
-            <p className="text-[10px] font-bold text-neutral-500 uppercase tracking-wider mb-3">
-              Switch Portal
-            </p>
-            <div className="space-y-2">
+          <div className="px-5 py-2 mx-2 mb-1 flex items-center justify-between text-xs text-neutral-400 border-t border-white/5">
+            <span className="font-bold text-[10px] text-neutral-500 uppercase tracking-wider">Switch Portal</span>
+            <div className="flex items-center gap-2">
               <button
                 onClick={() => handlePortalAccess("/")}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-neutral-300 transition-all border border-transparent hover:border-white/10">
-                <span>Passenger</span>
-                <span className="text-xs">↗</span>
+                className="hover:text-primary transition-colors text-[11px] font-medium text-neutral-300">
+                Passenger ↗
               </button>
+              <span className="text-neutral-700">|</span>
               <button
                 onClick={() => handlePortalAccess("/company/tickets")}
-                className="w-full flex items-center justify-between px-3 py-2 rounded-lg bg-white/5 hover:bg-white/10 text-xs text-neutral-300 transition-all border border-transparent hover:border-white/10">
-                <span>Company</span>
-                <span className="text-xs">↗</span>
+                className="hover:text-primary transition-colors text-[11px] font-medium text-neutral-300">
+                Company ↗
               </button>
             </div>
           </div>
         )}
 
         {/* Logout */}
-        <div className="p-4 border-t border-white/10">
+        <div className="p-2.5 border-t border-white/10">
           <button
             onClick={handleLogout}
-            className={`flex items-center gap-3 w-full px-4 py-3 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all ${
+            className={`flex items-center gap-3 w-full px-3 py-1.5 rounded-lg text-red-400 hover:bg-red-500/10 hover:text-red-300 transition-all ${
               isCollapsed && !isMobileOpen ? "justify-center" : ""
             }`}>
             <FaSignOutAlt size={18} />

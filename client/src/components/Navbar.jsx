@@ -28,15 +28,15 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
   // Desktop navbar with top contact bar
   if (variant === "desktop") {
     return (
-      <nav className="sticky top-0 z-50 w-full shadow-sm">
+      <nav className="sticky top-0 z-50 w-full glass-panel border-b border-neutral-200/50 shadow-premium">
         {/* Top contact bar - Hidden on mobile */}
-        <div className="hidden md:block bg-black text-white py-2">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-            <div className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm">
+        <div className="hidden md:block bg-charcoal text-white/80 py-1.5 border-b border-charcoal-light/10 text-xs">
+          <div className="container-custom flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <div className="flex items-center gap-3 sm:gap-6">
               <a
                 href="tel:+234-912-328-4931"
                 className="flex items-center gap-2 hover:text-primary transition-colors">
-                <FaWhatsapp className="text-xs" />
+                <FaWhatsapp className="text-xs text-green-500" />
                 <span>+234-912-328-4931</span>
               </a>
               <a
@@ -46,18 +46,18 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                 <span>Support@vadtrans.com</span>
               </a>
             </div>
-            <button className="px-3 sm:px-4 py-1 border border-white rounded-full text-xs sm:text-sm hover:bg-white hover:text-black transition-colors">
+            <button className="px-3 py-0.5 border border-white/20 rounded-full hover:bg-white hover:text-black transition-colors font-medium">
               Follow Us
             </button>
           </div>
         </div>
 
         {/* Main navbar */}
-        <div className="bg-white border-b">
+        <div className="bg-white/80 backdrop-blur-md">
           <div className="container-custom">
-            <div className="flex items-center justify-between h-24 md:h-32">
+            <div className="flex items-center justify-between h-16 md:h-20">
               {/* Logo */}
-              <Link to="/" className="flex flex-col items-start px-2">
+              <Link to="/" className="flex flex-col items-start">
                 <div className="flex items-center gap-2 group">
                   <div className="flex flex-col justify-center">
                     <BrandLogo 
@@ -169,12 +169,12 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                   <>
                     <Link
                       to="/signin"
-                      className="px-6 py-2 bg-black text-white rounded hover:bg-black/90 transition-colors">
+                      className="px-5 py-2 bg-neutral-100 text-charcoal rounded-button hover:bg-neutral-200 transition-colors text-sm font-semibold">
                       Log In
                     </Link>
                     <Link
                       to="/signup"
-                      className="px-6 py-2 bg-primary text-white rounded hover:bg-primary-dark transition-colors">
+                      className="px-5 py-2 bg-primary text-white rounded-button hover:bg-primary-dark hover:-translate-y-0.5 shadow-sm hover:shadow-md transition-all duration-200 text-sm font-semibold">
                       Sign Up
                     </Link>
                   </>

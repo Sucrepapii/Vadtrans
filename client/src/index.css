@@ -1,19 +1,75 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
 @layer utilities {
   .animate-slide-in {
-    animation: slide-in 0.3s ease-out;
+    animation: slide-in 0.35s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
   .animate-slide-up {
-    animation: slide-up 0.28s ease-out;
+    animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.25);
+  }
+
+  .premium-gradient-bg {
+    background: radial-gradient(circle at top right, rgba(227, 30, 36, 0.05), transparent 40%),
+                radial-gradient(circle at bottom left, rgba(16, 185, 129, 0.03), transparent 35%),
+                #FAF9F9;
+  }
+
+  /* Custom Premium Scrollbar */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #EAE7E7;
+    border-radius: 9999px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #DCD8D7;
+  }
+
+  /* No Scrollbar Utility */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+
+  /* Dark Premium Scrollbar Utility */
+  .dark-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  .dark-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .dark-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.12);
+    border-radius: 9999px;
+  }
+  .dark-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
   }
 
   @keyframes slide-in {
     from {
-      transform: translateX(100%);
+      transform: translateX(20px);
       opacity: 0;
     }
     to {
@@ -24,22 +80,27 @@
 
   @keyframes slide-up {
     from {
-      transform: translateY(100%);
+      transform: translateY(15px);
+      opacity: 0;
     }
     to {
       transform: translateY(0);
+      opacity: 1;
     }
   }
 }
 
 @layer base {
   html {
-    @apply overflow-x-hidden;
+    @apply overflow-x-hidden scroll-smooth;
   }
 
   body {
-    @apply font-poppins text-charcoal bg-neutral-50 overflow-x-hidden;
+    @apply font-poppins text-charcoal bg-neutral-50 overflow-x-hidden antialiased;
     min-width: 320px;
+    background-image: radial-gradient(circle at 100% 0%, rgba(227, 30, 36, 0.04) 0%, transparent 25%),
+                      radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.02) 0%, transparent 25%);
+    background-attachment: fixed;
   }
 
   h1,
@@ -48,7 +109,7 @@
   h4,
   h5,
   h6 {
-    @apply font-raleway font-bold;
+    @apply font-raleway font-bold tracking-tight text-charcoal;
   }
 }
 
@@ -58,18 +119,26 @@
   }
 
   .btn-primary {
-    @apply bg-primary text-white px-6 py-3 rounded-button font-medium transition-all duration-200 hover:bg-primary-dark active:scale-95;
+    @apply bg-primary text-white px-6 py-3 rounded-button font-semibold transition-all duration-300 hover:bg-primary-dark active:scale-[0.98] shadow-md hover:shadow-lg shadow-primary/10 hover:shadow-primary/20 hover:-translate-y-0.5;
   }
 
   .btn-secondary {
-    @apply bg-white text-primary border-2 border-primary px-6 py-3 rounded-button font-medium transition-all duration-200 hover:bg-neutral-50 active:scale-95;
+    @apply bg-white text-primary border border-neutral-200 px-6 py-3 rounded-button font-semibold transition-all duration-300 hover:border-primary/30 hover:bg-neutral-50 active:scale-[0.98];
   }
 
   .input-field {
-    @apply w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all;
+    @apply w-full px-4 py-3 bg-white border border-neutral-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all duration-200 text-sm font-medium placeholder-neutral-400;
   }
 
   .card {
-    @apply bg-white rounded-xl shadow-md p-6;
+    background-color: white;
+    border-radius: 16px;
+    border: 1px solid rgba(229, 231, 231, 0.5);
+    padding: 1.5rem;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.08), 0 1px 3px rgba(0, 0, 0, 0.02);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .card:hover {
+    box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.12);
   }
 }

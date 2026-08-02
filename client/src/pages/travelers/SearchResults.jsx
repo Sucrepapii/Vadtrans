@@ -220,6 +220,11 @@ const SearchResults = () => {
         );
       }
 
+      // If carpooling is requested, filter out international trips
+      if (searchParams.transportType === "carpooling") {
+        foundTrips = foundTrips.filter((trip) => trip.transportType !== "international");
+      }
+
       // If no trips found for the EXACT route, fetch ALL available trips for the category as fallback
       if (foundTrips.length === 0 && (searchParams.from || searchParams.to)) {
         setExactMatch(false);
@@ -455,8 +460,30 @@ const SearchResults = () => {
                   <p className="text-[10px] font-bold text-neutral-400 uppercase tracking-widest mb-1">Departure</p>
                   <div className="flex items-center gap-1.5">
                     <FaClock className="text-neutral-400 text-xs" />
-                    <span className="font-bold text-charcoal text-sm">
+                    <span className="font-bold text-charcoal text-sm flex items-center gap-1">
                       {trip.departureTime}
+                      {(() => {
+                        // Classify time (Morning, Afternoon, Evening)
+                        // Time string formats: "07:00", "07:00 AM", "14:30", etc.
+                        let hour = 7; // Default fallback
+                        const timeStr = trip.departureTime || "";
+                        const cleanTime = timeStr.trim().toLowerCase();
+                        const match = cleanTime.match(/^(\d+):(\d+)\s*(am|pm)?$/) || cleanTime.match(/^(\d+):(\d+)$/);
+                        if (match) {
+                          hour = parseInt(match[1]);
+                          const isPM = cleanTime.includes("pm") || (match[3] && match[3] === "pm");
+                          const isAM = cleanTime.includes("am") || (match[3] && match[3] === "am");
+                          if (isPM && hour < 12) hour += 12;
+                          if (isAM && hour === 12) hour = 0;
+                        }
+                        if (hour >= 5 && hour < 12) {
+                          return <span className="text-[8px] bg-amber-50 text-amber-700 px-1 rounded uppercase font-bold">Morning</span>;
+                        } else if (hour >= 12 && hour < 17) {
+                          return <span className="text-[8px] bg-orange-50 text-orange-700 px-1 rounded uppercase font-bold">Afternoon</span>;
+                        } else {
+                          return <span className="text-[8px] bg-blue-50 text-blue-700 px-1 rounded uppercase font-bold">Evening</span>;
+                        }
+                      })()}
                     </span>
                   </div>
                 </div>
@@ -699,17 +726,17 @@ const SearchResults = () => {
 
             {/* Premium Re-Search Bar */}
             {!searchParams.companyId && (
-              <form onSubmit={handleFormSubmit} className="mt-6 mb-8 p-4 bg-white rounded-2xl shadow-xl shadow-primary/5 border border-primary/10 animate-in fade-in slide-in-from-top-4 duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+              <form onSubmit={handleFormSubmit} className="mt-6 mb-8 p-5 bg-white rounded-premium shadow-premium border border-neutral-200/60 animate-slide-up duration-500">
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="relative group">
-                    <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">From</label>
-                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
+                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">From</label>
+                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
                       <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                       <input 
                         type="text" 
                         value={localSearchParams.from} 
                         onChange={(e) => setLocalSearchParams({...localSearchParams, from: e.target.value})}
-                        className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
+                        className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal"
                         placeholder="Departure city"
                       />
                       {localSearchParams.from && (
@@ -725,14 +752,14 @@ const SearchResults = () => {
                   </div>
                   
                   <div className="relative group">
-                    <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">To</label>
-                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
+                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">To</label>
+                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
                       <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                       <input 
                         type="text" 
                         value={localSearchParams.to} 
                         onChange={(e) => setLocalSearchParams({...localSearchParams, to: e.target.value})}
-                        className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
+                        className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal"
                         placeholder="Destination city"
                       />
                       {localSearchParams.to && (
@@ -748,27 +775,27 @@ const SearchResults = () => {
                   </div>
  
                   <div className="relative group">
-                    <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">Date</label>
-                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
+                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Date</label>
+                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
                       <FaCalendar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                       <input 
                         type="date" 
                         value={localSearchParams.date} 
                         onChange={(e) => setLocalSearchParams({...localSearchParams, date: e.target.value})}
-                        className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none"
+                        className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal cursor-pointer"
                       />
                     </div>
                   </div>
  
                   <div className="flex gap-2">
                     <div className="relative group flex-1">
-                      <label className="absolute left-3 -top-2 px-1 bg-white text-[10px] font-bold text-primary uppercase tracking-widest z-10">Type</label>
-                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary transition-all">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Type</label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
                         <FaCar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                         <select 
                           value={localSearchParams.transportType} 
                           onChange={(e) => setLocalSearchParams({...localSearchParams, transportType: e.target.value})}
-                          className="w-full px-3 py-3 bg-transparent text-sm font-medium outline-none appearance-none"
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
                         >
                           <option value="all">All Types</option>
                           <option value="inter-state">Inter-State</option>
@@ -781,7 +808,7 @@ const SearchResults = () => {
                     <Button 
                       type="submit"
                       variant="primary" 
-                      className="px-6 rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-all"
+                      className="px-6 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.03] transition-all duration-250 flex items-center justify-center"
                     >
                       <FaSyncAlt className={loading ? "animate-spin" : ""} />
                     </Button>

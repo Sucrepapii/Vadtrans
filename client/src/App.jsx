@@ -7,6 +7,7 @@ import SignIn from "./pages/travelers/SignIn";
 import SignUp from "./pages/travelers/SignUp";
 import ForgotPassword from "./pages/auth/ForgotPassword";
 import ResetPassword from "./pages/auth/ResetPassword";
+import ChatbotWidget from "./components/ChatbotWidget";
 
 import VerifyEmail from "./pages/auth/VerifyEmail";
 import Services from "./pages/travelers/Services";
@@ -55,6 +56,7 @@ const App = () => {
   return (
     <div className="min-h-screen">
       <ToastContainer position="top-right" autoClose={3000} />
+      <ChatbotWidget />
       <Routes>
         {/* Travelers Routes */}
         <Route path="/" element={<LandingPage />} />

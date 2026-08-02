@@ -198,6 +198,7 @@ const CompanyProfile = () => {
           crossBorderCapability: false,
           insuranceStatus: "",
         },
+        ridePreference: userData.ridePreference || "both",
       };
 
       
@@ -781,6 +782,26 @@ const CompanyProfile = () => {
                           icon={FaMapMarkerAlt}
                           disabled={saving}
                         />
+                        <div>
+                          <label className="block text-xs font-semibold text-neutral-600 mb-1.5">
+                            Ride Operating Mode Preference (Global Availability)
+                          </label>
+                          <select
+                            value={editData.ridePreference || "both"}
+                            onChange={(e) =>
+                              setEditData({
+                                ...editData,
+                                ridePreference: e.target.value,
+                              })
+                            }
+                            className="w-full px-4 py-2.5 bg-white border border-neutral-200 rounded-xl focus:ring-2 focus:ring-primary outline-none transition-all text-sm"
+                            disabled={saving}
+                          >
+                            <option value="both">Both Shared & Private Rides</option>
+                            <option value="shared">Shared Rides Only</option>
+                            <option value="private">Private Rides Only</option>
+                          </select>
+                        </div>
                       </>
                     ) : (
                       <>
@@ -813,6 +834,15 @@ const CompanyProfile = () => {
                             <p className="text-sm text-neutral-600">Address</p>
                             <p className="font-semibold">
                               {companyData.address}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <FaBus className="text-neutral-500" />
+                          <div>
+                            <p className="text-sm text-neutral-600">Ride Operating Mode</p>
+                            <p className="font-semibold capitalize">
+                              {companyData.ridePreference === "both" ? "Shared & Private Rides" : companyData.ridePreference + " Rides Only"}
                             </p>
                           </div>
                         </div>

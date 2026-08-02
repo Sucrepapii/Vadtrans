@@ -110,32 +110,32 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col premium-gradient-bg">
       <Navbar variant="desktop" />
 
       {/* Hero Section */}
-      <section className="relative bg-gradient-to-r from-primary/10 to-primary/5 py-12 sm:py-16 md:py-20 px-4">
-        <div className="container-custom max-w-6xl">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+      <section className="relative py-12 sm:py-16 md:py-24 px-4 overflow-hidden">
+        <div className="container-custom max-w-6xl relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left side - Search Form */}
-            <div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-raleway font-bold text-charcoal mb-4 leading-tight">
+            <div className="animate-slide-up">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-raleway font-black text-charcoal mb-6 leading-none">
                 Find a ride.
                 <br />
-                <span className="text-primary">Save money.</span>
+                <span className="bg-gradient-to-r from-primary to-accent-violet bg-clip-text text-transparent">Save money.</span>
               </h1>
-              <p className="text-base sm:text-lg text-neutral-600 mb-6 sm:mb-8 font-medium">
+              <p className="text-base sm:text-lg text-neutral-600 mb-8 font-medium leading-relaxed">
                 Carpool with people going your way. Find a ride to work, school, or anywhere in Lagos and beyond.
               </p>
 
               {/* Find/Offer Ride Interaction */}
-              <div className="mb-8 p-4 bg-white rounded-2xl shadow-sm border border-primary/10">
+              <div className="mb-8 p-5 bg-white/80 backdrop-blur-md rounded-premium shadow-premium border border-white/50">
                 <div className="flex justify-between items-center mb-4">
-                  <p className="text-xs font-bold text-primary uppercase tracking-widest flex items-center gap-2">
-                    <span className="w-2 h-2 bg-primary rounded-full animate-pulse"></span>
+                  <p className="text-[10px] font-bold text-primary uppercase tracking-widest flex items-center gap-2">
+                    <span className="w-2 h-2 bg-primary rounded-full animate-ping"></span>
                     Primary Feature: FIND OR SHARE A RIDE
                   </p>
-                  <span className="bg-green-100 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded flex items-center gap-1">
+                  <span className="bg-green-50 text-green-700 text-[10px] font-bold px-2 py-0.5 rounded border border-green-100 flex items-center gap-1">
                     <FaHandHoldingHeart className="text-[8px]" /> Smart Choice
                   </span>
                 </div>
@@ -146,25 +146,26 @@ const LandingPage = () => {
                       const searchSection = document.getElementById('search-form');
                       searchSection?.scrollIntoView({ behavior: 'smooth' });
                     }}
-                    className="flex flex-col items-center justify-center p-4 bg-primary/5 hover:bg-primary/10 rounded-xl transition-all border border-primary/20 group">
+                    className="flex flex-col items-center justify-center p-4 bg-primary/5 hover:bg-primary/10 rounded-xl transition-all border border-primary/20 group hover:-translate-y-0.5">
                     <FaUsers className="text-2xl text-primary mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-sm font-bold text-charcoal">Find a ride</span>
-                    <span className="text-[10px] text-green-600 font-medium">Eco-friendly & Cheap</span>
+                    <span className="text-[9px] text-green-600 font-bold uppercase tracking-wider mt-0.5">Eco-friendly</span>
                   </button>
                   <button 
                     onClick={() => navigate('/offer-ride')}
-                    className="flex flex-col items-center justify-center p-4 bg-charcoal/5 hover:bg-charcoal/10 rounded-xl transition-all border border-charcoal/20 group">
+                    className="flex flex-col items-center justify-center p-4 bg-charcoal/5 hover:bg-charcoal/10 rounded-xl transition-all border border-charcoal/20 group hover:-translate-y-0.5">
                     <FaCar className="text-2xl text-charcoal mb-2 group-hover:scale-110 transition-transform" />
                     <span className="text-sm font-bold text-charcoal">Offer a ride</span>
-                    <span className="text-[10px] text-neutral-500">Earn while driving</span>
+                    <span className="text-[9px] text-neutral-500 font-bold uppercase tracking-wider mt-0.5">Earn fuel fee</span>
                   </button>
                 </div>
               </div>
 
               {/* Search Form */}
-                <form
+              <form
+                id="search-form"
                 onSubmit={handleSearch}
-                className="bg-white rounded-lg shadow-lg p-4 sm:p-6 space-y-3 sm:space-y-4">
+                className="bg-white rounded-premium shadow-premium p-6 space-y-4 border border-neutral-200/50">
                 
                 {(() => {
                   const activeTransportType = searchData.rideType === "private" ? "carpooling" : searchData.transportType;
@@ -216,9 +217,11 @@ const LandingPage = () => {
                     className="w-full px-3 sm:px-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary sm:text-base text-base">
                     <option value="all">All Types</option>
                     <option value="inter-state" disabled>Inter-State (Nigeria) - Coming Soon</option>
-                    <option value="international">
-                      International (West Africa)
-                    </option>
+                    {searchData.rideType !== "shared" && searchData.transportType !== "carpooling" && (
+                      <option value="international">
+                        International (West Africa)
+                      </option>
+                    )}
                     <option value="carpooling">
                       Carpooling (Lagos & Beyond)
                     </option>
@@ -315,7 +318,7 @@ const LandingPage = () => {
                   <>
                     <div>
                       <label className="block text-sm font-medium text-charcoal mb-2">
-                        {activeTransportType === "carpooling" ? "State" : "Departure State"}
+                        {activeTransportType === "carpooling" && searchData.rideType !== "private" ? "State" : "Departure State"}
                       </label>
                       <div className="relative">
                         <FaMapMarkerAlt className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400 pointer-events-none z-10" />
@@ -325,9 +328,9 @@ const LandingPage = () => {
                             setSearchData({
                               ...searchData,
                               fromState: e.target.value,
-                              toState: activeTransportType === "carpooling" ? e.target.value : searchData.toState,
+                              toState: activeTransportType === "carpooling" && searchData.rideType !== "private" ? e.target.value : searchData.toState,
                               from: "",
-                              to: activeTransportType === "carpooling" ? "" : searchData.to,
+                              to: activeTransportType === "carpooling" && searchData.rideType !== "private" ? "" : searchData.to,
                             })
                           }
                           className="w-full pl-10 pr-4 py-2 sm:py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary appearance-none sm:text-base text-base"
@@ -459,7 +462,7 @@ const LandingPage = () => {
                   </div>
                 ) : (
                   <>
-                    {activeTransportType === "inter-state" && (
+                    {(activeTransportType === "inter-state" || searchData.rideType === "private") && (
                       <div>
                         <label className="block text-sm font-medium text-charcoal mb-2">
                           Destination State
