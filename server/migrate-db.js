@@ -11,28 +11,56 @@ if (!SOURCE_URL || !DEST_URL) {
   console.error("❌ Error: Both SOURCE_DATABASE_URL and DESTINATION_DATABASE_URL must be provided.");
   console.log("\nUsage:");
   console.log("  node migrate-db.js \"<source_postgres_url>\" \"<destination_postgres_url>\"");
-  console.log("\nAlternatively, set them as environment variables:");
-  console.log("  SOURCE_DATABASE_URL");
-  console.log("  DESTINATION_DATABASE_URL");
   process.exit(1);
 }
 
 const runMigration = async () => {
-  console.log("🔌 Connecting to databases...");
-  const sourceClient = new Client({
-    connectionString: SOURCE_URL,
-    ssl: { rejectUnauthorized: false }
-  });
-  const destClient = new Client({
-    connectionString: DEST_URL,
-    ssl: { rejectUnauthorized: false }
-  });
+  let sourceClient, destClient;
 
   try {
-    await sourceClient.connect();
-    console.log("✅ Connected to SOURCE database");
-    await destClient.connect();
-    console.log("✅ Connected to DESTINATION database");
+    console.log("🔌 Connecting to SOURCE database (Railway)...");
+    
+    // Attempt SOURCE connection with SSL
+    try {
+      sourceClient = new Client({
+        connectionString: SOURCE_URL,
+        ssl: { rejectUnauthorized: false }
+      });
+      await sourceClient.connect();
+      console.log("✅ Connected to SOURCE database (with SSL)");
+    } catch (sslErr) {
+      console.log(`⚠️ SOURCE SSL connection failed: ${sslErr.message}. Retrying without SSL...`);
+      if (sourceClient) {
+        try { await sourceClient.end(); } catch (_) {}
+      }
+      sourceClient = new Client({
+        connectionString: SOURCE_URL
+      });
+      await sourceClient.connect();
+      console.log("✅ Connected to SOURCE database (without SSL)");
+    }
+
+    console.log("🔌 Connecting to DESTINATION database (Render)...");
+    
+    // Attempt DESTINATION connection with SSL
+    try {
+      destClient = new Client({
+        connectionString: DEST_URL,
+        ssl: { rejectUnauthorized: false }
+      });
+      await destClient.connect();
+      console.log("✅ Connected to DESTINATION database (with SSL)");
+    } catch (sslErr) {
+      console.log(`⚠️ DESTINATION SSL connection failed: ${sslErr.message}. Retrying without SSL...`);
+      if (destClient) {
+        try { await destClient.end(); } catch (_) {}
+      }
+      destClient = new Client({
+        connectionString: DEST_URL
+      });
+      await destClient.connect();
+      console.log("✅ Connected to DESTINATION database (without SSL)");
+    }
 
     // Get all user tables in public schema
     const tablesRes = await sourceClient.query(`
@@ -115,11 +143,13 @@ const runMigration = async () => {
   } catch (err) {
     console.error("❌ Migration failed:", err);
     try {
-      await destClient.query("SET session_replication_role = default;");
+      if (destClient) {
+        await destClient.query("SET session_replication_role = default;");
+      }
     } catch (_) {}
   } finally {
-    await sourceClient.end();
-    await destClient.end();
+    if (sourceClient) await sourceClient.end();
+    if (destClient) await destClient.end();
   }
 };
 
