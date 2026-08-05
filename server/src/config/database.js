@@ -8,14 +8,14 @@ const databaseUrl = process.env.DATABASE_URL;
 let sequelize;
 
 if (databaseUrl) {
-  // Use explicit connection string (e.g., Railway, Neon, Render)
+  // Use explicit connection string (e.g., Neon, Render)
   sequelize = new Sequelize(databaseUrl, {
     dialect: "postgres",
     protocol: "postgres",
     dialectOptions: {
       ssl: {
         require: true,
-        rejectUnauthorized: false, // Must be false for Railway/Neon/Render self-signed certs
+        rejectUnauthorized: false, // Must be false for Neon/Render self-signed certs
       },
     },
     logging: false,

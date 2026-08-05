@@ -158,7 +158,7 @@ exports.verifyPayment = async (req, res) => {
       error: error.message,
       hint: !process.env.PAYSTACK_SECRET_KEY
         ? "PAYSTACK_SECRET_KEY is not set on the server"
-        : "Check Railway logs for details",
+        : "Check server logs for details",
     });
   }
 };

@@ -65,7 +65,7 @@ const app = express();
 // Initialize Cron Jobs
 require("./cron/tripCron");
 
-// Trust proxy for express-rate-limit behind proxies (like Railway)
+// Trust proxy for express-rate-limit behind proxies (like Render)
 app.set("trust proxy", 1);
 
 // Security middleware
@@ -564,13 +564,13 @@ if (require.main === module) {
     console.log(`💾 Database: SQLite (file-based)`);
 
     // ── Keep-Alive Ping (production only) ────────────────────────────────────
-    // Prevents Railway from spinning down the server due to inactivity.
+    // Prevents the server from spinning down due to inactivity.
     // Pings the health endpoint every 10 minutes.
     if (process.env.NODE_ENV === "production") {
       const https = require("https");
       const SERVER_URL =
         process.env.SERVER_URL ||
-        "https://vadtrans-production.up.railway.app";
+        "https://vadtrans-api.vercel.app";
 
       setInterval(() => {
         const url = `${SERVER_URL}/api/health`;
