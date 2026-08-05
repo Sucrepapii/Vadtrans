@@ -75,11 +75,38 @@ const runMigration = async () => {
     `);
 
     const tables = tablesRes.rows.map(r => r.table_name);
-    console.log(`📋 Found ${tables.length} tables to migrate: ${tables.join(", ")}`);
+    
+    // Sort tables by dependency order to avoid foreign key constraint violations
+    const preferredOrder = [
+      "Users",
+      "fares",
+      "FAQs",
+      "Trips",
+      "Bookings",
+      "PrivateRideRequests",
+      "Shipments",
+      "Notifications",
+      "Reviews",
+      "RideBids"
+    ];
+    tables.sort((a, b) => {
+      let indexA = preferredOrder.indexOf(a);
+      let indexB = preferredOrder.indexOf(b);
+      if (indexA === -1) indexA = 999;
+      if (indexB === -1) indexB = 999;
+      return indexA - indexB;
+    });
 
-    // Temporarily bypass trigger checking to prevent foreign key errors during chunked inserts
-    console.log("⚙️ Temporarily disabling foreign key triggers on destination...");
-    await destClient.query("SET session_replication_role = replica;");
+    console.log(`📋 Found ${tables.length} tables to migrate (sorted by dependency): ${tables.join(", ")}`);
+
+    // Temporarily bypass trigger checking if permission is granted
+    try {
+      console.log("⚙️ Temporarily disabling foreign key triggers on destination...");
+      await destClient.query("SET session_replication_role = replica;");
+      console.log("✅ Triggers disabled successfully.");
+    } catch (err) {
+      console.log(`⚠️ Note: session_replication_role replica could not be set (${err.message}). Proceeding using dependency order.`);
+    }
 
     for (const table of tables) {
       console.log(`\n⏳ Migrating table: "${table}"...`);
@@ -98,8 +125,22 @@ const runMigration = async () => {
         continue;
       }
 
-      // 3. Prepare bulk insert
-      const columns = Object.keys(rows[0]);
+      // 3. Prepare bulk insert by mapping only columns that exist in BOTH databases
+      const destColumnsRes = await destClient.query(`
+        SELECT column_name 
+        FROM information_schema.columns 
+        WHERE table_schema = 'public' AND table_name = $1
+      `, [table]);
+      const destColumns = destColumnsRes.rows.map(r => r.column_name);
+
+      const sourceColumns = Object.keys(rows[0]);
+      const columns = sourceColumns.filter(c => destColumns.includes(c));
+      const ignoredColumns = sourceColumns.filter(c => !destColumns.includes(c));
+      
+      if (ignoredColumns.length > 0) {
+        console.log(`   ⚠️ Ignoring source columns not present in destination: ${ignoredColumns.join(", ")}`);
+      }
+      
       const columnsStr = columns.map(c => `"${c}"`).join(", ");
       
       // Insert in chunks to avoid Postgres query parameter limits (max 65535 parameters)
@@ -111,7 +152,11 @@ const runMigration = async () => {
 
         chunk.forEach((row) => {
           const rowPlaceholders = columns.map((col) => {
-            flatValues.push(row[col]);
+            let val = row[col];
+            if (val !== null && typeof val === 'object' && !(val instanceof Date) && !Buffer.isBuffer(val)) {
+              val = JSON.stringify(val);
+            }
+            flatValues.push(val);
             return `$${flatValues.length}`;
           });
           valuePlaceholders.push(`(${rowPlaceholders.join(", ")})`);
@@ -140,8 +185,10 @@ const runMigration = async () => {
       }
     }
 
-    console.log("\n⚙️ Re-enabling triggers on destination...");
-    await destClient.query("SET session_replication_role = default;");
+    try {
+      console.log("\n⚙️ Re-enabling triggers on destination...");
+      await destClient.query("SET session_replication_role = default;");
+    } catch (_) {}
     console.log("🎉 Database migration completed successfully!");
 
   } catch (err) {
