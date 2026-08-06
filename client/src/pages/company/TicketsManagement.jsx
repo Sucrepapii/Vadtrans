@@ -42,6 +42,7 @@ import {
   FaBan,
   FaCheckCircle,
   FaStop,
+  FaCalendarAlt,
 } from "react-icons/fa";
 import MaterialDatePicker, {
   MaterialTimePicker,
@@ -1035,6 +1036,14 @@ const TicketsManagement = () => {
 
                 {/* Details Grid */}
                 <div className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm text-neutral-600">
+                  <div className="flex items-center gap-1.5 col-span-2">
+                    <FaCalendarAlt size={11} className="text-neutral-400 shrink-0" />
+                    <span className="truncate">
+                      {ticket.transportType === "carpooling" 
+                        ? "Daily (Every Day)" 
+                        : ticket.departureDate || (ticket.operatingDays && ticket.operatingDays.length > 0 ? ticket.operatingDays.join(", ") : "Not Set")}
+                    </span>
+                  </div>
                   <div className="flex items-center gap-1.5">
                     <FaClock size={11} className="text-neutral-400 shrink-0" />
                     <span>{ticket.departureTime}</span>
@@ -1053,10 +1062,16 @@ const TicketsManagement = () => {
                   </div>
                 </div>
 
-                {/* Vehicle name if set */}
-                {ticket.vehicleName && (
-                  <p className="text-xs text-neutral-400 mt-2">{ticket.vehicleName} · {ticket.vehicleType}</p>
-                )}
+                {/* Vehicle & Modes */}
+                <div className="mt-2 pt-2 border-t border-neutral-100 flex flex-wrap justify-between items-center text-xs text-neutral-500 gap-y-1">
+                  <span>{ticket.vehicleName ? `${ticket.vehicleName} · ${ticket.vehicleType}` : "Vehicle: Not Set"}</span>
+                  <span className="font-medium">
+                    Modes: {ticket.isSharedRideAvailable !== false && "Shared"}
+                    {ticket.isSharedRideAvailable !== false && ticket.isPrivateRideAvailable !== false && " & "}
+                    {ticket.isPrivateRideAvailable !== false && "Private"}
+                    {ticket.isSharedRideAvailable === false && ticket.isPrivateRideAvailable === false && "None"}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
@@ -1086,6 +1101,47 @@ const TicketsManagement = () => {
               <p className="text-xs text-neutral-500 mt-0.5">
                 {bottomSheetTrip.departureTime} · {bottomSheetTrip.transportType}
               </p>
+            </div>
+
+            {/* Ride Mode Toggles (Shared / Private) */}
+            <div className="px-6 py-3 border-b border-neutral-100">
+              <p className="text-[11px] font-bold text-neutral-400 mb-2 uppercase tracking-wider">Ride Modes</p>
+              <div className="flex gap-4">
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-charcoal flex-1 py-1.5 px-3 border border-neutral-200 rounded-xl hover:bg-neutral-50">
+                  <input
+                    type="checkbox"
+                    checked={bottomSheetTrip.isSharedRideAvailable !== false}
+                    disabled={togglingTripId === bottomSheetTrip.id}
+                    onChange={async () => {
+                      const updatedValue = bottomSheetTrip.isSharedRideAvailable === false ? true : false;
+                      await handleToggleRideMode(bottomSheetTrip, "shared");
+                      setBottomSheetTrip(prev => ({
+                        ...prev,
+                        isSharedRideAvailable: updatedValue
+                      }));
+                    }}
+                    className="rounded text-primary focus:ring-primary w-4 h-4"
+                  />
+                  <span>Shared</span>
+                </label>
+                <label className="flex items-center gap-2 cursor-pointer text-sm font-medium text-charcoal flex-1 py-1.5 px-3 border border-neutral-200 rounded-xl hover:bg-neutral-50">
+                  <input
+                    type="checkbox"
+                    checked={bottomSheetTrip.isPrivateRideAvailable !== false}
+                    disabled={togglingTripId === bottomSheetTrip.id}
+                    onChange={async () => {
+                      const updatedValue = bottomSheetTrip.isPrivateRideAvailable === false ? true : false;
+                      await handleToggleRideMode(bottomSheetTrip, "private");
+                      setBottomSheetTrip(prev => ({
+                        ...prev,
+                        isPrivateRideAvailable: updatedValue
+                      }));
+                    }}
+                    className="rounded text-primary focus:ring-primary w-4 h-4"
+                  />
+                  <span>Private</span>
+                </label>
+              </div>
             </div>
 
             {/* Actions */}
