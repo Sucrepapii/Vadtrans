@@ -610,7 +610,7 @@ exports.updateTrip = async (req, res) => {
   }
 };
 
-// @desc    Toggle trip availability (active <-> inactive)
+// @desc    Toggle trip availability (active <-> inactive) or update ride modes
 // @route   PATCH /api/trips/:id/availability
 // @access  Private (Company only - own trips)
 exports.toggleAvailability = async (req, res) => {
@@ -622,38 +622,55 @@ exports.toggleAvailability = async (req, res) => {
     }
 
     // Only allow the owning company
-    if (trip.companyId !== req.user.id) {
+    if (trip.companyId !== req.user.id && req.user.role !== "admin") {
       return res.status(403).json({
         success: false,
         message: "Not authorized to update this trip",
       });
     }
 
-    // Only toggle between active and inactive (do not touch cancelled)
-    // Completed trips can be toggled to make them active again for the next day
-    if (trip.status === "cancelled") {
-      return res.status(400).json({
-        success: false,
-        message: `Cannot toggle availability on a ${trip.status} trip`,
-      });
+    const { isSharedRideAvailable, isPrivateRideAvailable, status } = req.body || {};
+    let updated = false;
+
+    if (isSharedRideAvailable !== undefined) {
+      trip.isSharedRideAvailable = isSharedRideAvailable;
+      updated = true;
+    }
+    if (isPrivateRideAvailable !== undefined) {
+      trip.isPrivateRideAvailable = isPrivateRideAvailable;
+      updated = true;
     }
 
-    const newStatus = trip.status === "active" ? "inactive" : "active";
-    trip.status = newStatus;
+    if (status !== undefined) {
+      trip.status = status;
+      updated = true;
+    } else if (!updated) {
+      // Toggle between active and inactive if no other properties are provided
+      if (trip.status === "cancelled") {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot toggle availability on a cancelled trip",
+        });
+      }
+      trip.status = trip.status === "active" ? "inactive" : "active";
+    }
+
     await trip.save();
 
     return res.status(200).json({
       success: true,
-      message: newStatus === "active"
-        ? "Trip marked as available — it will appear in search results."
-        : "Trip marked as not available — it is now hidden from search results.",
+      message: updated
+        ? "Trip availability updated successfully"
+        : (trip.status === "active"
+          ? "Trip marked as available — it will appear in search results."
+          : "Trip marked as not available — it is now hidden from search results."),
       trip,
     });
   } catch (error) {
     console.error("Toggle availability error:", error);
     return res.status(500).json({
       success: false,
-      message: "Error toggling trip availability",
+      message: "Error updating trip availability",
       error: error.message,
     });
   }
@@ -811,47 +828,5 @@ exports.updateTripLocation = async (req, res) => {
   }
 };
 
-// @desc    Toggle ride availability for a trip
-// @route   PATCH /api/trips/:id/availability
-// @access  Private (Company)
-exports.toggleAvailability = async (req, res) => {
-  try {
-    const trip = await Trip.findByPk(req.params.id);
 
-    if (!trip) {
-      return res.status(404).json({
-        success: false,
-        message: "Trip not found",
-      });
-    }
-
-    // Make sure user owns this trip
-    if (trip.companyId !== req.user.id && req.user.role !== "admin") {
-      return res.status(403).json({
-        success: false,
-        message: "Not authorized to update this trip",
-      });
-    }
-
-    const { isSharedRideAvailable, isPrivateRideAvailable } = req.body;
-
-    if (isSharedRideAvailable !== undefined) trip.isSharedRideAvailable = isSharedRideAvailable;
-    if (isPrivateRideAvailable !== undefined) trip.isPrivateRideAvailable = isPrivateRideAvailable;
-
-    await trip.save();
-
-    res.status(200).json({
-      success: true,
-      message: "Trip availability updated successfully",
-      trip,
-    });
-  } catch (error) {
-    console.error("Toggle availability error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Error updating trip availability",
-      error: error.message,
-    });
-  }
-};
 
