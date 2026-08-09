@@ -301,15 +301,20 @@ const DriverConsoleList = () => {
                     </div>
 
                     {req.status === "searching" && (
-                      <div className="mt-4 pt-4 border-t border-neutral-100 flex flex-col sm:flex-row gap-2 sm:gap-3">
-                        <input
-                          type="number"
-                          placeholder="Your bid (₦)"
-                          value={bidAmount[req.id] || ""}
-                          onChange={(e) => setBidAmount({...bidAmount, [req.id]: e.target.value})}
-                          className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                        />
-                        <Button onClick={() => handleBid(req.id)} variant="primary" className="w-full sm:w-auto py-3 sm:py-2">Place Bid</Button>
+                      <div className="mt-4 pt-4 border-t border-neutral-100">
+                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                          <input
+                            type="number"
+                            placeholder="Your bid (₦)"
+                            value={bidAmount[req.id] || ""}
+                            onChange={(e) => setBidAmount({...bidAmount, [req.id]: e.target.value})}
+                            className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                          />
+                          <Button onClick={() => handleBid(req.id)} variant="primary" className="w-full sm:w-auto py-3 sm:py-2">Place Bid</Button>
+                        </div>
+                        <p className="text-[10px] text-neutral-400 mt-1.5 italic">
+                          Note: Platform commission of 20% applies to private rides. You will receive 80% of your accepted bid.
+                        </p>
                       </div>
                     )}
 

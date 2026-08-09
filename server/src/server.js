@@ -240,6 +240,13 @@ const initializeDatabase = async () => {
           defaultValue: [],
         });
       }
+      if (!prrTableInfo.payoutStatus) {
+        console.log("ℹ️ Adding missing column 'payoutStatus' to PrivateRideRequests...");
+        await queryInterface.addColumn("PrivateRideRequests", "payoutStatus", {
+          type: DataTypes.STRING,
+          defaultValue: "pending",
+        });
+      }
     } catch (err) {
       console.log("ℹ️ Note: PrivateRideRequests table checking error:", err.message);
     }

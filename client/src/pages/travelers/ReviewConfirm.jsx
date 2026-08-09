@@ -483,21 +483,27 @@ const ReviewConfirm = () => {
                       ₦{subtotal.toLocaleString()}
                     </span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-neutral-600">Service Fee (5%)</span>
-                    <span className="font-medium">
-                      ₦{serviceFee.toLocaleString()}
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-sm border-b pb-2">
-                    <span className="text-neutral-600">VAT (7.5%)</span>
-                    <span className="font-medium">₦{vat.toLocaleString()}</span>
-                  </div>
-                  <p className="text-xs text-neutral-500 italic mt-1 pb-2">
-                    This service fee helps us verify transport partners,
-                    maintain the platform, and provide customer support for a
-                    smooth and reliable travel experience.
-                  </p>
+                  {serviceFee > 0 && (
+                    <div className="flex justify-between text-sm">
+                      <span className="text-neutral-600">Service Fee (5%)</span>
+                      <span className="font-medium">
+                        ₦{serviceFee.toLocaleString()}
+                      </span>
+                    </div>
+                  )}
+                  {vat > 0 && (
+                    <div className="flex justify-between text-sm border-b pb-2">
+                      <span className="text-neutral-600">VAT (7.5%)</span>
+                      <span className="font-medium">₦{vat.toLocaleString()}</span>
+                    </div>
+                  )}
+                  {serviceFee > 0 && (
+                    <p className="text-xs text-neutral-500 italic mt-1 pb-2">
+                      This service fee helps us verify transport partners,
+                      maintain the platform, and provide customer support for a
+                      smooth and reliable travel experience.
+                    </p>
+                  )}
                   <div className="border-t pt-3 flex justify-between">
                     <span className="font-bold">{(isCarpool && paymentOption === "deposit") ? "Deposit to Pay" : "Total"}</span>
                     <span className="font-bold text-primary text-xl">

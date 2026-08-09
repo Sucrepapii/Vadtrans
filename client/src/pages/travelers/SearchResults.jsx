@@ -832,7 +832,7 @@ const SearchResults = () => {
                           <option value="all">All Types</option>
                           <option value="inter-state">Inter-State</option>
                           <option value="carpooling">Carpooling</option>
-                          <option value="international">International</option>
+                          <option value="international">Cross-Border</option>
                           <option value="private" className="font-bold text-primary"> Private Ride</option>
                         </select>
                       </div>

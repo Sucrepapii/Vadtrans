@@ -96,6 +96,10 @@ const PrivateRideRequest = sequelize.define(
       type: DataTypes.ENUM("pending", "paid", "failed"),
       defaultValue: "pending",
     },
+    payoutStatus: {
+      type: DataTypes.STRING,
+      defaultValue: "pending",
+    },
     cancellationReason: {
       type: DataTypes.STRING,
     },

@@ -3,6 +3,7 @@ const { sequelize } = require("../config/database");
 const User = require("../models/User");
 const Trip = require("../models/Trip");
 const Booking = require("../models/Booking");
+const PrivateRideRequest = require("../models/PrivateRideRequest");
 
 // @desc    Get all companies with their unpaid balances (Admin)
 // @route   GET /api/earnings/companies
@@ -41,10 +42,25 @@ exports.getCompanyEarnings = async (req, res) => {
           return sum + (amount - fee);
         }, 0);
 
+        // Fetch pending private rides
+        const privateRides = await PrivateRideRequest.findAll({
+          where: {
+            driverId: company.id,
+            paymentStatus: "paid",
+            payoutStatus: "pending",
+          }
+        });
+
+        const pendingPrivateBalance = privateRides.reduce((sum, ride) => {
+          const agreedPrice = parseFloat(ride.agreedPrice) || 0;
+          const commission = parseFloat(ride.commissionAmount) || 0;
+          return sum + (agreedPrice - commission);
+        }, 0);
+
         return {
           ...company.toJSON(),
-          pendingBalance,
-          pendingBookingsCount: bookings.length,
+          pendingBalance: pendingBalance + pendingPrivateBalance,
+          pendingBookingsCount: bookings.length + privateRides.length,
         };
       })
     );
@@ -91,7 +107,17 @@ exports.markEarningsAsPaid = async (req, res) => {
       transaction,
     });
 
-    if (bookings.length === 0) {
+    // Find all pending paid private rides for this company
+    const privateRides = await PrivateRideRequest.findAll({
+      where: {
+        driverId: companyId,
+        paymentStatus: "paid",
+        payoutStatus: "pending",
+      },
+      transaction,
+    });
+
+    if (bookings.length === 0 && privateRides.length === 0) {
       await transaction.rollback();
       return res.status(400).json({
         success: false,
@@ -100,20 +126,43 @@ exports.markEarningsAsPaid = async (req, res) => {
     }
 
     const bookingIds = bookings.map((b) => b.id);
-    const totalSettled = bookings.reduce((sum, booking) => {
+    const privateRideIds = privateRides.map((r) => r.id);
+
+    const totalSettledBookings = bookings.reduce((sum, booking) => {
       const amount = parseFloat(booking.totalAmount) || 0;
       const fee = parseFloat(booking.serviceFee) || 0;
       return sum + (amount - fee);
     }, 0);
 
-    // Update payoutStatus to settled
-    await Booking.update(
-      { payoutStatus: "settled" },
-      {
-        where: { id: { [Op.in]: bookingIds } },
-        transaction,
-      }
-    );
+    const totalSettledPrivate = privateRides.reduce((sum, ride) => {
+      const agreedPrice = parseFloat(ride.agreedPrice) || 0;
+      const commission = parseFloat(ride.commissionAmount) || 0;
+      return sum + (agreedPrice - commission);
+    }, 0);
+
+    const totalSettled = totalSettledBookings + totalSettledPrivate;
+
+    // Update payoutStatus to settled for bookings
+    if (bookingIds.length > 0) {
+      await Booking.update(
+        { payoutStatus: "settled" },
+        {
+          where: { id: { [Op.in]: bookingIds } },
+          transaction,
+        }
+      );
+    }
+
+    // Update payoutStatus to settled for private rides
+    if (privateRideIds.length > 0) {
+      await PrivateRideRequest.update(
+        { payoutStatus: "settled" },
+        {
+          where: { id: { [Op.in]: privateRideIds } },
+          transaction,
+        }
+      );
+    }
 
     await transaction.commit();
 
@@ -121,7 +170,7 @@ exports.markEarningsAsPaid = async (req, res) => {
       success: true,
       message: `Successfully settled ₦${totalSettled.toLocaleString()} for company.`,
       settledAmount: totalSettled,
-      bookingsSettled: bookingIds.length,
+      bookingsSettled: bookingIds.length + privateRideIds.length,
     });
   } catch (error) {
     if (transaction) await transaction.rollback();
@@ -163,6 +212,21 @@ exports.getMyEarnings = async (req, res) => {
       return sum + (amount - fee);
     }, 0);
 
+    // Pending Private Rides
+    const pendingPrivateRides = await PrivateRideRequest.findAll({
+      where: {
+        driverId: companyId,
+        paymentStatus: "paid",
+        payoutStatus: "pending",
+      }
+    });
+
+    const pendingPrivateBalance = pendingPrivateRides.reduce((sum, ride) => {
+      const agreedPrice = parseFloat(ride.agreedPrice) || 0;
+      const commission = parseFloat(ride.commissionAmount) || 0;
+      return sum + (agreedPrice - commission);
+    }, 0);
+
     // Total Historical Earnings (Settled + Pending)
     const allPaidBookings = await Booking.findAll({
       where: {
@@ -184,13 +248,27 @@ exports.getMyEarnings = async (req, res) => {
       return sum + (amount - fee);
     }, 0);
 
+    // Total Historical Private Rides
+    const allPaidPrivateRides = await PrivateRideRequest.findAll({
+      where: {
+        driverId: companyId,
+        paymentStatus: "paid",
+      }
+    });
+
+    const totalPrivateEarnings = allPaidPrivateRides.reduce((sum, ride) => {
+      const agreedPrice = parseFloat(ride.agreedPrice) || 0;
+      const commission = parseFloat(ride.commissionAmount) || 0;
+      return sum + (agreedPrice - commission);
+    }, 0);
+
     res.status(200).json({
       success: true,
       data: {
-        pendingBalance,
-        totalEarnings,
-        pendingBookingsCount: pendingBookings.length,
-        totalBookingsCount: allPaidBookings.length,
+        pendingBalance: pendingBalance + pendingPrivateBalance,
+        totalEarnings: totalEarnings + totalPrivateEarnings,
+        pendingBookingsCount: pendingBookings.length + pendingPrivateRides.length,
+        totalBookingsCount: allPaidBookings.length + allPaidPrivateRides.length,
       },
     });
   } catch (error) {

@@ -481,20 +481,24 @@ const FreightCheckout = () => {
                         ₦{subtotal.toLocaleString()}
                       </span>
                     </div>
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-neutral-500">
-                        Platform Fee (5%)
-                      </span>
-                      <span className="font-bold text-neutral-800">
-                        ₦{serviceFee.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm pb-3 border-b border-dashed border-neutral-200">
-                      <span className="text-neutral-500">VAT (7.5%)</span>
-                      <span className="font-bold text-neutral-800">
-                        ₦{vat.toLocaleString()}
-                      </span>
-                    </div>
+                    {serviceFee > 0 && (
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-neutral-500">
+                          Platform Fee (5%)
+                        </span>
+                        <span className="font-bold text-neutral-800">
+                          ₦{serviceFee.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                    {vat > 0 && (
+                      <div className="flex justify-between items-center text-sm pb-3 border-b border-dashed border-neutral-200">
+                        <span className="text-neutral-500">VAT (7.5%)</span>
+                        <span className="font-bold text-neutral-800">
+                          ₦{vat.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-between items-center pt-1">
                       <span className="font-bold text-neutral-900">Total</span>
                       <span className="font-black text-primary text-2xl">

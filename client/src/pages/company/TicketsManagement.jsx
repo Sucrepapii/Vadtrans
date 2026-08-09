@@ -2435,21 +2435,15 @@ const TicketsManagement = () => {
                 {/* Price Breakdown */}
                 <div className="bg-white p-4 rounded-xl border border-neutral-100 space-y-2">
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-neutral-500">Service Fee (5%)</span>
+                    <span className="text-neutral-500">Platform Commission (5%)</span>
                     <span className="font-semibold text-neutral-700">
-                      ₦
-                      {calculateServiceFee(
-                        Number(formData.price || 0),
-                      ).toLocaleString()}
+                      - ₦{Math.round(Number(formData.price || 0) * 0.05).toLocaleString()}
                     </span>
                   </div>
                   <div className="flex justify-between items-center text-[11px]">
-                    <span className="text-neutral-500">VAT (7.5%)</span>
-                    <span className="font-semibold text-neutral-700">
-                      ₦
-                      {calculateVAT(
-                        calculateServiceFee(Number(formData.price || 0)),
-                      ).toLocaleString()}
+                    <span className="text-neutral-500">Your Earnings</span>
+                    <span className="font-semibold text-green-700">
+                      ₦{(Number(formData.price || 0) - Math.round(Number(formData.price || 0) * 0.05)).toLocaleString()}
                     </span>
                   </div>
                   <div className="pt-2 border-t border-neutral-100 flex justify-between items-center">
@@ -2457,14 +2451,7 @@ const TicketsManagement = () => {
                       Total Customer Pays
                     </span>
                     <span className="text-base font-bold text-primary">
-                      ₦
-                      {(
-                        Number(formData.price || 0) +
-                        calculateServiceFee(Number(formData.price || 0)) +
-                        calculateVAT(
-                          calculateServiceFee(Number(formData.price || 0)),
-                        )
-                      ).toLocaleString()}
+                      ₦{Number(formData.price || 0).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -2636,7 +2623,7 @@ const TicketsManagement = () => {
                 </div>
                 <div>
                   <h3 className="font-raleway font-bold text-lg text-charcoal">
-                    International Trip
+                    Cross-Border Trip
                   </h3>
                   <p className="text-xs text-neutral-500 italic">
                     Travel across West African borders
@@ -2648,7 +2635,7 @@ const TicketsManagement = () => {
               </p>
             </div>
             <div className="bg-neutral-50 p-4 text-center border-t border-neutral-100 group-hover:bg-primary group-hover:text-white transition-colors">
-              <span className="font-bold text-sm">SELECT INTERNATIONAL</span>
+              <span className="font-bold text-sm">SELECT CROSS-BORDER</span>
             </div>
           </div>
 

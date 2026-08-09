@@ -678,21 +678,15 @@ const OfferRide = () => {
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-blue-700">Service Fee (5%)</span>
+                      <span className="text-blue-700">Platform Commission (5%)</span>
                       <span className="font-semibold text-blue-900">
-                        ₦
-                        {calculateServiceFee(
-                          Number(formData.price || 0),
-                        ).toLocaleString()}
+                        - ₦{Math.round(Number(formData.price || 0) * 0.05).toLocaleString()}
                       </span>
                     </div>
                     <div className="flex justify-between items-center text-sm">
-                      <span className="text-blue-700">VAT (7.5%)</span>
-                      <span className="font-semibold text-blue-900">
-                        ₦
-                        {calculateVAT(
-                          calculateServiceFee(Number(formData.price || 0)),
-                        ).toLocaleString()}
+                      <span className="text-blue-700">Your Earnings per Seat</span>
+                      <span className="font-semibold text-green-700">
+                        ₦{(Number(formData.price || 0) - Math.round(Number(formData.price || 0) * 0.05)).toLocaleString()}
                       </span>
                     </div>
                     <div className="pt-2 border-t border-blue-200 flex justify-between items-center">
@@ -700,14 +694,7 @@ const OfferRide = () => {
                         Total Customer Pays
                       </span>
                       <span className="font-bold text-primary text-lg">
-                        ₦
-                        {(
-                          Number(formData.price || 0) +
-                          calculateServiceFee(Number(formData.price || 0)) +
-                          calculateVAT(
-                            calculateServiceFee(Number(formData.price || 0)),
-                          )
-                        ).toLocaleString()}
+                        ₦{Number(formData.price || 0).toLocaleString()}
                       </span>
                     </div>
                   </div>

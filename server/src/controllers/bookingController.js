@@ -104,11 +104,11 @@ exports.createBooking = async (req, res) => {
       subtotal = parseFloat(totalAmount) || 0; // Fallback to frontend total if calculation fails
     }
 
-    const serviceFee = 0; // Math.round(subtotal * 0.05);
-    const vat = 0; // Math.round(serviceFee * 0.075);
-    const bookingTotalAmount = subtotal + serviceFee + vat;
+    const serviceFee = Math.round(subtotal * 0.05); // 5% commission on shared ride
+    const vat = 0; // Removed VAT charged to customer
+    const bookingTotalAmount = subtotal; // Passenger pays exactly the subtotal (no service charge)
 
-    console.log("Pricing calculation:", { subtotal, serviceFee, vat, total: bookingTotalAmount });
+    console.log("Pricing calculation (Commission-based):", { subtotal, serviceFee, vat, total: bookingTotalAmount });
 
     // Optional: Validate that the total from frontend roughly matches our calculation
     if (Math.abs(bookingTotalAmount - Number(totalAmount)) > 10) {
