@@ -105,6 +105,8 @@ const DriverConsoleList = () => {
     );
   });
 
+  const pendingRequestsCount = privateRequests.filter(req => req.status === "searching").length;
+
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
       <Navbar variant="desktop" portalLabel="DRIVER CONSOLE" />
@@ -156,6 +158,23 @@ const DriverConsoleList = () => {
             </div>
         </div>
 
+          {/* Banner for pending requests */}
+          {pendingRequestsCount > 0 && activeTab !== "private" && (
+            <div 
+              onClick={() => setActiveTab("private")}
+              className="mb-6 bg-red-50 border border-red-200 rounded-lg p-4 flex items-center justify-between cursor-pointer hover:bg-red-100 transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-2xl">🚨</span>
+                <div>
+                  <h4 className="text-red-700 font-bold">New Private Ride Requests!</h4>
+                  <p className="text-sm text-red-600">You have {pendingRequestsCount} pending request(s) waiting for bids. Click to view.</p>
+                </div>
+              </div>
+              <Button onClick={() => setActiveTab("private")} variant="primary" className="bg-red-600 hover:bg-red-700 border-none">View Requests</Button>
+            </div>
+          )}
+
           {/* Tabs */}
           <div className="flex gap-4 mb-6 border-b border-neutral-200 pb-2">
             <button
@@ -168,11 +187,16 @@ const DriverConsoleList = () => {
             </button>
             <button
               onClick={() => setActiveTab("private")}
-              className={`px-4 py-2 font-bold transition-colors ${
+              className={`px-4 py-2 font-bold transition-colors flex items-center gap-2 ${
                 activeTab === "private" ? "text-primary border-b-2 border-primary" : "text-neutral-500 hover:text-charcoal"
               }`}
             >
               Private Requests
+              {pendingRequestsCount > 0 && (
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                  {pendingRequestsCount}
+                </span>
+              )}
             </button>
           </div>
 
