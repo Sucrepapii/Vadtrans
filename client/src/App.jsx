@@ -40,6 +40,7 @@ import TicketsManagement from "./pages/company/TicketsManagement";
 import CompanyProfile from "./pages/company/CompanyProfile";
 import DriverConsole from "./pages/company/DriverConsole";
 import DriverConsoleList from "./pages/company/DriverConsoleList";
+import PrivateDriverConsole from "./pages/company/PrivateDriverConsole";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ClientManagement from "./pages/admin/ClientManagement";
@@ -172,6 +173,14 @@ const App = () => {
           element={
             <ProtectedRoute allowedRoles={["company"]}>
               <DriverConsole />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/company/private-driver-console/:id"
+          element={
+            <ProtectedRoute allowedRoles={["company"]}>
+              <PrivateDriverConsole />
             </ProtectedRoute>
           }
         />

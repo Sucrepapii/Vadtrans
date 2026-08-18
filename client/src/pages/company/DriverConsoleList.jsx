@@ -21,7 +21,7 @@ import { subscribeUserToPush } from "../../utils/pushHelper";
 
 const DriverConsoleList = () => {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
   const [trips, setTrips] = useState([]);
   const [privateRequests, setPrivateRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -58,6 +58,7 @@ const DriverConsoleList = () => {
       const newStatus = !isOnline;
       await api.put("/auth/profile", { isOnline: newStatus });
       setIsOnline(newStatus);
+      updateUser({ isOnline: newStatus });
       toast.success(newStatus ? "You are now ONLINE" : "You are now OFFLINE");
 
       // Subscribe to push notifications if they just went online

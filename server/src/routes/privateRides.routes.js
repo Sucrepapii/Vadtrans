@@ -16,9 +16,11 @@ router.get("/verify/:reference", privateRideController.verifyPayment);
 // Company routes
 router.post("/:id/bid", authorize("company", "admin"), privateRideController.placeBid);
 router.put("/:id/status", authorize("company", "admin"), privateRideController.updateRideStatus);
+router.put("/:id/location", authorize("company", "admin"), privateRideController.updatePrivateLocation);
 
-// Shared route (get own requests)
+// Shared routes (get own requests/single request)
 router.get("/", privateRideController.getMyRides);
+router.get("/:id", privateRideController.getPrivateRide);
 
 // Cancel route
 router.post("/:id/cancel", authorize("traveler", "admin"), privateRideController.cancelRequest);

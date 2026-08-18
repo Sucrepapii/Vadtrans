@@ -247,6 +247,34 @@ const initializeDatabase = async () => {
           defaultValue: "pending",
         });
       }
+      if (!prrTableInfo.currentLat) {
+        console.log("ℹ️ Adding missing column 'currentLat' to PrivateRideRequests...");
+        await queryInterface.addColumn("PrivateRideRequests", "currentLat", {
+          type: DataTypes.FLOAT,
+          allowNull: true,
+        });
+      }
+      if (!prrTableInfo.currentLng) {
+        console.log("ℹ️ Adding missing column 'currentLng' to PrivateRideRequests...");
+        await queryInterface.addColumn("PrivateRideRequests", "currentLng", {
+          type: DataTypes.FLOAT,
+          allowNull: true,
+        });
+      }
+      if (!prrTableInfo.currentLocation) {
+        console.log("ℹ️ Adding missing column 'currentLocation' to PrivateRideRequests...");
+        await queryInterface.addColumn("PrivateRideRequests", "currentLocation", {
+          type: DataTypes.STRING,
+          allowNull: true,
+        });
+      }
+      if (!prrTableInfo.lastUpdated) {
+        console.log("ℹ️ Adding missing column 'lastUpdated' to PrivateRideRequests...");
+        await queryInterface.addColumn("PrivateRideRequests", "lastUpdated", {
+          type: DataTypes.DATE,
+          allowNull: true,
+        });
+      }
     } catch (err) {
       console.log("ℹ️ Note: PrivateRideRequests table checking error:", err.message);
     }

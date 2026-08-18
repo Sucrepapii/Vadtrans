@@ -97,12 +97,9 @@ const AboutUs = () => {
                 Our Mission
               </h2>
               <p className="text-neutral-700 mb-4 leading-relaxed">
-                To make travel simple and enjoyable by connecting travelers with
-                trusted transport providers, while empowering individuals to
-                launch and grow their own transport services through an
-                easy-to-use online marketplace—designed to be enhanced over time
-                by data-driven and AI-powered tools that optimize pricing,
-                routes, and user experience as we scale.
+                To provide travelers and daily commuters with a trusted
+                marketplace that makes travel across cities and borders seamless,
+                reliable, and accessible.
               </p>
               <div className="flex flex-wrap gap-3 mt-6">
                 <div className="flex items-center gap-2">

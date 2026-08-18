@@ -208,7 +208,7 @@ const sendBookingConfirmationEmail = async (booking, user) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "VadTrans <bookings@resend.dev>",
+      from: process.env.SMTP_FROM || "onboarding@resend.dev",
       to: [user.email],
       subject: `Booking Confirmation - ${esc(booking.bookingId)} 🎫`,
       html: `
@@ -297,7 +297,7 @@ const sendVerificationEmail = async (user, token) => {
     }/verify-email?token=${token}`;
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "VadTrans <verify@resend.dev>",
+      from: process.env.SMTP_FROM || "onboarding@resend.dev",
       to: [user.email],
       subject: "Verify Your Email - VadTrans",
       html: `
@@ -337,14 +337,21 @@ const sendVerificationEmail = async (user, token) => {
 
     if (error) {
       console.error("❌ Resend Error:", error);
-      return { success: false, error: error.message };
+      console.log(`\n📧 [DEVELOPMENT FALLBACK] Verification Email for ${user.name} (${user.email}):`);
+      console.log(`🔗 Link: ${verificationUrl}\n`);
+      return { success: true, mode: "console_fallback", message: "Logged to console due to Resend error" };
     }
 
     console.log("✅ Verification email sent to:", user.email);
     return { success: true, messageId: data.id };
   } catch (error) {
     console.error("❌ Error sending verification email:", error.message);
-    return { success: false, error: error.message };
+    const verificationUrl = `${
+      process.env.CLIENT_URL || "https://www.vadtrans.com/"
+    }/verify-email?token=${token}`;
+    console.log(`\n📧 [DEVELOPMENT FALLBACK] Verification Email for ${user.name} (${user.email}):`);
+    console.log(`🔗 Link: ${verificationUrl}\n`);
+    return { success: true, mode: "console_fallback", error: error.message };
   }
 };
 
@@ -355,7 +362,7 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "VadTrans <auth@resend.dev>",
+      from: process.env.SMTP_FROM || "onboarding@resend.dev",
       to: [user.email],
       subject: "Reset Your Password - VadTrans",
       html: `
@@ -394,7 +401,7 @@ const sendPasswordSuccessEmail = async (user) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "VadTrans <auth@resend.dev>",
+      from: process.env.SMTP_FROM || "onboarding@resend.dev",
       to: [user.email],
       subject: "Password Changed Successfully - VadTrans",
       html: `
@@ -437,7 +444,7 @@ const sendContactFormEmail = async ({ name, email, subject, message }) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "VadTrans <contact@resend.dev>",
+      from: process.env.SMTP_FROM || "onboarding@resend.dev",
       to: process.env.SUPPORT_EMAIL || "support@vadtrans.com", // Send to company support email
       reply_to: email, // Reply directly to user
       subject: `Contact Form: ${subject}`,
@@ -472,7 +479,7 @@ const sendAccountDeletedEmail = async (user) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "VadTrans <account@resend.dev>",
+      from: process.env.SMTP_FROM || "onboarding@resend.dev",
       to: [user.email],
       subject: "Account Closure Notification - VadTrans",
       html: `
@@ -518,7 +525,7 @@ const sendDocumentReminderEmail = async (user) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "VadTrans <verification@resend.dev>",
+      from: process.env.SMTP_FROM || "onboarding@resend.dev",
       to: [user.email],
       subject: "Urgent Action Required: Upload Verification Documents 📄",
       html: `

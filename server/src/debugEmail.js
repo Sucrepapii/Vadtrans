@@ -1,10 +1,10 @@
 const dotenv = require("dotenv");
+// Load env vars
+dotenv.config();
+
 const { sequelize } = require("./config/database");
 const User = require("./models/User");
 const { sendVerificationEmail } = require("./utils/emailService");
-
-// Load env vars
-dotenv.config();
 
 const debugEmail = async () => {
   try {

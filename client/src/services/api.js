@@ -160,4 +160,19 @@ export const shipmentAPI = {
   verifyPayment: (data) => api.post("/shipments/verify-payment", data),
 };
 
+// Private Ride API
+export const privateRideAPI = {
+  createRequest: (data) => api.post("/private-rides/request", data),
+  getNearbyDrivers: () => api.get("/private-rides/nearby-drivers"),
+  acceptBid: (bidId) => api.post(`/private-rides/bids/${bidId}/accept`),
+  initializePayment: (id) => api.post(`/private-rides/${id}/pay`),
+  verifyPayment: (reference, privateRideId) => api.get(`/private-rides/verify/${reference}`, { params: { privateRideId } }),
+  placeBid: (id, bidAmount) => api.post(`/private-rides/${id}/bid`, { bidAmount }),
+  updateRideStatus: (id, status) => api.put(`/private-rides/${id}/status`, { status }),
+  updateLocation: (id, data) => api.put(`/private-rides/${id}/location`, data),
+  getMyRides: () => api.get("/private-rides"),
+  getPrivateRide: (id) => api.get(`/private-rides/${id}`),
+  cancelRequest: (id) => api.post(`/private-rides/${id}/cancel`),
+};
+
 export default api;

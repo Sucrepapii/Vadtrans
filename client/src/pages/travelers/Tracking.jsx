@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
-import { bookingAPI, tripAPI, shipmentAPI } from "../../services/api";
+import api, { bookingAPI, tripAPI, shipmentAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
@@ -35,24 +35,36 @@ const Tracking = () => {
     }
   }, [location.state]);
 
-  // Poll for location updates if trip is active
+  // Poll for location updates if trip/ride is active
   useEffect(() => {
     let interval;
-    if (trackData && tripDetails?.status === "active") {
+    const isPrivateActive = isPrivateRide && ["en_route", "arrived", "started"].includes(tripDetails?.status);
+    const isSharedActive = !isPrivateRide && tripDetails?.status === "active";
+
+    if (trackData && (isSharedActive || isPrivateActive)) {
       interval = setInterval(() => {
         refreshLocation();
       }, 30000); // 30 seconds
     }
     return () => clearInterval(interval);
-  }, [trackData, tripDetails]);
+  }, [trackData, tripDetails, isPrivateRide]);
 
   const refreshLocation = async () => {
     if (!tripDetails?.id) return;
     try {
-      const res = await tripAPI.getTrip(tripDetails.id);
-      if (res.data.success) {
-        setTripDetails(res.data.trip);
-        setLastUpdated(new Date());
+      if (isPrivateRide || tripDetails.requestId?.startsWith("PR-")) {
+        const res = await api.get(`/private-rides/${tripDetails.id}`);
+        if (res.data.success) {
+          setTripDetails(res.data.request);
+          setTrackData(res.data.request);
+          setLastUpdated(new Date());
+        }
+      } else {
+        const res = await tripAPI.getTrip(tripDetails.id);
+        if (res.data.success) {
+          setTripDetails(res.data.trip);
+          setLastUpdated(new Date());
+        }
       }
     } catch (err) {
       console.error("Poll update failed", err);
@@ -60,6 +72,7 @@ const Tracking = () => {
   };
 
   const [isFreight, setIsFreight] = useState(false);
+  const [isPrivateRide, setIsPrivateRide] = useState(false);
 
   const fetchTrackingData = async (idToTrack) => {
     if (!idToTrack) return;
@@ -67,6 +80,7 @@ const Tracking = () => {
     setTrackData(null);
     setTripDetails(null);
     setIsFreight(false);
+    setIsPrivateRide(false);
 
     try {
       if (idToTrack.startsWith("FR-")) {
@@ -78,6 +92,20 @@ const Tracking = () => {
           setTripDetails(res.data.shipment.trip);
         } else {
           toast.error("Shipment not found.");
+        }
+      } else if (idToTrack.startsWith("PR-")) {
+        // It's a Private Ride
+        const res = await api.get("/private-rides");
+        const myRide = res.data.requests?.find(
+          (r) => r.requestId === idToTrack
+        );
+
+        if (myRide) {
+          setIsPrivateRide(true);
+          setTrackData(myRide);
+          setTripDetails(myRide);
+        } else {
+          toast.error("Private ride request not found or not paid yet.");
         }
       } else {
         // Passenger Booking (existing logic)
@@ -267,7 +295,7 @@ const Tracking = () => {
               )}
 
               {/* Passenger Trip Details (Existing) */}
-              {!isFreight && (
+              {!isFreight && !isPrivateRide && (
                 <Card className="mb-6">
                   <h3 className="font-semibold mb-4">Trip Details</h3>
                   <div className="space-y-3">
@@ -289,6 +317,37 @@ const Tracking = () => {
                         {tripDetails.departureTime}
                       </span>
                     </div>
+                  </div>
+                </Card>
+              )}
+
+              {/* Private Ride Details */}
+              {isPrivateRide && (
+                <Card className="mb-6">
+                  <h3 className="font-semibold mb-4">Private Ride Details</h3>
+                  <div className="space-y-3">
+                    <div className="flex justify-between">
+                      <span className="text-neutral-600">Ride Ref:</span>
+                      <span className="font-semibold">{trackData.requestId}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-600">Pickup Address:</span>
+                      <span className="font-semibold">{trackData.pickupLocation}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-600">Destination:</span>
+                      <span className="font-semibold">{trackData.destination}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-neutral-600">Pickup Date/Time:</span>
+                      <span className="font-semibold">{trackData.pickupDate} at {trackData.pickupTime}</span>
+                    </div>
+                    {trackData.driver && (
+                      <div className="flex justify-between pt-2 border-t">
+                        <span className="text-neutral-600">Driver Assigned:</span>
+                        <span className="font-semibold">{trackData.driver.name} (📞 {trackData.driver.phone})</span>
+                      </div>
+                    )}
                   </div>
                 </Card>
               )}

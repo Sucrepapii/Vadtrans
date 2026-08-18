@@ -504,9 +504,18 @@ const MyBookings = () => {
                                 // Direct them to the booking flow modal
                                 navigate('/request-private-ride');
                               }}
-                              className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg"
+                              className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-dark transition-colors"
                             >
                               View Request
+                            </button>
+                          ) : ["driver_assigned", "en_route", "arrived", "started", "completed"].includes(ride.status) ? (
+                            <button
+                              onClick={() => {
+                                navigate('/tracking', { state: { bookingId: ride.requestId } });
+                              }}
+                              className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-dark transition-colors"
+                            >
+                              Track Ride
                             </button>
                           ) : null}
                         </div>

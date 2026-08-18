@@ -103,6 +103,22 @@ const PrivateRideRequest = sequelize.define(
     cancellationReason: {
       type: DataTypes.STRING,
     },
+    currentLat: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    currentLng: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
+    currentLocation: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    lastUpdated: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
   },
   {
     timestamps: true,

@@ -231,21 +231,33 @@ exports.cancelRequest = async (req, res) => {
 exports.getMyRides = async (req, res) => {
   try {
     const isCompany = req.user.role === "company";
-    const where = isCompany 
-      ? { 
-          [Op.and]: [
-            {
-              [Op.or]: [
-                { status: "searching" },
-                { driverId: req.user.id }
-              ]
-            },
-            {
-              status: { [Op.notIn]: ["cancelled", "completed"] }
-            }
-          ]
-        } 
-      : { passengerId: req.user.id };
+    let where;
+
+    if (isCompany) {
+      // Find request IDs where this driver has bid
+      const driverBids = await RideBid.findAll({
+        where: { driverId: req.user.id },
+        attributes: ["requestId"]
+      });
+      const bidRequestIds = driverBids.map(b => b.requestId);
+
+      where = { 
+        [Op.and]: [
+          {
+            [Op.or]: [
+              { status: "searching" },
+              { driverId: req.user.id },
+              { id: { [Op.in]: bidRequestIds } }
+            ]
+          },
+          {
+            status: { [Op.notIn]: ["cancelled", "completed"] }
+          }
+        ]
+      };
+    } else {
+      where = { passengerId: req.user.id };
+    }
 
     // Include bids if it's a passenger so they can see driver responses
     const requests = await PrivateRideRequest.findAll({
@@ -328,5 +340,60 @@ exports.verifyPayment = async (req, res) => {
   } catch (error) {
     console.error("Verify Private Ride Payment Error:", error);
     res.status(500).json({ success: false, message: "Payment verification error", error: error.message });
+  }
+};
+
+// @desc    Get single private ride request
+// @route   GET /api/private-rides/:id
+// @access  Private
+exports.getPrivateRide = async (req, res) => {
+  try {
+    const request = await PrivateRideRequest.findByPk(req.params.id, {
+      include: [
+        { model: User, as: "passenger", attributes: ["name", "phone", "avatar"] },
+        { model: User, as: "driver", attributes: ["name", "phone", "avatar"] }
+      ]
+    });
+    if (!request) {
+      return res.status(404).json({ success: false, message: "Request not found" });
+    }
+    // Check authorization: must be the passenger, assigned driver, or admin
+    if (request.passengerId !== req.user.id && request.driverId !== req.user.id && req.user.role !== "admin") {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+    res.status(200).json({ success: true, request });
+  } catch (error) {
+    console.error("Get Private Ride Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// @desc    Update private ride location/GPS status
+// @route   PUT /api/private-rides/:id/location
+// @access  Private (Company)
+exports.updatePrivateLocation = async (req, res) => {
+  try {
+    const { lat, lng, currentLocation, status } = req.body;
+    const request = await PrivateRideRequest.findByPk(req.params.id);
+    
+    if (!request) {
+      return res.status(404).json({ success: false, message: "Request not found" });
+    }
+    if (request.driverId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    request.currentLat = lat;
+    request.currentLng = lng;
+    if (currentLocation) request.currentLocation = currentLocation;
+    if (status) request.status = status;
+    request.lastUpdated = new Date();
+    
+    await request.save();
+
+    res.status(200).json({ success: true, request });
+  } catch (error) {
+    console.error("Update Private Ride Location Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
