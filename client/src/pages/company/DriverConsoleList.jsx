@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { tripAPI } from "../../services/api";
-import api from "../../services/api";
+import api, { tripAPI, privateRideAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
@@ -29,6 +28,7 @@ const DriverConsoleList = () => {
   const [activeTab, setActiveTab] = useState("shared");
   const [isOnline, setIsOnline] = useState(user?.isOnline || false);
   const [bidAmount, setBidAmount] = useState({});
+  const [counterOfferAmount, setCounterOfferAmount] = useState({});
 
   useEffect(() => {
     fetchTrips();
@@ -82,6 +82,17 @@ const DriverConsoleList = () => {
       fetchPrivateRequests();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to place bid");
+    }
+  };
+
+  const handleCounter = async (bidId, amount) => {
+    try {
+      if (!amount) return toast.error("Please enter a final price offer");
+      await privateRideAPI.counterOfferBid(bidId, amount);
+      toast.success("Final offer submitted successfully!");
+      fetchPrivateRequests();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to submit counter-offer");
     }
   };
 
@@ -278,8 +289,10 @@ const DriverConsoleList = () => {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {privateRequests.map(req => (
-                  <div key={req.id} className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
+                {privateRequests.map(req => {
+                  const myBid = req.bids?.find(b => b.driverId === user?.id);
+                  return (
+                    <div key={req.id} className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-bold rounded-full uppercase">
@@ -325,22 +338,67 @@ const DriverConsoleList = () => {
                       <span>Passengers: {req.passengersCount}</span>
                     </div>
 
-                    {req.status === "searching" && (
-                      <div className="mt-4 pt-4 border-t border-neutral-100">
-                        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                          <input
-                            type="number"
-                            placeholder="Your bid (₦)"
-                            value={bidAmount[req.id] || ""}
-                            onChange={(e) => setBidAmount({...bidAmount, [req.id]: e.target.value})}
-                            className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-                          />
-                          <Button onClick={() => handleBid(req.id)} variant="primary" className="w-full sm:w-auto py-3 sm:py-2">Place Bid</Button>
-                        </div>
-                        <p className="text-[10px] text-neutral-400 mt-1.5 italic">
-                          Note: Platform commission of 20% applies to private rides. You will receive 80% of your accepted bid.
-                        </p>
+                    {myBid ? (
+                      <div className="mt-4 pt-4 border-t border-neutral-100 bg-neutral-50/50 p-4 rounded-xl border border-neutral-100">
+                        {myBid.status === "negotiating" ? (
+                          <div className="space-y-3">
+                            <p className="text-sm font-bold text-amber-700 flex items-center gap-1.5 animate-pulse">
+                              <span>🚨</span> Passenger wants to negotiate! (Original bid: ₦{myBid.bidAmount.toLocaleString()})
+                            </p>
+                            <p className="text-xs text-neutral-600">Please propose your final price offer below:</p>
+                            <div className="flex flex-col sm:flex-row gap-2">
+                              <input
+                                type="number"
+                                placeholder="Final Offer (₦)"
+                                value={counterOfferAmount[myBid.id] || ""}
+                                onChange={(e) => setCounterOfferAmount({...counterOfferAmount, [myBid.id]: e.target.value})}
+                                className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white text-sm"
+                              />
+                              <Button 
+                                onClick={() => handleCounter(myBid.id, counterOfferAmount[myBid.id])} 
+                                variant="primary" 
+                                className="w-full sm:w-auto py-3 sm:py-2 bg-amber-600 hover:bg-amber-700 text-sm"
+                              >
+                                Submit Final Price
+                              </Button>
+                            </div>
+                            <p className="text-[10px] text-neutral-400 italic mt-1.5">
+                              Passenger will see this offer and can immediately Accept & Pay.
+                            </p>
+                          </div>
+                        ) : myBid.status === "counter_offered" ? (
+                          <p className="text-sm font-semibold text-green-700">
+                            ✓ You submitted a final counter-offer of ₦{myBid.bidAmount.toLocaleString()}. Awaiting passenger response.
+                          </p>
+                        ) : myBid.status === "pending" ? (
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-neutral-500 font-medium">Your active bid:</span>
+                            <span className="font-bold text-primary">₦{myBid.bidAmount.toLocaleString()}</span>
+                          </div>
+                        ) : myBid.status === "rejected" ? (
+                          <p className="text-sm font-medium text-red-600">
+                            ✗ Your bid of ₦{myBid.bidAmount.toLocaleString()} was not accepted.
+                          </p>
+                        ) : null}
                       </div>
+                    ) : (
+                      req.status === "searching" && (
+                        <div className="mt-4 pt-4 border-t border-neutral-100">
+                          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                            <input
+                              type="number"
+                              placeholder="Your bid (₦)"
+                              value={bidAmount[req.id] || ""}
+                              onChange={(e) => setCounterOfferAmount({...counterOfferAmount, [req.id]: e.target.value})}
+                              className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                            />
+                            <Button onClick={() => handleBid(req.id)} variant="primary" className="w-full sm:w-auto py-3 sm:py-2">Place Bid</Button>
+                          </div>
+                          <p className="text-[10px] text-neutral-400 mt-1.5 italic">
+                            Note: Platform commission of 20% applies to private rides. You will receive 80% of your accepted bid.
+                          </p>
+                        </div>
+                      )
                     )}
 
                     {req.status !== "searching" && req.driverId === user?.id && (
@@ -351,7 +409,7 @@ const DriverConsoleList = () => {
                       </div>
                     )}
                   </div>
-                ))}
+                )})}
               </div>
             )
           ) : null}

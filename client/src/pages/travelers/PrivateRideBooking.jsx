@@ -6,7 +6,7 @@ import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import { toast } from "react-toastify";
-import api from "../../services/api";
+import api, { privateRideAPI } from "../../services/api";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 
 const PrivateRideBooking = () => {
@@ -113,6 +113,21 @@ const PrivateRideBooking = () => {
       window.location.href = payRes.data.data.authorization_url;
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to accept bid");
+    }
+  };
+
+  const handleNegotiate = async (bidId) => {
+    try {
+      await privateRideAPI.negotiateBid(bidId);
+      toast.info("Negotiation request sent to the driver.");
+      // Refresh active request
+      const res = await api.get("/private-rides");
+      const req = res.data.requests.find(r => r.id === activeRequest.id);
+      if (req) {
+        setActiveRequest(req);
+      }
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to request negotiation");
     }
   };
 
@@ -354,10 +369,40 @@ const PrivateRideBooking = () => {
                       </div>
                     </div>
                     <div className="flex flex-col items-end gap-2 w-full md:w-auto">
-                      <span className="text-2xl font-bold text-primary">₦{bid.bidAmount.toLocaleString()}</span>
-                      <Button onClick={() => acceptBid(bid.id)} variant="primary" className="w-full md:w-auto">
-                        Accept & Pay
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        {bid.status === "counter_offered" && (
+                          <span className="px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 text-xs font-bold rounded-full">
+                            Final Offer
+                          </span>
+                        )}
+                        {bid.status === "negotiating" && (
+                          <span className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-full animate-pulse">
+                            Negotiating...
+                          </span>
+                        )}
+                        <span className="text-2xl font-bold text-primary">₦{bid.bidAmount.toLocaleString()}</span>
+                      </div>
+                      
+                      {bid.status === "negotiating" ? (
+                        <p className="text-xs text-amber-600 font-bold bg-amber-50/50 px-3 py-1.5 rounded-lg border border-amber-100 italic">
+                          Waiting for driver's final offer...
+                        </p>
+                      ) : (
+                        <div className="flex gap-2 w-full md:w-auto">
+                          {bid.status === "pending" && (
+                            <Button 
+                              onClick={() => handleNegotiate(bid.id)} 
+                              variant="secondary" 
+                              className="py-2 border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm"
+                            >
+                              Negotiate
+                            </Button>
+                          )}
+                          <Button onClick={() => acceptBid(bid.id)} variant="primary" className="py-2 text-sm">
+                            Accept & Pay
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

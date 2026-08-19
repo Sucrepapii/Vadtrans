@@ -30,7 +30,7 @@ const RideBid = sequelize.define(
       allowNull: false,
     },
     status: {
-      type: DataTypes.ENUM("pending", "accepted", "rejected"),
+      type: DataTypes.ENUM("pending", "accepted", "rejected", "negotiating", "counter_offered"),
       defaultValue: "pending",
     },
   },

@@ -397,3 +397,74 @@ exports.updatePrivateLocation = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+
+// @desc    Passenger request negotiation on bid
+// @route   POST /api/private-rides/bids/:bidId/negotiate
+// @access  Private (Traveler)
+exports.negotiateBid = async (req, res) => {
+  try {
+    const bidId = req.params.bidId;
+    const bid = await RideBid.findByPk(bidId, { include: ["request"] });
+    
+    if (!bid) {
+      return res.status(404).json({ success: false, message: "Bid not found" });
+    }
+    
+    if (bid.request.passengerId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    // Update bid status to negotiating
+    bid.status = "negotiating";
+    await bid.save();
+
+    // Ensure parent private ride request status is "searching"
+    if (bid.request.status !== "searching") {
+      bid.request.status = "searching";
+      await bid.request.save();
+    }
+
+    res.status(200).json({ success: true, bid, request: bid.request });
+  } catch (error) {
+    console.error("Negotiate Bid Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// @desc    Driver submit counter-offer on bid
+// @route   POST /api/private-rides/bids/:bidId/counter-offer
+// @access  Private (Company)
+exports.counterOffer = async (req, res) => {
+  try {
+    const bidId = req.params.bidId;
+    const { amount } = req.body;
+    
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid counter-offer amount" });
+    }
+
+    const bid = await RideBid.findByPk(bidId, { include: ["request"] });
+    
+    if (!bid) {
+      return res.status(404).json({ success: false, message: "Bid not found" });
+    }
+    
+    if (bid.driverId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    if (bid.status !== "negotiating" && bid.status !== "pending") {
+      return res.status(400).json({ success: false, message: "Bid is not in a negotiable state" });
+    }
+
+    // Update bid details
+    bid.bidAmount = parseFloat(amount);
+    bid.status = "counter_offered";
+    await bid.save();
+
+    res.status(200).json({ success: true, bid });
+  } catch (error) {
+    console.error("Counter-offer Bid Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
