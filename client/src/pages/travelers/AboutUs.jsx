@@ -48,10 +48,10 @@ const AboutUs = () => {
   ];
 
   const stats = [
-    { number: "500+", label: "Transport Companies" },
-    { number: "50,000+", label: "Daily Bookings" },
-    { number: "1M+", label: "Happy Travelers" },
-    { number: "100+", label: "Routes Covered" },
+    { number: "50+", label: "Transport Companies" },
+    { number: "500+", label: "Daily Bookings" },
+    { number: "10k+", label: "Happy Travelers" },
+    { number: "50+", label: "Routes Covered" },
   ];
 
   const [faqs, setFaqs] = useState([]);
@@ -149,7 +149,7 @@ const AboutUs = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {values.map((value, index) => (
               <div
                 key={index}

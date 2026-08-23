@@ -212,11 +212,23 @@ const PassengersTab = () => {
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-neutral-200">
+                <div className="mt-4 pt-3 border-t border-neutral-200 space-y-1">
                   <div className="flex justify-between items-end">
-                    <span className="text-sm text-neutral-600">Total Paid</span>
-                    <p className="text-xl font-bold font-raleway text-primary">
+                    <span className="text-sm text-neutral-600">Customer Paid</span>
+                    <p className="text-sm font-medium text-neutral-600 line-through">
                       ₦{Number(booking.totalAmount).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-end">
+                    <span className="text-sm text-neutral-600">Vadtrans Fee (5%)</span>
+                    <p className="text-sm font-medium text-red-500">
+                      -₦{Number(booking.serviceFee || 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div className="flex justify-between items-end pt-1 border-t border-neutral-100">
+                    <span className="text-sm font-semibold text-neutral-800">Your Earnings</span>
+                    <p className="text-xl font-bold font-raleway text-primary">
+                      ₦{Number(booking.totalAmount - (booking.serviceFee || 0)).toLocaleString()}
                     </p>
                   </div>
                 </div>

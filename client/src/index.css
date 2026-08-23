@@ -26,6 +26,15 @@
                 #FAF9F9;
   }
 
+  /* Override default bg-primary to give all primary buttons a gradient */
+  .bg-primary {
+    background: linear-gradient(135deg, #E31E24 0%, #3A3A3A 100%) !important;
+  }
+
+  .hover\:bg-primary-dark:hover {
+    background: linear-gradient(135deg, #BD141A 0%, #222222 100%) !important;
+  }
+
   /* Custom Premium Scrollbar */
   .custom-scrollbar::-webkit-scrollbar {
     width: 6px;
@@ -92,11 +101,11 @@
 
 @layer base {
   html {
-    @apply overflow-x-hidden scroll-smooth;
+    @apply overflow-x-clip scroll-smooth;
   }
 
   body {
-    @apply font-poppins text-charcoal bg-neutral-50 overflow-x-hidden antialiased;
+    @apply font-poppins text-charcoal bg-neutral-50 overflow-x-clip antialiased;
     min-width: 320px;
     background-image: radial-gradient(circle at 100% 0%, rgba(227, 30, 36, 0.04) 0%, transparent 25%),
                       radial-gradient(circle at 0% 100%, rgba(16, 185, 129, 0.02) 0%, transparent 25%);

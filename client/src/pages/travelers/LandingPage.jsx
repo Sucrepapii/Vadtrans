@@ -114,17 +114,32 @@ const LandingPage = () => {
       <Navbar variant="desktop" />
 
       {/* Hero Section */}
-      <section className="relative py-12 sm:py-16 md:py-24 px-4 overflow-hidden">
+      <section className="relative min-h-[85vh] py-12 sm:py-16 md:py-24 px-4 overflow-hidden flex items-center">
+        {/* Background Video */}
+        <div className="absolute inset-0 z-0">
+          <video
+            autoPlay
+            loop
+            muted
+            playsInline
+            className="w-full h-full object-cover"
+          >
+            <source src="/hero_bus_mature.mp4" type="video/mp4" />
+          </video>
+          {/* Gradient Overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-r from-charcoal/90 via-charcoal/60 to-charcoal/30"></div>
+        </div>
+
         <div className="container-custom max-w-6xl relative z-10">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             {/* Left side - Search Form */}
             <div className="animate-slide-up">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-raleway font-black text-charcoal mb-6 leading-none">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-raleway font-black text-white mb-6 leading-none">
                 Find a ride.
                 <br />
-                <span className="bg-gradient-to-r from-primary to-accent-violet bg-clip-text text-transparent">Save money.</span>
+                <span className="bg-gradient-to-r from-primary to-red-400 bg-clip-text text-transparent drop-shadow-sm">Save money.</span>
               </h1>
-              <p className="text-base sm:text-lg text-neutral-600 mb-8 font-medium leading-relaxed">
+              <p className="text-base sm:text-lg text-white/90 mb-8 font-medium leading-relaxed">
                 Carpool with people going your way. Find a ride to work, school, or anywhere in Lagos and beyond.
               </p>
 
@@ -558,19 +573,8 @@ const LandingPage = () => {
               </form>
             </div>
 
-            {/* Right side - Hero Image/Illustration */}
-            <div className="mt-8 lg:mt-0 lg:block">
-              <div className="relative">
-                <img
-                  src="/hero_bus_mature.png"
-                  alt="Travel"
-                  className="w-full h-auto rounded-lg shadow-xl"
-                  onError={(e) => {
-                    e.target.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 600 400'%3E%3Crect fill='%23FFE5E5' width='600' height='400'/%3E%3Crect x='150' y='100' width='300' height='200' rx='20' fill='%23FF6B6B'/%3E%3Crect x='180' y='130' width='60' height='60' rx='5' fill='white'/%3E%3Crect x='270' y='130' width='60' height='60' rx='5' fill='white'/%3E%3Crect x='360' y='130' width='60' height='60' rx='5' fill='white'/%3E%3Ccircle cx='220' cy='320' r='25' fill='%23333'/%3E%3Ccircle cx='380' cy='320' r='25' fill='%23333'/%3E%3C/svg%3E";
-                  }}
-                />
-              </div>
-            </div>
+            {/* Right side - Empty to showcase the background video */}
+            <div className="hidden lg:block h-full"></div>
           </div>
         </div>
       </section>
