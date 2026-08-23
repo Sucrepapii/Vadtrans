@@ -404,6 +404,12 @@ exports.updatePrivateLocation = async (req, res) => {
 exports.negotiateBid = async (req, res) => {
   try {
     const bidId = req.params.bidId;
+    const { amount } = req.body;
+
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ success: false, message: "Invalid counter-offer amount" });
+    }
+
     const bid = await RideBid.findByPk(bidId, { include: ["request"] });
     
     if (!bid) {
@@ -414,7 +420,8 @@ exports.negotiateBid = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
-    // Update bid status to negotiating
+    // Update bid status to negotiating and save passenger's offer
+    bid.passengerCounterOffer = parseFloat(amount);
     bid.status = "negotiating";
     await bid.save();
 
@@ -427,6 +434,53 @@ exports.negotiateBid = async (req, res) => {
     res.status(200).json({ success: true, bid, request: bid.request });
   } catch (error) {
     console.error("Negotiate Bid Error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// @desc    Driver accept passenger's counter-offer
+// @route   POST /api/private-rides/bids/:bidId/driver-accept
+// @access  Private (Company)
+exports.driverAcceptBid = async (req, res) => {
+  try {
+    const bidId = req.params.bidId;
+    const bid = await RideBid.findByPk(bidId, { include: ["request"] });
+    
+    if (!bid) {
+      return res.status(404).json({ success: false, message: "Bid not found" });
+    }
+    
+    if (bid.driverId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Not authorized" });
+    }
+
+    if (bid.status !== "negotiating") {
+      return res.status(400).json({ success: false, message: "Bid is not in a negotiating state" });
+    }
+
+    if (!bid.passengerCounterOffer) {
+      return res.status(400).json({ success: false, message: "Passenger has not made a counter-offer" });
+    }
+
+    // Update request
+    bid.request.agreedPrice = bid.passengerCounterOffer;
+    bid.request.status = "awaiting_payment";
+    await bid.request.save();
+
+    // Update bid status
+    bid.status = "accepted";
+    await bid.save();
+
+    // Reject other bids for this request
+    const { Op } = require("sequelize");
+    await RideBid.update(
+      { status: "rejected" },
+      { where: { requestId: bid.requestId, id: { [Op.ne]: bid.id } } }
+    );
+
+    res.status(200).json({ success: true, bid, request: bid.request });
+  } catch (error) {
+    console.error("Driver Accept Bid Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

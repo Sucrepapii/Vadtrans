@@ -26,6 +26,8 @@ const DriverConsoleList = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("shared");
+  const [privateFilter, setPrivateFilter] = useState("active");
+  const displayedPrivateRequests = privateRequests.filter(req => privateFilter === "active" ? !['completed', 'cancelled'].includes(req.status) : ['completed', 'cancelled'].includes(req.status));
   const [isOnline, setIsOnline] = useState(user?.isOnline || false);
   const [bidAmount, setBidAmount] = useState({});
   const [counterOfferAmount, setCounterOfferAmount] = useState({});
@@ -93,6 +95,16 @@ const DriverConsoleList = () => {
       fetchPrivateRequests();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to submit counter-offer");
+    }
+  };
+
+  const handleDriverAccept = async (bidId) => {
+    try {
+      await privateRideAPI.driverAcceptBid(bidId);
+      toast.success("Passenger's proposed price accepted! Waiting for their payment.");
+      fetchPrivateRequests();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to accept proposed price");
     }
   };
 
@@ -281,15 +293,20 @@ const DriverConsoleList = () => {
               </div>
             )
           ) : activeTab === "private" ? (
-            privateRequests.length === 0 ? (
+            <div className="space-y-4">
+              <div className="flex gap-2 mb-4">
+                <button onClick={() => setPrivateFilter("active")} className={`px-4 py-2 text-sm font-bold rounded-lg ${privateFilter === "active" ? "bg-primary text-white" : "bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200"}`}>Active</button>
+                <button onClick={() => setPrivateFilter("archived")} className={`px-4 py-2 text-sm font-bold rounded-lg ${privateFilter === "archived" ? "bg-primary text-white" : "bg-white text-neutral-600 hover:bg-neutral-50 border border-neutral-200"}`}>Archived</button>
+              </div>
+              {displayedPrivateRequests.length === 0 ? (
               <div className="text-center py-16 bg-white rounded-xl shadow-sm border border-neutral-100">
                 <FaUserSecret className="mx-auto text-4xl text-neutral-300 mb-4" />
                 <h3 className="text-lg font-semibold text-charcoal mb-2">No Private Requests</h3>
                 <p className="text-neutral-500">Go online to receive private ride requests.</p>
               </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {privateRequests.map(req => {
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {displayedPrivateRequests.map(req => {
                   const myBid = req.bids?.find(b => b.driverId === user?.id);
                   return (
                     <div key={req.id} className="bg-white rounded-xl shadow-sm border border-neutral-200 p-6">
@@ -342,29 +359,41 @@ const DriverConsoleList = () => {
                       <div className="mt-4 pt-4 border-t border-neutral-100 bg-neutral-50/50 p-4 rounded-xl border border-neutral-100">
                         {myBid.status === "negotiating" ? (
                           <div className="space-y-3">
-                            <p className="text-sm font-bold text-amber-700 flex items-center gap-1.5 animate-pulse">
-                              <span>🚨</span> Passenger wants to negotiate! (Original bid: ₦{myBid.bidAmount.toLocaleString()})
-                            </p>
-                            <p className="text-xs text-neutral-600">Please propose your final price offer below:</p>
-                            <div className="flex flex-col sm:flex-row gap-2">
-                              <input
-                                type="number"
-                                placeholder="Final Offer (₦)"
-                                value={counterOfferAmount[myBid.id] || ""}
-                                onChange={(e) => setCounterOfferAmount({...counterOfferAmount, [myBid.id]: e.target.value})}
-                                className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white text-sm"
-                              />
+                            <div className="p-3 bg-amber-50 rounded-lg border border-amber-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-3">
+                              <div>
+                                <p className="text-sm font-bold text-amber-700 flex items-center gap-1.5">
+                                  <span>🚨</span> Passenger Counter-Offer
+                                </p>
+                                <p className="text-xs text-neutral-600 mt-1">They proposed: <span className="font-bold text-lg text-amber-600">₦{myBid.passengerCounterOffer?.toLocaleString() || myBid.bidAmount.toLocaleString()}</span></p>
+                                <p className="text-[10px] text-neutral-500 mt-1">Your original bid was ₦{myBid.bidAmount.toLocaleString()}</p>
+                              </div>
                               <Button 
-                                onClick={() => handleCounter(myBid.id, counterOfferAmount[myBid.id])} 
+                                onClick={() => handleDriverAccept(myBid.id)} 
                                 variant="primary" 
-                                className="w-full sm:w-auto py-3 sm:py-2 bg-amber-600 hover:bg-amber-700 text-sm"
+                                className="py-2 px-4 bg-green-600 hover:bg-green-700 text-sm border-0 w-full md:w-auto"
                               >
-                                Submit Final Price
+                                Accept Proposed Price
                               </Button>
                             </div>
-                            <p className="text-[10px] text-neutral-400 italic mt-1.5">
-                              Passenger will see this offer and can immediately Accept & Pay.
-                            </p>
+                            <div className="mt-4 border-t border-neutral-200 pt-3">
+                              <p className="text-xs font-bold text-neutral-600 mb-2">Or, reject their offer and submit your final price:</p>
+                              <div className="flex flex-col sm:flex-row gap-2">
+                                <input
+                                  type="number"
+                                  placeholder="Final Offer (₦)"
+                                  value={counterOfferAmount[myBid.id] || ""}
+                                  onChange={(e) => setCounterOfferAmount({...counterOfferAmount, [myBid.id]: e.target.value})}
+                                  className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 bg-white text-sm"
+                                />
+                                <Button 
+                                  onClick={() => handleCounter(myBid.id, counterOfferAmount[myBid.id])} 
+                                  variant="primary" 
+                                  className="w-full sm:w-auto py-3 sm:py-2 bg-amber-600 hover:bg-amber-700 text-sm border-0"
+                                >
+                                  Reject & Submit Final Price
+                                </Button>
+                              </div>
+                            </div>
                           </div>
                         ) : myBid.status === "counter_offered" ? (
                           <p className="text-sm font-semibold text-green-700">
@@ -411,7 +440,8 @@ const DriverConsoleList = () => {
                   </div>
                 )})}
               </div>
-            )
+            )}
+            </div>
           ) : null}
         </div>
       </div>

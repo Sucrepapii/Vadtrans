@@ -17,6 +17,7 @@ router.get("/verify/:reference", privateRideController.verifyPayment);
 // Company routes
 router.post("/:id/bid", authorize("company", "admin"), privateRideController.placeBid);
 router.post("/bids/:bidId/counter-offer", authorize("company", "admin"), privateRideController.counterOffer);
+router.post("/bids/:bidId/driver-accept", authorize("company", "admin"), privateRideController.driverAcceptBid);
 router.put("/:id/status", authorize("company", "admin"), privateRideController.updateRideStatus);
 router.put("/:id/location", authorize("company", "admin"), privateRideController.updatePrivateLocation);
 

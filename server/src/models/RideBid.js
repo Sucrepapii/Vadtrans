@@ -29,6 +29,10 @@ const RideBid = sequelize.define(
       type: DataTypes.FLOAT,
       allowNull: false,
     },
+    passengerCounterOffer: {
+      type: DataTypes.FLOAT,
+      allowNull: true,
+    },
     status: {
       type: DataTypes.ENUM("pending", "accepted", "rejected", "negotiating", "counter_offered"),
       defaultValue: "pending",

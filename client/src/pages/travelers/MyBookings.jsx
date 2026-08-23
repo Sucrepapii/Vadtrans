@@ -24,6 +24,8 @@ const MyBookings = () => {
   const [activeTab, setActiveTab] = useState("shared"); // "shared" or "private"
   const [privateRides, setPrivateRides] = useState([]);
   const [loadingPrivate, setLoadingPrivate] = useState(false);
+  const [privateFilter, setPrivateFilter] = useState("active");
+  const displayedPrivateRides = privateRides.filter(r => privateFilter === "active" ? !['completed', 'cancelled'].includes(r.status) : ['completed', 'cancelled'].includes(r.status));
 
   // Cancellation Modal State
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
@@ -444,15 +446,19 @@ const MyBookings = () => {
             </>
           )}
           </>
-          ) : (
-            // Private Rides Tab Content
-            <div>
-              {loadingPrivate ? (
+            ) : (
+              // Private Rides Tab Content
+              <div>
+                <div className="flex gap-2 mb-6">
+                  <button onClick={() => setPrivateFilter("active")} className={`px-4 py-2 text-sm font-bold rounded-lg ${privateFilter === "active" ? "bg-primary text-white" : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"}`}>Active</button>
+                  <button onClick={() => setPrivateFilter("archived")} className={`px-4 py-2 text-sm font-bold rounded-lg ${privateFilter === "archived" ? "bg-primary text-white" : "bg-neutral-100 text-neutral-600 hover:bg-neutral-200"}`}>Archived</button>
+                </div>
+                {loadingPrivate ? (
                 <div className="flex items-center justify-center py-16 bg-white rounded-lg">
                   <FaSpinner className="animate-spin text-4xl text-primary" />
-                </div>
-              ) : privateRides.length === 0 ? (
-                <div className="bg-white rounded-lg border border-neutral-200 p-16 text-center">
+                  </div>
+                ) : displayedPrivateRides.length === 0 ? (
+                  <div className="bg-white rounded-lg border border-neutral-200 p-16 text-center">
                   <p className="text-neutral-600 text-lg mb-2">No private rides found</p>
                   <button
                     onClick={() => navigate("/request-private-ride")}
@@ -461,9 +467,9 @@ const MyBookings = () => {
                   </button>
                 </div>
               ) : (
-                <div className="space-y-4">
-                  {privateRides.map(ride => (
-                    <div key={ride.id} className="bg-white border border-neutral-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="space-y-4">
+                    {displayedPrivateRides.map(ride => (
+                      <div key={ride.id} className="bg-white border border-neutral-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase ${

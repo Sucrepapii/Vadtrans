@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import Navbar from "../../components/Navbar";
@@ -31,6 +31,11 @@ const PrivateRideBooking = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [activeRequest, setActiveRequest] = useState(null);
   const [stops, setStops] = useState([]); // Array of strings for intermediate stops
+  
+  // Negotiation state
+  const [negotiatingBidId, setNegotiatingBidId] = useState(null);
+  const [passengerCounterOfferAmount, setPassengerCounterOfferAmount] = useState({});
+  const pollInterval = useRef(null);
 
   const { states } = useLocationsAPI();
 
@@ -57,24 +62,9 @@ const PrivateRideBooking = () => {
     }
   }, [isAuthenticated, navigate]);
 
-  // If there's an active request, fetch it occasionally to get bids
   useEffect(() => {
-    let interval;
-    if (activeRequest && activeRequest.status === "searching") {
-      interval = setInterval(async () => {
-        try {
-          const res = await api.get("/private-rides");
-          const req = res.data.requests.find(r => r.id === activeRequest.id);
-          if (req) {
-            setActiveRequest(req);
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      }, 5000); // Poll every 5s for MVP
-    }
-    return () => clearInterval(interval);
-  }, [activeRequest]);
+    return () => clearInterval(pollInterval.current);
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -82,6 +72,29 @@ const PrivateRideBooking = () => {
       ...prev,
       [name]: type === "checkbox" ? checked : value
     }));
+  };
+
+  const startPolling = () => {
+    if (pollInterval.current) clearInterval(pollInterval.current);
+    
+    pollInterval.current = setInterval(async () => {
+      if (activeRequest?.id) {
+        try {
+          const response = await api.get("/private-rides");
+          const req = response.data.requests.find(r => r.id === activeRequest.id);
+          
+          if (req) {
+            setActiveRequest(req);
+            // If request is no longer searching, stop polling
+            if (req.status !== "searching") {
+              clearInterval(pollInterval.current);
+            }
+          }
+        } catch (error) {
+          console.error("Polling error:", error);
+        }
+      }
+    }, 5000); // Poll every 5 seconds
   };
 
   const handleSubmit = async (e) => {
@@ -97,6 +110,7 @@ const PrivateRideBooking = () => {
       });
       toast.success("Request sent to drivers! Waiting for bids.");
       setActiveRequest({ ...res.data.request, bids: [] });
+      startPolling();
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to create request");
     } finally {
@@ -117,9 +131,13 @@ const PrivateRideBooking = () => {
   };
 
   const handleNegotiate = async (bidId) => {
+    const amount = passengerCounterOfferAmount[bidId];
+    if (!amount) return toast.error("Please enter a proposed price");
+    
     try {
-      await privateRideAPI.negotiateBid(bidId);
+      await privateRideAPI.negotiateBid(bidId, amount);
       toast.info("Negotiation request sent to the driver.");
+      setNegotiatingBidId(null);
       // Refresh active request
       const res = await api.get("/private-rides");
       const req = res.data.requests.find(r => r.id === activeRequest.id);
@@ -384,23 +402,46 @@ const PrivateRideBooking = () => {
                       </div>
                       
                       {bid.status === "negotiating" ? (
-                        <p className="text-xs text-amber-600 font-bold bg-amber-50/50 px-3 py-1.5 rounded-lg border border-amber-100 italic">
-                          Waiting for driver's final offer...
-                        </p>
+                        <div className="flex flex-col items-end gap-1">
+                          <p className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
+                            You proposed: ₦{bid.passengerCounterOffer?.toLocaleString()}
+                          </p>
+                          <p className="text-[10px] text-neutral-500 italic">Waiting for driver's response...</p>
+                        </div>
                       ) : (
-                        <div className="flex gap-2 w-full md:w-auto">
-                          {bid.status === "pending" && (
-                            <Button 
-                              onClick={() => handleNegotiate(bid.id)} 
-                              variant="secondary" 
-                              className="py-2 border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm"
-                            >
-                              Negotiate
-                            </Button>
+                        <div className="flex flex-col gap-2 w-full md:w-auto items-end">
+                          {negotiatingBidId === bid.id ? (
+                            <div className="flex flex-col sm:flex-row gap-2 mt-2 w-full">
+                              <input
+                                type="number"
+                                placeholder="Your Offer (₦)"
+                                value={passengerCounterOfferAmount[bid.id] || ""}
+                                onChange={(e) => setPassengerCounterOfferAmount({...passengerCounterOfferAmount, [bid.id]: e.target.value})}
+                                className="w-full sm:w-32 px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:border-primary"
+                              />
+                              <Button onClick={() => handleNegotiate(bid.id)} variant="secondary" className="py-2 text-sm w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white border-0">
+                                Submit
+                              </Button>
+                              <Button onClick={() => setNegotiatingBidId(null)} variant="secondary" className="py-2 text-sm w-full sm:w-auto">
+                                Cancel
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="flex gap-2 w-full md:w-auto justify-end">
+                              {bid.status === "pending" && (
+                                <Button 
+                                  onClick={() => setNegotiatingBidId(bid.id)} 
+                                  variant="secondary" 
+                                  className="py-2 border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm"
+                                >
+                                  Negotiate
+                                </Button>
+                              )}
+                              <Button onClick={() => acceptBid(bid.id)} variant="primary" className="py-2 text-sm">
+                                Accept & Pay
+                              </Button>
+                            </div>
                           )}
-                          <Button onClick={() => acceptBid(bid.id)} variant="primary" className="py-2 text-sm">
-                            Accept & Pay
-                          </Button>
                         </div>
                       )}
                     </div>
