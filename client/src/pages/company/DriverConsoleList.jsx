@@ -389,7 +389,7 @@ const DriverConsoleList = () => {
                               type="number"
                               placeholder="Your bid (₦)"
                               value={bidAmount[req.id] || ""}
-                              onChange={(e) => setCounterOfferAmount({...counterOfferAmount, [req.id]: e.target.value})}
+                              onChange={(e) => setBidAmount({...bidAmount, [req.id]: e.target.value})}
                               className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
                             />
                             <Button onClick={() => handleBid(req.id)} variant="primary" className="w-full sm:w-auto py-3 sm:py-2">Place Bid</Button>
