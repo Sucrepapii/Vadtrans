@@ -9,6 +9,8 @@ import MaterialDatePicker from "../../components/MaterialDatePicker";
 import ReviewSection from "../../components/ReviewSection";
 import { westAfricanCountries, westAfricanStates } from "../../data/locations";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
+import api from "../../services/api";
+import { subscribeUserToPush } from "../../utils/pushHelper";
 import {
   FaMapMarkerAlt,
   FaCalendar,
@@ -34,6 +36,31 @@ const LandingPage = () => {
       navigate("/company/tickets");
     }
   }, [isAuthenticated, user, navigate]);
+
+  const [activePrivateRides, setActivePrivateRides] = useState([]);
+
+  useEffect(() => {
+    if (isAuthenticated && user?.role !== "company") {
+      const fetchPrivateRequests = async () => {
+        try {
+          const res = await api.get("/private-rides");
+          const active = res.data.requests?.filter(r => !['completed', 'cancelled'].includes(r.status)) || [];
+          setActivePrivateRides(active);
+
+          // If they have active requests, prompt for push notifications
+          if (active.length > 0) {
+            const subscription = await subscribeUserToPush();
+            if (subscription) {
+              await api.post("/auth/push-subscribe", { subscription }).catch(e => console.error("Push subscribe err:", e));
+            }
+          }
+        } catch (err) {
+          console.error("Error fetching private requests:", err);
+        }
+      };
+      fetchPrivateRequests();
+    }
+  }, [isAuthenticated, user]);
 
   const getTodayDate = () => {
     const today = new Date();
@@ -142,6 +169,57 @@ const LandingPage = () => {
               <p className="text-base sm:text-lg text-white/90 mb-8 font-medium leading-relaxed">
                 Carpool with people going your way. Find a ride to work, school, or anywhere in Lagos and beyond.
               </p>
+
+              {/* Active Private Rides Widget */}
+              {activePrivateRides.length > 0 && (
+                <div className="mb-6 bg-white/95 backdrop-blur-md border border-primary/30 rounded-xl p-4 shadow-xl animate-slide-up">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="font-bold text-charcoal flex items-center gap-2">
+                      <span className="relative flex h-3 w-3">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-3 w-3 bg-primary"></span>
+                      </span>
+                      Your Active Private Rides
+                    </h3>
+                  </div>
+                  <div className="space-y-3">
+                    {activePrivateRides.slice(0, 2).map(req => (
+                      <div key={req.id} className="bg-white rounded-lg p-3 border border-neutral-200 flex justify-between items-center shadow-sm hover:border-primary/50 transition-colors">
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <span className="text-[10px] font-bold text-primary uppercase bg-primary/10 px-2 py-0.5 rounded-full">{req.rideType.replace('-', ' ')}</span>
+                            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full uppercase ${req.status === 'awaiting_payment' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                              {req.status.replace('_', ' ')}
+                            </span>
+                          </div>
+                          <p className="text-sm font-bold text-charcoal">{req.pickupLocation} <span className="text-neutral-400 font-normal mx-1">→</span> {req.destination}</p>
+                          {req.status === 'awaiting_payment' && (
+                            <p className="text-xs text-amber-600 font-bold mt-1">Driver bid received!</p>
+                          )}
+                        </div>
+                        <Button 
+                          onClick={() => {
+                            if (["driver_assigned", "en_route", "arrived", "started"].includes(req.status)) {
+                              navigate('/tracking', { state: { bookingId: req.requestId } });
+                            } else {
+                              navigate('/request-private-ride');
+                            }
+                          }}
+                          variant="primary" 
+                          className="py-1.5 px-3 text-xs whitespace-nowrap"
+                        >
+                          View
+                        </Button>
+                      </div>
+                    ))}
+                    {activePrivateRides.length > 2 && (
+                      <button onClick={() => navigate('/my-bookings')} className="w-full text-center text-xs text-primary font-bold hover:underline pt-1">
+                        View all {activePrivateRides.length} active rides
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
 
               {/* Find/Offer Ride Interaction */}
               <div className="mb-8 p-5 bg-white/80 backdrop-blur-md rounded-premium shadow-premium border border-white/50">

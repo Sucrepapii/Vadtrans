@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import {
   FaBars,
@@ -10,14 +11,40 @@ import {
   FaSearch,
   FaWhatsapp,
   FaBus,
+  FaBell,
 } from "react-icons/fa";
 import Button from "./Button";
 import BrandLogo from "./BrandLogo";
 
 const Navbar = ({ variant = "desktop", portalLabel }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [privateRequests, setPrivateRequests] = useState([]);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let interval;
+    if (isAuthenticated && user?.role !== "company") {
+      fetchPrivateRequests();
+      interval = setInterval(fetchPrivateRequests, 10000); // Poll every 10s
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [isAuthenticated, user]);
+
+  const fetchPrivateRequests = async () => {
+    try {
+      const res = await api.get("/private-rides");
+      const active = res.data.requests?.filter(r => !['completed', 'cancelled'].includes(r.status)) || [];
+      setPrivateRequests(active);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    }
+  };
+
+  const awaitingPaymentRide = privateRequests.find(r => r.status === "awaiting_payment");
 
   const handleLogout = () => {
     logout();
@@ -29,6 +56,17 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
   if (variant === "desktop") {
     return (
       <nav className="sticky top-0 z-50 w-full glass-panel border-b border-neutral-200/50 shadow-premium">
+        {/* Sticky Alert Banner for pending bids */}
+        {awaitingPaymentRide && (
+          <div 
+            onClick={() => navigate('/request-private-ride')}
+            className="bg-primary text-white py-2 px-4 text-center text-sm font-bold flex justify-center items-center gap-2 cursor-pointer hover:bg-primary-dark transition-colors"
+          >
+            <span className="animate-ping text-lg">🚨</span> 
+            A driver has placed a bid on your Private Ride request! Click here to view and accept.
+          </div>
+        )}
+        
         {/* Top contact bar - Hidden on mobile */}
         <div className="hidden md:block bg-charcoal text-white/80 py-1.5 border-b border-charcoal-light/10 text-xs">
           <div className="container-custom flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -153,6 +191,61 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
               <div className="hidden md:flex items-center gap-3">
                 {isAuthenticated ? (
                   <div className="flex items-center gap-3">
+                    {/* Notification Bell */}
+                    {user?.role !== "company" && (
+                      <div className="relative">
+                        <button 
+                          onClick={() => setIsNotificationsOpen(!isNotificationsOpen)}
+                          className="p-2 text-charcoal hover:text-primary transition-colors relative"
+                        >
+                          <FaBell size={20} />
+                          {privateRequests.length > 0 && (
+                            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full animate-pulse border border-white"></span>
+                          )}
+                        </button>
+
+                        {isNotificationsOpen && (
+                          <div className="absolute top-full right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-neutral-200 overflow-hidden z-50">
+                            <div className="p-4 border-b border-neutral-100 bg-neutral-50 flex justify-between items-center">
+                              <h3 className="font-bold text-charcoal">Active Requests</h3>
+                              <span className="text-xs bg-primary text-white px-2 py-0.5 rounded-full">{privateRequests.length}</span>
+                            </div>
+                            <div className="max-h-64 overflow-y-auto">
+                              {privateRequests.length === 0 ? (
+                                <div className="p-6 text-center text-neutral-500 text-sm">No active private ride requests.</div>
+                              ) : (
+                                privateRequests.map(req => (
+                                  <div 
+                                    key={req.id} 
+                                    onClick={() => {
+                                      setIsNotificationsOpen(false);
+                                      if (["driver_assigned", "en_route", "arrived", "started"].includes(req.status)) {
+                                        navigate('/tracking', { state: { bookingId: req.requestId } });
+                                      } else {
+                                        navigate('/request-private-ride');
+                                      }
+                                    }}
+                                    className="p-4 border-b border-neutral-100 hover:bg-neutral-50 cursor-pointer transition-colors"
+                                  >
+                                    <div className="flex justify-between items-start mb-1">
+                                      <span className="text-xs font-bold text-primary uppercase">{req.rideType.replace('-', ' ')}</span>
+                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${req.status === 'awaiting_payment' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
+                                        {req.status.replace('_', ' ')}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm font-semibold text-charcoal truncate">{req.pickupLocation} → {req.destination}</p>
+                                    {req.status === 'awaiting_payment' && (
+                                      <p className="text-xs text-amber-600 font-bold mt-1">Driver bid received! Click to pay.</p>
+                                    )}
+                                  </div>
+                                ))
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
                     <Link
                       to="/profile"
                       className="flex items-center gap-2 px-4 py-2 hover:text-primary transition-colors">
