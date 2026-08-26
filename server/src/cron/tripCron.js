@@ -2,6 +2,7 @@ const cron = require("node-cron");
 const { Op } = require("sequelize");
 const Trip = require("../models/Trip");
 const Booking = require("../models/Booking");
+const PrivateRideRequest = require("../models/PrivateRideRequest");
 const { syncTripSeats } = require("../controllers/tripController");
 
 // Function to check and auto-complete trips that departed 3+ hours ago
@@ -257,4 +258,44 @@ cron.schedule("* * * * *", cancelExpiredBookings);
 
 console.log("📅 Booking expiration cron job initialized (runs every 1 min).");
 
-module.exports = { autoCompleteTrips, autoMidnightComplete, cancelExpiredBookings };
+// Function to cancel private ride requests that have been inactive (searching or awaiting_payment) for over an hour
+const cancelInactivePrivateRides = async () => {
+  try {
+    console.log("⏰ Running cancel inactive private rides cron job...");
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+
+    const inactiveRequests = await PrivateRideRequest.findAll({
+      where: {
+        status: { [Op.in]: ["searching", "awaiting_payment"] },
+        createdAt: { [Op.lt]: oneHourAgo }
+      }
+    });
+
+    if (inactiveRequests.length > 0) {
+      console.log(`Found ${inactiveRequests.length} inactive private ride requests. Cancelling...`);
+      
+      await PrivateRideRequest.update(
+        {
+          status: "cancelled",
+          cancellationReason: "Archived due to inactivity after one hour"
+        },
+        {
+          where: {
+            id: inactiveRequests.map(r => r.id)
+          }
+        }
+      );
+
+      console.log(`Successfully cancelled inactive private ride requests: ${inactiveRequests.map(r => r.id).join(", ")}`);
+    }
+  } catch (error) {
+    console.error("❌ Error in cancel inactive private rides cron:", error);
+  }
+};
+
+// Run every 5 minutes
+cron.schedule("*/5 * * * *", cancelInactivePrivateRides);
+
+console.log("📅 Inactive private rides cron job initialized (runs every 5 mins).");
+
+module.exports = { autoCompleteTrips, autoMidnightComplete, cancelExpiredBookings, cancelInactivePrivateRides };
