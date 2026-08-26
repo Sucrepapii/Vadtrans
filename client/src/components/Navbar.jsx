@@ -23,6 +23,16 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
+  const fetchPrivateRequests = async () => {
+    try {
+      const res = await api.get("/private-rides");
+      const active = res.data.requests?.filter(r => !['completed', 'cancelled'].includes(r.status)) || [];
+      setPrivateRequests(active);
+    } catch (err) {
+      console.error("Error fetching notifications:", err);
+    }
+  };
+
   useEffect(() => {
     let interval;
     if (isAuthenticated && user?.role !== "company") {
@@ -33,16 +43,6 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
       if (interval) clearInterval(interval);
     };
   }, [isAuthenticated, user]);
-
-  const fetchPrivateRequests = async () => {
-    try {
-      const res = await api.get("/private-rides");
-      const active = res.data.requests?.filter(r => !['completed', 'cancelled'].includes(r.status)) || [];
-      setPrivateRequests(active);
-    } catch (err) {
-      console.error("Error fetching notifications:", err);
-    }
-  };
 
   const awaitingPaymentRide = privateRequests.find(r => r.status === "awaiting_payment");
 
