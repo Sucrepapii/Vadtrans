@@ -16,9 +16,11 @@ const PrivateRideBooking = () => {
 
   const [formData, setFormData] = useState({
     pickupState: state?.fromState || "",
-    pickupLocation: state?.from || "",
+    pickupCity: state?.from || "",
+    pickupLocation: "",
     destinationState: state?.toState || "",
-    destination: state?.to || "",
+    destinationCity: state?.to || "",
+    destination: "",
     pickupDate: state?.date || "",
     pickupTime: "",
     rideType: "one-way",
@@ -37,7 +39,44 @@ const PrivateRideBooking = () => {
   const [passengerCounterOfferAmount, setPassengerCounterOfferAmount] = useState({});
   const pollInterval = useRef(null);
 
-  const { states } = useLocationsAPI();
+  const { states, getCitiesForState } = useLocationsAPI();
+  const [pickupCities, setPickupCities] = useState([]);
+  const [destinationCities, setDestinationCities] = useState([]);
+
+  useEffect(() => {
+    if (formData.pickupState) {
+      getCitiesForState(formData.pickupState).then(c => setPickupCities(c || []));
+    } else {
+      setPickupCities([]);
+    }
+  }, [formData.pickupState, getCitiesForState]);
+
+  useEffect(() => {
+    if (formData.destinationState) {
+      getCitiesForState(formData.destinationState).then(c => setDestinationCities(c || []));
+    } else {
+      setDestinationCities([]);
+    }
+  }, [formData.destinationState, getCitiesForState]);
+
+  // Check for active requests on mount
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchActiveRequest = async () => {
+        try {
+          const response = await api.get("/private-rides");
+          const active = response.data.requests?.find(r => !['completed', 'cancelled'].includes(r.status));
+          if (active) {
+            setActiveRequest(active);
+            startPolling(active.id);
+          }
+        } catch (err) {
+          console.error("Failed to fetch active requests:", err);
+        }
+      };
+      fetchActiveRequest();
+    }
+  }, [isAuthenticated]);
 
   const handleAddStop = () => {
     setStops([...stops, ""]);
@@ -74,14 +113,14 @@ const PrivateRideBooking = () => {
     }));
   };
 
-  const startPolling = () => {
+  const startPolling = (reqId) => {
     if (pollInterval.current) clearInterval(pollInterval.current);
     
     pollInterval.current = setInterval(async () => {
-      if (activeRequest?.id) {
+      if (reqId) {
         try {
           const response = await api.get("/private-rides");
-          const req = response.data.requests.find(r => r.id === activeRequest.id);
+          const req = response.data.requests.find(r => r.id === reqId);
           
           if (req) {
             setActiveRequest(req);
@@ -104,13 +143,18 @@ const PrivateRideBooking = () => {
       // Filter out any empty stops
       const validStops = stops.filter(s => s.trim() !== "");
       
+      const finalPickup = formData.pickupCity ? `${formData.pickupCity}, ${formData.pickupLocation}` : formData.pickupLocation;
+      const finalDest = formData.destinationCity ? `${formData.destinationCity}, ${formData.destination}` : formData.destination;
+
       const res = await api.post("/private-rides/request", {
         ...formData,
+        pickupLocation: finalPickup,
+        destination: finalDest,
         stops: validStops
       });
       toast.success("Request sent to drivers! Waiting for bids.");
       setActiveRequest({ ...res.data.request, bids: [] });
-      startPolling();
+      startPolling(res.data.request.id);
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to create request");
     } finally {
@@ -167,18 +211,31 @@ const PrivateRideBooking = () => {
           <div className="bg-white p-6 md:p-8 rounded-xl shadow-sm border border-neutral-200">
             <h1 className="text-3xl font-bold font-raleway text-charcoal mb-6">Request a Private Ride</h1>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-charcoal mb-2">Pickup State</label>
                   <select
                     name="pickupState"
                     value={formData.pickupState}
-                    onChange={(e) => setFormData(prev => ({ ...prev, pickupState: e.target.value }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, pickupState: e.target.value, pickupCity: "" }))}
                     className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
                     required
                   >
                     <option value="">Select State</option>
                     {states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-charcoal mb-2">Pickup City</label>
+                  <select
+                    name="pickupCity"
+                    value={formData.pickupCity}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
+                    required
+                  >
+                    <option value="">Select City</option>
+                    {pickupCities.map(city => <option key={city} value={city}>{city}</option>)}
                   </select>
                 </div>
                 <div>
@@ -188,24 +245,37 @@ const PrivateRideBooking = () => {
                     name="pickupLocation"
                     value={formData.pickupLocation}
                     onChange={handleChange}
-                    placeholder="E.g. 123 Main St, Ikeja"
+                    placeholder="E.g. 123 Main St"
                     required
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-charcoal mb-2">Destination State</label>
                   <select
                     name="destinationState"
                     value={formData.destinationState}
-                    onChange={(e) => setFormData(prev => ({ ...prev, destinationState: e.target.value }))}
+                    onChange={(e) => setFormData(prev => ({ ...prev, destinationState: e.target.value, destinationCity: "" }))}
                     className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
                     required
                   >
                     <option value="">Select State</option>
                     {states.map(s => <option key={s.name} value={s.name}>{s.name}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-charcoal mb-2">Destination City</label>
+                  <select
+                    name="destinationCity"
+                    value={formData.destinationCity}
+                    onChange={handleChange}
+                    className="w-full px-4 py-3 border border-neutral-300 rounded-lg focus:outline-none focus:border-primary"
+                    required
+                  >
+                    <option value="">Select City</option>
+                    {destinationCities.map(city => <option key={city} value={city}>{city}</option>)}
                   </select>
                 </div>
                 <div>
@@ -215,7 +285,7 @@ const PrivateRideBooking = () => {
                     name="destination"
                     value={formData.destination}
                     onChange={handleChange}
-                    placeholder="E.g. 456 Broad St, Marina"
+                    placeholder="E.g. 456 Broad St"
                     required
                   />
                 </div>

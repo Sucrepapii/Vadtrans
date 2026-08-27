@@ -170,54 +170,63 @@ const Tracking = () => {
           </Card>
 
           {/* Tracking Results */}
-          {trackData && tripDetails && (
+          {trackData && (
             <>
-              {/* Status Card */}
-              <Card className="mb-6 bg-gradient-to-r from-primary to-primary-dark text-white">
-                <div className="text-center">
-                  <p className="text-sm opacity-90 mb-2">Current Status</p>
-                  <h2 className="text-3xl font-bold mb-4">
-                    {isFreight
-                      ? trackData.trackingStatus.replace("_", " ").toUpperCase()
-                      : tripDetails.status.toUpperCase()}
-                  </h2>
-                  <div className="flex items-center justify-center gap-2 mb-4">
-                    <FaMapMarkerAlt />
-                    <span className="text-lg">
-                      {tripDetails.currentLocation ||
-                        "Location waiting for update..."}
-                    </span>
-                  </div>
-                  <div className="bg-white/20 rounded-full h-2 mb-2">
-                    <div
-                      className="bg-white h-2 rounded-full transition-all duration-500"
-                      style={{
-                        width:
-                          tripDetails.status === "completed" ? "100%" : "50%",
-                      }}
-                    />
-                  </div>
-                </div>
-              </Card>
+              {tripDetails ? (
+                <>
+                  {/* Status Card */}
+                  <Card className="mb-6 bg-gradient-to-r from-primary to-primary-dark text-white">
+                    <div className="text-center">
+                      <p className="text-sm opacity-90 mb-2">Current Status</p>
+                      <h2 className="text-3xl font-bold mb-4">
+                        {isFreight
+                          ? trackData.trackingStatus?.replace("_", " ").toUpperCase() || "UNKNOWN"
+                          : tripDetails.status?.toUpperCase() || "UNKNOWN"}
+                      </h2>
+                      <div className="flex items-center justify-center gap-2 mb-4">
+                        <FaMapMarkerAlt />
+                        <span className="text-lg">
+                          {tripDetails.currentLocation ||
+                            "Location waiting for update..."}
+                        </span>
+                      </div>
+                      <div className="bg-white/20 rounded-full h-2 mb-2">
+                        <div
+                          className="bg-white h-2 rounded-full transition-all duration-500"
+                          style={{
+                            width:
+                              tripDetails.status === "completed" ? "100%" : "50%",
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </Card>
 
-              {/* Map View */}
-              <Card className="mb-6 p-2">
-                <h3 className="font-semibold mb-2 px-2">Live Map</h3>
-                <TrackingMap
-                  lat={tripDetails.currentLat}
-                  lng={tripDetails.currentLng}
-                  popupText={`Last updated: ${
-                    tripDetails.lastUpdated
-                      ? new Date(tripDetails.lastUpdated).toLocaleTimeString()
-                      : "Never"
-                  }`}
-                />
-                {!tripDetails.currentLat && (
-                  <div className="text-center text-neutral-500 py-4">
-                    Driver has not started sharing location yet.
-                  </div>
-                )}
-              </Card>
+                  {/* Map View */}
+                  <Card className="mb-6 p-2">
+                    <h3 className="font-semibold mb-2 px-2">Live Map</h3>
+                    <TrackingMap
+                      lat={tripDetails.currentLat}
+                      lng={tripDetails.currentLng}
+                      popupText={`Last updated: ${
+                        tripDetails.lastUpdated
+                          ? new Date(tripDetails.lastUpdated).toLocaleTimeString()
+                          : "Never"
+                      }`}
+                    />
+                    {!tripDetails.currentLat && (
+                      <div className="text-center text-neutral-500 py-4">
+                        Driver has not started sharing location yet.
+                      </div>
+                    )}
+                  </Card>
+                </>
+              ) : (
+                <Card className="mb-6 p-6 text-center text-yellow-600 bg-yellow-50 border border-yellow-200">
+                  <h3 className="font-semibold text-lg mb-2">Trip Not Available</h3>
+                  <p>The trip associated with this tracking ID is currently unavailable or has been deleted.</p>
+                </Card>
+              )}
 
               {/* Freight Shipment Tracking UI */}
               {isFreight && (
