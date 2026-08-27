@@ -26,6 +26,8 @@ const Tracking = () => {
   const [trackData, setTrackData] = useState(null);
   const [tripDetails, setTripDetails] = useState(null);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [isFreight, setIsFreight] = useState(false);
+  const [isPrivateRide, setIsPrivateRide] = useState(false);
 
   // Auto-track if navigated from another page with booking ID
   useEffect(() => {
@@ -71,8 +73,6 @@ const Tracking = () => {
     }
   };
 
-  const [isFreight, setIsFreight] = useState(false);
-  const [isPrivateRide, setIsPrivateRide] = useState(false);
 
   async function fetchTrackingData(idToTrack) {
     if (!idToTrack) return;
