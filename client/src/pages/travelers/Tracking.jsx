@@ -49,7 +49,7 @@ const Tracking = () => {
     return () => clearInterval(interval);
   }, [trackData, tripDetails, isPrivateRide]);
 
-  const refreshLocation = async () => {
+  async function refreshLocation() {
     if (!tripDetails?.id) return;
     try {
       if (isPrivateRide || tripDetails.requestId?.startsWith("PR-")) {
@@ -74,7 +74,7 @@ const Tracking = () => {
   const [isFreight, setIsFreight] = useState(false);
   const [isPrivateRide, setIsPrivateRide] = useState(false);
 
-  const fetchTrackingData = async (idToTrack) => {
+  async function fetchTrackingData(idToTrack) {
     if (!idToTrack) return;
     setLoading(true);
     setTrackData(null);
