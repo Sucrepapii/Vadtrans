@@ -295,7 +295,7 @@ const FreightConfirmation = () => {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8">
             <button 
               onClick={handleDownloadWaybill}
-              className="w-full py-4 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-3">
+              className="w-full py-4 bg-primary text-white rounded-2xl font-black text-sm uppercase tracking-widest hover:bg-primary-dark transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-3">
               <FaDownload strokeWidth={2.5} />
               Download Waybill
             </button>
