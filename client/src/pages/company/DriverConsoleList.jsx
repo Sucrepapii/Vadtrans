@@ -324,6 +324,19 @@ const DriverConsoleList = () => {
                         </span>
                       </div>
                     </div>
+                    <div className="flex items-center gap-3 mb-4 p-3 bg-neutral-50 rounded-xl border border-neutral-100">
+                      {req.passenger?.avatar ? (
+                        <img src={req.passenger.avatar} alt="Passenger" className="w-10 h-10 rounded-full object-cover shadow-sm" />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
+                          {req.passenger?.name?.charAt(0) || "P"}
+                        </div>
+                      )}
+                      <div>
+                        <p className="font-bold text-charcoal text-sm">{req.passenger?.name || "Passenger"}</p>
+                        <p className="text-xs text-neutral-500 font-medium">📞 {req.passenger?.phone || "No phone"}</p>
+                      </div>
+                    </div>
                     
                     <h3 className="text-lg font-bold text-charcoal mb-1 flex flex-col gap-1">
                       <span className="flex items-start gap-2">

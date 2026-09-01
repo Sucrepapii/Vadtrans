@@ -6,6 +6,7 @@ import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Input from "../../components/Input";
 import { toast } from "react-toastify";
+import { usePaystackPayment } from "react-paystack";
 import api, { privateRideAPI } from "../../services/api";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 
@@ -42,6 +43,46 @@ const PrivateRideBooking = () => {
   const { states, getCitiesForState } = useLocationsAPI();
   const [pickupCities, setPickupCities] = useState([]);
   const [destinationCities, setDestinationCities] = useState([]);
+  const [paymentIntent, setPaymentIntent] = useState(null);
+
+  const paystackConfig = React.useMemo(() => {
+    return {
+      reference: new Date().getTime().toString(),
+      email: user?.email || "",
+      amount: paymentIntent ? Math.round(paymentIntent.amount * 100) : 0,
+      publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+      metadata: { privateRideId: activeRequest?.id },
+    };
+  }, [user?.email, paymentIntent, activeRequest?.id]);
+
+  const initializePayment = usePaystackPayment(paystackConfig);
+
+  useEffect(() => {
+    if (paymentIntent && paystackConfig.amount > 0) {
+      initializePayment({
+        onSuccess: async (reference) => {
+          try {
+            const verifyRes = await privateRideAPI.verifyPayment(reference.reference, activeRequest.id);
+            if (verifyRes.data.success) {
+              toast.success("Payment verified successfully!");
+              // Refresh active request
+              const res = await api.get("/private-rides");
+              const req = res.data.requests.find(r => r.id === activeRequest.id);
+              if (req) setActiveRequest(req);
+            }
+          } catch (error) {
+            console.error(error);
+            toast.error("Payment verification failed");
+          }
+          setPaymentIntent(null);
+        },
+        onClose: () => {
+          toast.info("Payment cancelled");
+          setPaymentIntent(null);
+        }
+      });
+    }
+  }, [paymentIntent, paystackConfig.amount]);
 
   useEffect(() => {
     if (formData.pickupState) {
@@ -165,13 +206,16 @@ const PrivateRideBooking = () => {
   const acceptBid = async (bidId) => {
     try {
       const res = await api.post(`/private-rides/bids/${bidId}/accept`);
+      setActiveRequest(res.data.request);
       toast.success("Bid accepted! Proceeding to payment...");
-      // Initialize payment
-      const payRes = await api.post(`/private-rides/${activeRequest.id}/pay`);
-      window.location.href = payRes.data.data.authorization_url;
+      setPaymentIntent({ amount: res.data.request.agreedPrice });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to accept bid");
     }
+  };
+
+  const payForAcceptedBid = (bidAmount) => {
+    setPaymentIntent({ amount: activeRequest?.agreedPrice || bidAmount });
   };
 
   const handleNegotiate = async (bidId) => {
@@ -507,9 +551,15 @@ const PrivateRideBooking = () => {
                                   Negotiate
                                 </Button>
                               )}
-                              <Button onClick={() => acceptBid(bid.id)} variant="primary" className="py-2 text-sm">
-                                Accept & Pay
-                              </Button>
+                              {bid.status === "accepted" ? (
+                                <Button onClick={() => payForAcceptedBid(bid.bidAmount)} variant="primary" className="py-2 text-sm bg-green-600 hover:bg-green-700 border-none">
+                                  Pay Now
+                                </Button>
+                              ) : (
+                                <Button onClick={() => acceptBid(bid.id)} variant="primary" className="py-2 text-sm">
+                                  Accept & Pay
+                                </Button>
+                              )}
                             </div>
                           )}
                         </div>
