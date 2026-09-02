@@ -474,9 +474,22 @@ const PrivateRideBooking = () => {
                   Cancel Request
                 </button>
               </div>
-              <p className="text-neutral-600">
+              <p className="text-neutral-600 mb-6">
                 Your request has been sent to nearby drivers. They will review it and propose their best prices.
               </p>
+              
+              <div className="bg-neutral-50 p-4 rounded-lg border border-neutral-100 text-sm">
+                <h3 className="font-bold text-charcoal mb-3">Request Details</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div><span className="text-neutral-500">Route:</span> <span className="font-medium">{activeRequest.pickupLocation} to {activeRequest.destination}</span></div>
+                  <div><span className="text-neutral-500">Date & Time:</span> <span className="font-medium">{activeRequest.pickupDate} at {activeRequest.pickupTime}</span></div>
+                  <div><span className="text-neutral-500">Passengers:</span> <span className="font-medium">{activeRequest.passengersCount}</span></div>
+                  <div><span className="text-neutral-500">Ride Type:</span> <span className="font-medium capitalize">{activeRequest.rideType?.replace("-", " ")}</span></div>
+                  {activeRequest.luggageInfo && <div><span className="text-neutral-500">Luggage:</span> <span className="font-medium">{activeRequest.luggageInfo}</span></div>}
+                  <div><span className="text-neutral-500">AC Required:</span> <span className="font-medium">{activeRequest.needsAC ? "Yes" : "No"}</span></div>
+                  {activeRequest.specialNotes && <div className="md:col-span-2"><span className="text-neutral-500 block mb-1">Notes:</span> <span className="font-medium italic block bg-white p-2 rounded border border-neutral-100">{activeRequest.specialNotes}</span></div>}
+                </div>
+              </div>
             </div>
 
             {activeRequest.bids?.length > 0 ? (

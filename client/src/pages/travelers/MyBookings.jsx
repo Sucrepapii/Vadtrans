@@ -490,6 +490,12 @@ const MyBookings = () => {
                         <div className="text-sm text-neutral-600 mt-1">
                           {ride.rideType.replace("-", " ")} • {ride.passengersCount} Passenger(s)
                         </div>
+                        {(ride.luggageInfo || ride.specialNotes) && (
+                          <div className="text-xs text-neutral-500 mt-2 bg-neutral-50 p-2 rounded border border-neutral-100">
+                            {ride.luggageInfo && <p><strong>Luggage:</strong> {ride.luggageInfo}</p>}
+                            {ride.specialNotes && <p><strong>Notes:</strong> {ride.specialNotes}</p>}
+                          </div>
+                        )}
                       </div>
                       
                       <div className="flex flex-col items-end gap-2">

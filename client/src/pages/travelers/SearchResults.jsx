@@ -724,7 +724,7 @@ const SearchResults = () => {
                   { id: "all", label: "All" },
                   { id: "inter-state", label: "Inter-State" },
                   { id: "carpooling", label: "Carpooling" },
-                  { id: "international", label: "International" },
+                  { id: "international", label: "Cross-Border (West Africa)" },
                   { id: "private", label: " Private Ride" },
                 ].map((filter) => (
                   <button
@@ -740,6 +740,7 @@ const SearchResults = () => {
                       }
                       setActiveFilter(filter.id);
                       setCurrentPage(1);
+                      setLocalSearchParams({...localSearchParams, transportType: filter.id});
                     }}
                     className={`px-4 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
                       activeFilter === filter.id
@@ -761,7 +762,9 @@ const SearchResults = () => {
               <form onSubmit={handleFormSubmit} className="mt-6 mb-8 p-5 bg-white rounded-premium shadow-premium border border-neutral-200/60 animate-slide-up duration-500">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="relative group">
-                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">From</label>
+                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                      {localSearchParams.transportType === "international" ? "From Country" : localSearchParams.transportType === "carpooling" ? "From State" : "From City"}
+                    </label>
                     <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
                       <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                       <input 
@@ -769,7 +772,7 @@ const SearchResults = () => {
                         value={localSearchParams.from} 
                         onChange={(e) => setLocalSearchParams({...localSearchParams, from: e.target.value})}
                         className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal"
-                        placeholder="Departure city"
+                        placeholder={localSearchParams.transportType === "international" ? "Departure country" : localSearchParams.transportType === "carpooling" ? "Departure state" : "Departure city"}
                       />
                       {localSearchParams.from && (
                         <button 
@@ -784,7 +787,9 @@ const SearchResults = () => {
                   </div>
                   
                   <div className="relative group">
-                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">To</label>
+                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                      {localSearchParams.transportType === "international" ? "To Country" : localSearchParams.transportType === "carpooling" ? "To State" : "To City"}
+                    </label>
                     <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
                       <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
                       <input 
@@ -792,7 +797,7 @@ const SearchResults = () => {
                         value={localSearchParams.to} 
                         onChange={(e) => setLocalSearchParams({...localSearchParams, to: e.target.value})}
                         className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal"
-                        placeholder="Destination city"
+                        placeholder={localSearchParams.transportType === "international" ? "Destination country" : localSearchParams.transportType === "carpooling" ? "Destination state" : "Destination city"}
                       />
                       {localSearchParams.to && (
                         <button 
@@ -832,7 +837,7 @@ const SearchResults = () => {
                           <option value="all">All Types</option>
                           <option value="inter-state">Inter-State</option>
                           <option value="carpooling">Carpooling</option>
-                          <option value="international">Cross-Border</option>
+                          <option value="international">Cross-Border (West Africa)</option>
                           <option value="private" className="font-bold text-primary"> Private Ride</option>
                         </select>
                       </div>
@@ -899,7 +904,7 @@ const SearchResults = () => {
                 <div className="flex items-center gap-2">
                   <span className="text-neutral-300 hidden sm:inline">|</span>
                   <span className="bg-primary/10 text-primary px-3 py-0.5 rounded-full text-xs font-semibold capitalize">
-                    {searchParams.transportType === "international" ? "International" : "Local"}
+                    {searchParams.transportType === "international" ? "Cross-Border" : searchParams.transportType}
                   </span>
                 </div>
               )}
