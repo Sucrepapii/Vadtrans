@@ -546,7 +546,7 @@ const PrivateRideBooking = () => {
                                 onChange={(e) => setPassengerCounterOfferAmount({...passengerCounterOfferAmount, [bid.id]: e.target.value})}
                                 className="w-full sm:w-32 px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:border-primary"
                               />
-                              <Button onClick={() => handleNegotiate(bid.id)} variant="secondary" className="py-2 text-sm w-full sm:w-auto bg-amber-600 hover:bg-amber-700 text-white border-0">
+                              <Button onClick={() => handleNegotiate(bid.id)} variant="primary" className="py-2 text-sm w-full sm:w-auto">
                                 Submit
                               </Button>
                               <Button onClick={() => setNegotiatingBidId(null)} variant="secondary" className="py-2 text-sm w-full sm:w-auto">
