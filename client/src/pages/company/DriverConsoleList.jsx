@@ -30,6 +30,7 @@ const DriverConsoleList = () => {
   const displayedPrivateRequests = privateRequests.filter(req => privateFilter === "active" ? !['completed', 'cancelled'].includes(req.status) : ['completed', 'cancelled'].includes(req.status));
   const [isOnline, setIsOnline] = useState(user?.isOnline || false);
   const [bidAmount, setBidAmount] = useState({});
+  const [bidData, setBidData] = useState({});
   const [counterOfferAmount, setCounterOfferAmount] = useState({});
 
   useEffect(() => {
@@ -77,13 +78,29 @@ const DriverConsoleList = () => {
 
   const handleBid = async (requestId) => {
     try {
-      const amount = bidAmount[requestId];
+      const reqBid = bidData[requestId] || {};
+      const amount = reqBid.amount || bidAmount[requestId];
       if (!amount) return toast.error("Please enter a bid amount");
-      await api.post(`/private-rides/${requestId}/bid`, { bidAmount: amount });
+      await privateRideAPI.placeBid(requestId, {
+        bidAmount: amount,
+        luggageDescription: reqBid.luggageDescription || "",
+        vehicleDetails: reqBid.vehicleDetails || "",
+        furtherInformation: reqBid.furtherInformation || "",
+      });
       toast.success("Bid placed successfully!");
       fetchPrivateRequests();
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to place bid");
+    }
+  };
+
+  const handleDismissBid = async (bidId) => {
+    try {
+      await privateRideAPI.dismissBid(bidId);
+      toast.info("Request dismissed from your console.");
+      fetchPrivateRequests();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to dismiss request");
     }
   };
 
@@ -417,26 +434,105 @@ const DriverConsoleList = () => {
                             <span className="text-neutral-500 font-medium">Your active bid:</span>
                             <span className="font-bold text-primary">₦{myBid.bidAmount.toLocaleString()}</span>
                           </div>
+                        ) : myBid.status === "not_interested" ? (
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-2.5 bg-neutral-100 rounded-lg">
+                            <div>
+                              <p className="text-sm font-bold text-neutral-700 flex items-center gap-1.5">
+                                <span className="text-neutral-500">🚫</span> Passenger is no longer interested
+                              </p>
+                              <p className="text-xs text-neutral-500">Your price offer was discarded by the passenger.</p>
+                            </div>
+                            <Button
+                              onClick={() => handleDismissBid(myBid.id)}
+                              variant="secondary"
+                              className="py-1.5 px-3 text-xs text-neutral-600 hover:bg-neutral-200 border border-neutral-300"
+                            >
+                              Dismiss from Console
+                            </Button>
+                          </div>
                         ) : myBid.status === "rejected" ? (
-                          <p className="text-sm font-medium text-red-600">
-                            ✗ Your bid of ₦{myBid.bidAmount.toLocaleString()} was not accepted.
-                          </p>
+                          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 p-2.5 bg-red-50 rounded-lg border border-red-100">
+                            <div>
+                              <p className="text-sm font-bold text-red-600 flex items-center gap-1.5">
+                                <span>✗</span> Passenger selected another driver
+                              </p>
+                              <p className="text-xs text-neutral-500">Trip was booked with another offer.</p>
+                            </div>
+                            <Button
+                              onClick={() => handleDismissBid(myBid.id)}
+                              variant="secondary"
+                              className="py-1.5 px-3 text-xs text-neutral-600 hover:bg-neutral-100 border border-neutral-300"
+                            >
+                              Dismiss from Console
+                            </Button>
+                          </div>
                         ) : null}
                       </div>
                     ) : (
                       req.status === "searching" && (
-                        <div className="mt-4 pt-4 border-t border-neutral-100">
+                        <div className="mt-4 pt-4 border-t border-neutral-100 space-y-3">
                           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                             <input
                               type="number"
-                              placeholder="Your bid (₦)"
-                              value={bidAmount[req.id] || ""}
-                              onChange={(e) => setBidAmount({...bidAmount, [req.id]: e.target.value})}
-                              className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                              placeholder="Your bid amount (₦) *"
+                              value={bidData[req.id]?.amount || bidAmount[req.id] || ""}
+                              onChange={(e) => {
+                                setBidAmount({ ...bidAmount, [req.id]: e.target.value });
+                                setBidData({ ...bidData, [req.id]: { ...(bidData[req.id] || {}), amount: e.target.value } });
+                              }}
+                              className="w-full sm:flex-1 px-4 py-3 sm:py-2 border border-neutral-300 rounded-lg focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 text-sm font-bold text-charcoal"
+                              required
                             />
-                            <Button onClick={() => handleBid(req.id)} variant="primary" className="w-full sm:w-auto py-3 sm:py-2">Place Bid</Button>
+                            <Button 
+                              onClick={() => handleBid(req.id)} 
+                              variant="primary" 
+                              className="w-full sm:w-auto py-3 sm:py-2 px-6 font-bold"
+                            >
+                              Place Bid
+                            </Button>
                           </div>
-                          <p className="text-[10px] text-neutral-400 mt-1.5 italic">
+
+                          {/* Expandable Luggage & Vehicle Info */}
+                          <div className="bg-neutral-50 p-3 rounded-lg border border-neutral-200 space-y-2 text-xs">
+                            <div className="font-bold text-neutral-600 uppercase tracking-wider text-[10px] flex items-center justify-between">
+                              <span>Trip Details for Passenger (Recommended)</span>
+                              <span className="text-[9px] text-primary font-normal">Increases chance of acceptance</span>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                              <div>
+                                <label className="block text-[10px] text-neutral-500 font-medium mb-0.5">Luggage Allowance / Boot Space</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. 2 large suitcases & 1 handbag"
+                                  value={bidData[req.id]?.luggageDescription || ""}
+                                  onChange={(e) => setBidData({ ...bidData, [req.id]: { ...(bidData[req.id] || {}), luggageDescription: e.target.value } })}
+                                  className="w-full px-2.5 py-1.5 border border-neutral-300 rounded bg-white text-neutral-700 outline-none focus:border-primary text-xs"
+                                />
+                              </div>
+                              <div>
+                                <label className="block text-[10px] text-neutral-500 font-medium mb-0.5">Vehicle Information</label>
+                                <input
+                                  type="text"
+                                  placeholder="e.g. Toyota Sienna (Black) - KJA-123-XY"
+                                  value={bidData[req.id]?.vehicleDetails || ""}
+                                  onChange={(e) => setBidData({ ...bidData, [req.id]: { ...(bidData[req.id] || {}), vehicleDetails: e.target.value } })}
+                                  className="w-full px-2.5 py-1.5 border border-neutral-300 rounded bg-white text-neutral-700 outline-none focus:border-primary text-xs"
+                                />
+                              </div>
+                            </div>
+                            <div>
+                              <label className="block text-[10px] text-neutral-500 font-medium mb-0.5">Driver Notes / Further Information</label>
+                              <input
+                                type="text"
+                                placeholder="e.g. AC works perfectly, gentle driving, on-time pickup"
+                                value={bidData[req.id]?.furtherInformation || ""}
+                                onChange={(e) => setBidData({ ...bidData, [req.id]: { ...(bidData[req.id] || {}), furtherInformation: e.target.value } })}
+                                className="w-full px-2.5 py-1.5 border border-neutral-300 rounded bg-white text-neutral-700 outline-none focus:border-primary text-xs"
+                              />
+                            </div>
+                          </div>
+
+                          <p className="text-[10px] text-neutral-400 italic">
                             Note: Platform commission of 20% applies to private rides. You will receive 80% of your accepted bid.
                           </p>
                         </div>

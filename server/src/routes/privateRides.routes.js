@@ -11,6 +11,7 @@ router.post("/request", authorize("traveler", "admin"), privateRideController.cr
 router.get("/nearby-drivers", authorize("traveler", "admin"), privateRideController.getNearbyDrivers);
 router.post("/bids/:bidId/accept", authorize("traveler", "admin"), privateRideController.acceptBid);
 router.post("/bids/:bidId/negotiate", authorize("traveler", "admin"), privateRideController.negotiateBid);
+router.post("/bids/:bidId/not-interested", authorize("traveler", "admin"), privateRideController.notInterestedBid);
 router.post("/:id/pay", authorize("traveler", "admin"), privateRideController.initializePayment);
 router.get("/verify/:reference", privateRideController.verifyPayment);
 
@@ -18,6 +19,7 @@ router.get("/verify/:reference", privateRideController.verifyPayment);
 router.post("/:id/bid", authorize("company", "admin"), privateRideController.placeBid);
 router.post("/bids/:bidId/counter-offer", authorize("company", "admin"), privateRideController.counterOffer);
 router.post("/bids/:bidId/driver-accept", authorize("company", "admin"), privateRideController.driverAcceptBid);
+router.post("/bids/:bidId/dismiss", authorize("company", "admin"), privateRideController.dismissDriverBid);
 router.put("/:id/status", authorize("company", "admin"), privateRideController.updateRideStatus);
 router.put("/:id/location", authorize("company", "admin"), privateRideController.updatePrivateLocation);
 

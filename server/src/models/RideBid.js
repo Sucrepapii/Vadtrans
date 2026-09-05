@@ -33,8 +33,24 @@ const RideBid = sequelize.define(
       type: DataTypes.FLOAT,
       allowNull: true,
     },
+    luggageDescription: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    vehicleDetails: {
+      type: DataTypes.STRING,
+      allowNull: true,
+    },
+    furtherInformation: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+    },
+    driverDismissed: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+    },
     status: {
-      type: DataTypes.ENUM("pending", "accepted", "rejected", "negotiating", "counter_offered"),
+      type: DataTypes.ENUM("pending", "accepted", "rejected", "negotiating", "counter_offered", "not_interested"),
       defaultValue: "pending",
     },
   },

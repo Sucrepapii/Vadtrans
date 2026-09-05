@@ -13,6 +13,11 @@ import {
   FaArrowRight,
   FaSearch,
   FaBan,
+  FaSuitcase,
+  FaCar,
+  FaInfoCircle,
+  FaShieldAlt,
+  FaCheckCircle,
 } from "react-icons/fa";
 
 const MyBookings = () => {
@@ -468,73 +473,140 @@ const MyBookings = () => {
                 </div>
               ) : (
                   <div className="space-y-4">
-                    {displayedPrivateRides.map(ride => (
-                      <div key={ride.id} className="bg-white border border-neutral-200 rounded-lg p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
-                      <div>
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase ${
-                            ride.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            ride.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                            ride.status === 'searching' ? 'bg-yellow-100 text-yellow-800 animate-pulse' :
-                            'bg-blue-100 text-blue-700'
-                          }`}>
-                            {ride.status.replace("_", " ")}
-                          </span>
-                          <span className="text-sm font-bold text-neutral-500">{formatDate(ride.createdAt)}</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-lg font-bold text-charcoal">
-                          <span>{ride.pickupLocation}</span>
-                          <FaArrowRight className="text-primary text-sm" />
-                          <span>{ride.destination}</span>
-                        </div>
-                        <div className="text-sm text-neutral-600 mt-1">
-                          {ride.rideType.replace("-", " ")} • {ride.passengersCount} Passenger(s)
-                        </div>
-                        {(ride.luggageInfo || ride.specialNotes) && (
-                          <div className="text-xs text-neutral-500 mt-2 bg-neutral-50 p-2 rounded border border-neutral-100">
-                            {ride.luggageInfo && <p><strong>Luggage:</strong> {ride.luggageInfo}</p>}
-                            {ride.specialNotes && <p><strong>Notes:</strong> {ride.specialNotes}</p>}
+                    {displayedPrivateRides.map(ride => {
+                      const acceptedBid = ride.bids?.find(b => b.status === "accepted" || b.driverId === ride.driverId) || (ride.bids && ride.bids.length > 0 ? ride.bids[0] : null);
+                      const isPaid = ride.paymentStatus === "paid";
+                      const isConfirmed = isPaid || ["driver_assigned", "en_route", "arrived", "started", "completed"].includes(ride.status);
+
+                      return (
+                        <div key={ride.id} className="bg-white border border-neutral-200 rounded-xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 shadow-sm hover:shadow-md transition-shadow">
+                          <div className="flex-1">
+                            <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                              <span className={`text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wide ${
+                                ride.status === 'completed' ? 'bg-green-100 text-green-700' :
+                                ride.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                                isPaid || ride.status === 'driver_assigned' ? 'bg-emerald-100 text-emerald-800 border border-emerald-300 font-extrabold' :
+                                ride.status === 'en_route' ? 'bg-blue-100 text-blue-800 font-bold' :
+                                ride.status === 'arrived' ? 'bg-indigo-100 text-indigo-800 font-bold' :
+                                ride.status === 'started' ? 'bg-purple-100 text-purple-800 font-bold' :
+                                ride.status === 'awaiting_payment' ? 'bg-amber-100 text-amber-800 font-bold animate-pulse' :
+                                'bg-yellow-100 text-yellow-800 animate-pulse font-bold'
+                              }`}>
+                                {isPaid || ride.status === 'driver_assigned' ? 'Driver Assigned (Paid)' : ride.status.replace("_", " ")}
+                              </span>
+
+                              {ride.agreedPrice && (
+                                <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-neutral-100 text-neutral-700">
+                                  ₦{ride.agreedPrice.toLocaleString()}
+                                </span>
+                              )}
+
+                              <span className="text-xs font-medium text-neutral-400 ml-auto md:ml-0">
+                                {formatDate(ride.createdAt)}
+                              </span>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-lg font-bold text-charcoal">
+                              <span>{ride.pickupLocation}</span>
+                              <FaArrowRight className="text-primary text-sm shrink-0" />
+                              <span>{ride.destination}</span>
+                            </div>
+
+                            <div className="text-sm text-neutral-600 mt-1">
+                              {ride.rideType.replace("-", " ")} • {ride.passengersCount} Passenger(s)
+                            </div>
+
+                            {/* Passenger Luggage & Request Info */}
+                            {(ride.luggageInfo || ride.specialNotes) && (
+                              <div className="text-xs text-neutral-500 mt-2.5 bg-neutral-50 p-2.5 rounded-lg border border-neutral-100 space-y-1">
+                                {ride.luggageInfo && <p><strong>Passenger Luggage:</strong> {ride.luggageInfo}</p>}
+                                {ride.specialNotes && <p><strong>Passenger Notes:</strong> {ride.specialNotes}</p>}
+                              </div>
+                            )}
+
+                            {/* Driver Luggage Space, Vehicle & Notes */}
+                            {(acceptedBid?.luggageDescription || acceptedBid?.vehicleDetails || acceptedBid?.furtherInformation) && (
+                              <div className="mt-3 p-3 bg-primary/5 rounded-xl border border-primary/20 text-xs space-y-1.5 animate-fade-in">
+                                <p className="font-bold text-primary uppercase tracking-wider text-[10px] mb-1">
+                                  Driver Proposal & Vehicle Details
+                                </p>
+                                {acceptedBid.luggageDescription && (
+                                  <div className="flex items-center gap-1.5 text-neutral-700">
+                                    <FaSuitcase className="text-primary text-xs shrink-0" />
+                                    <span><strong>Driver Luggage Capacity:</strong> {acceptedBid.luggageDescription}</span>
+                                  </div>
+                                )}
+                                {acceptedBid.vehicleDetails && (
+                                  <div className="flex items-center gap-1.5 text-neutral-700">
+                                    <FaCar className="text-primary text-xs shrink-0" />
+                                    <span><strong>Vehicle Info:</strong> {acceptedBid.vehicleDetails}</span>
+                                  </div>
+                                )}
+                                {acceptedBid.furtherInformation && (
+                                  <div className="flex items-start gap-1.5 text-neutral-600 italic">
+                                    <FaInfoCircle className="text-primary text-xs shrink-0 mt-0.5" />
+                                    <span><strong>Driver Note:</strong> {acceptedBid.furtherInformation}</span>
+                                  </div>
+                                )}
+                              </div>
+                            )}
                           </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex flex-col items-end gap-2">
-                        {ride.driverId ? (
-                          <div className="text-right">
-                            <p className="text-sm text-neutral-500">Driver Assigned</p>
-                            <p className="font-bold text-charcoal">{ride.driver?.name || "View details"}</p>
-                            <p className="text-xs text-primary font-bold">📞 {ride.driver?.phone}</p>
+                          
+                          <div className="flex flex-col items-start md:items-end justify-between gap-3 border-t md:border-t-0 pt-3 md:pt-0 border-neutral-100">
+                            {ride.driverId || ride.driver ? (
+                              <div className="md:text-right">
+                                <p className="text-xs text-neutral-400 font-bold uppercase tracking-wider">Assigned Driver</p>
+                                <p className="font-bold text-charcoal">{ride.driver?.name || "Professional Driver"}</p>
+                                {ride.driver?.phone && (
+                                  <a href={`tel:${ride.driver.phone}`} className="text-xs text-primary font-bold hover:underline block mt-0.5">
+                                    📞 {ride.driver.phone}
+                                  </a>
+                                )}
+                              </div>
+                            ) : ride.status === "awaiting_payment" ? (
+                              <div className="md:text-right">
+                                <p className="text-amber-600 font-bold text-sm">Awaiting Payment</p>
+                                <p className="text-xs text-neutral-400">Complete payment to finalize</p>
+                              </div>
+                            ) : (
+                              <div className="md:text-right">
+                                <p className="text-neutral-500 text-sm font-semibold">
+                                  {ride.bids?.length || 0} Driver bid(s) received
+                                </p>
+                              </div>
+                            )}
+                            
+                            <div className="flex gap-2 w-full md:w-auto">
+                              {ride.status === 'searching' ? (
+                                <button
+                                  onClick={() => navigate('/request-private-ride')}
+                                  className="w-full md:w-auto px-5 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-dark transition-all shadow-md shadow-primary/20"
+                                >
+                                  View Bids ({ride.bids?.length || 0})
+                                </button>
+                              ) : ride.status === 'awaiting_payment' && !isPaid ? (
+                                <button
+                                  onClick={() => navigate('/request-private-ride')}
+                                  className="w-full md:w-auto px-5 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-xl hover:bg-amber-600 transition-all shadow-md shadow-amber-500/20"
+                                >
+                                  Pay Now & Confirm Driver
+                                </button>
+                              ) : isConfirmed ? (
+                                <button
+                                  onClick={() => {
+                                    navigate('/tracking', { state: { bookingId: ride.requestId || `PR-${ride.id}` } });
+                                  }}
+                                  className="w-full md:w-auto px-5 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5"
+                                >
+                                  <FaShieldAlt className="text-xs" /> Track Live Ride
+                                </button>
+                              ) : null}
+                            </div>
                           </div>
-                        ) : ride.status === "awaiting_payment" ? (
-                          <p className="text-amber-600 font-bold text-sm">Awaiting Payment</p>
-                        ) : null}
-                        
-                        <div className="flex gap-2 mt-2">
-                          {ride.status === 'searching' || ride.status === 'awaiting_payment' ? (
-                            <button
-                              onClick={() => {
-                                // Direct them to the booking flow modal
-                                navigate('/request-private-ride');
-                              }}
-                              className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-dark transition-colors"
-                            >
-                              View Request
-                            </button>
-                          ) : ["driver_assigned", "en_route", "arrived", "started", "completed"].includes(ride.status) ? (
-                            <button
-                              onClick={() => {
-                                navigate('/tracking', { state: { bookingId: ride.requestId } });
-                              }}
-                              className="px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary-dark transition-colors"
-                            >
-                              Track Ride
-                            </button>
-                          ) : null}
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
+                      );
+                    })}
+                  </div>
               )}
             </div>
           )}

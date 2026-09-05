@@ -9,6 +9,19 @@ import { toast } from "react-toastify";
 import { usePaystackPayment } from "react-paystack";
 import api, { privateRideAPI } from "../../services/api";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
+import {
+  FaCheckCircle,
+  FaCar,
+  FaSuitcase,
+  FaPhone,
+  FaMapMarkerAlt,
+  FaClock,
+  FaUser,
+  FaInfoCircle,
+  FaShieldAlt,
+  FaTimes,
+  FaBan,
+} from "react-icons/fa";
 
 const PrivateRideBooking = () => {
   const { state } = useLocation();
@@ -64,15 +77,30 @@ const PrivateRideBooking = () => {
           try {
             const verifyRes = await privateRideAPI.verifyPayment(reference.reference, activeRequest.id);
             if (verifyRes.data.success) {
-              toast.success("Payment verified successfully!");
-              // Refresh active request
+              toast.success("Payment verified! Driver officially assigned.");
+              if (verifyRes.data.request) {
+                setActiveRequest(verifyRes.data.request);
+              } else {
+                const res = await api.get("/private-rides");
+                const req = res.data.requests?.find(r => r.id === activeRequest.id);
+                if (req) setActiveRequest(req);
+              }
+            } else {
+              toast.warning("Payment received. Confirming driver assignment...");
               const res = await api.get("/private-rides");
-              const req = res.data.requests.find(r => r.id === activeRequest.id);
+              const req = res.data.requests?.find(r => r.id === activeRequest.id);
               if (req) setActiveRequest(req);
             }
           } catch (error) {
-            console.error(error);
-            toast.error("Payment verification failed");
+            console.error("Payment verification error:", error);
+            try {
+              const res = await api.get("/private-rides");
+              const req = res.data.requests?.find(r => r.id === activeRequest.id);
+              if (req) setActiveRequest(req);
+            } catch (err) {
+              console.error(err);
+            }
+            toast.info("Payment processed. Loading assigned driver...");
           }
           setPaymentIntent(null);
         },
@@ -161,12 +189,12 @@ const PrivateRideBooking = () => {
       if (reqId) {
         try {
           const response = await api.get("/private-rides");
-          const req = response.data.requests.find(r => r.id === reqId);
+          const req = response.data.requests?.find(r => r.id === reqId);
           
           if (req) {
             setActiveRequest(req);
-            // If request is no longer searching, stop polling
-            if (req.status !== "searching") {
+            // If request is completed or cancelled, stop polling
+            if (["completed", "cancelled"].includes(req.status)) {
               clearInterval(pollInterval.current);
             }
           }
@@ -211,6 +239,26 @@ const PrivateRideBooking = () => {
       setPaymentIntent({ amount: res.data.request.agreedPrice });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to accept bid");
+    }
+  };
+
+  const handleNotInterested = async (bidId) => {
+    try {
+      await privateRideAPI.notInterestedBid(bidId);
+      toast.info("Offer discarded.");
+      // Optimistically remove/filter out from activeRequest bids
+      setActiveRequest(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          bids: (prev.bids || []).map(b => b.id === bidId ? { ...b, status: "not_interested" } : b)
+        };
+      });
+      const res = await api.get("/private-rides");
+      const req = res.data.requests?.find(r => r.id === activeRequest?.id);
+      if (req) setActiveRequest(req);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to discard offer");
     }
   };
 
@@ -457,14 +505,167 @@ const PrivateRideBooking = () => {
               </Button>
             </form>
           </div>
+        ) : isConfirmed ? (
+          /* Confirmed & Paid View */
+          <div className="space-y-6 animate-slide-up">
+            {/* Success Banner */}
+            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-neutral-200 text-center relative overflow-hidden">
+              <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-green-500 to-emerald-400"></div>
+              <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl shadow-sm">
+                <FaCheckCircle />
+              </div>
+              <h2 className="text-2xl md:text-3xl font-extrabold text-charcoal mb-2">Ride Confirmed & Driver Assigned!</h2>
+              <p className="text-neutral-500 text-sm max-w-md mx-auto mb-4">
+                Your payment is verified and your driver is officially assigned. They will arrive at your pickup address on schedule.
+              </p>
+              <div className="inline-flex flex-wrap items-center justify-center gap-3">
+                <span className="px-3 py-1 bg-neutral-100 text-neutral-700 text-xs font-mono font-bold rounded-full border border-neutral-200">
+                  BOOKING ID: {activeRequest.requestId || `PR-${activeRequest.id}`}
+                </span>
+                <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-bold rounded-full uppercase tracking-wider">
+                  PAID • ₦{activeRequest.agreedPrice?.toLocaleString()}
+                </span>
+                <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wider">
+                  {activeRequest.status.replace("_", " ")}
+                </span>
+              </div>
+            </div>
+
+            {/* Assigned Driver Card */}
+            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-neutral-200">
+              <h3 className="text-lg font-bold text-charcoal mb-4 flex items-center gap-2 border-b border-neutral-100 pb-3">
+                <FaUser className="text-primary" /> Assigned Driver Information
+              </h3>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 pb-6 border-b border-neutral-100">
+                <div className="flex items-center gap-4">
+                  {activeRequest.driver?.avatar ? (
+                    <img src={activeRequest.driver.avatar} alt="Driver" className="w-16 h-16 rounded-full object-cover border-2 border-primary/20 shadow-sm" />
+                  ) : (
+                    <div className="w-16 h-16 bg-primary/10 text-primary font-bold text-2xl rounded-full flex items-center justify-center border-2 border-primary/20">
+                      {activeRequest.driver?.name?.charAt(0) || "D"}
+                    </div>
+                  )}
+                  <div>
+                    <h4 className="text-xl font-bold text-charcoal">{activeRequest.driver?.name || "Professional Driver"}</h4>
+                    <div className="flex items-center gap-2 mt-1">
+                      <span className="text-xs bg-green-50 text-green-700 font-bold px-2 py-0.5 rounded border border-green-200 flex items-center gap-1">
+                        <FaShieldAlt className="text-[10px]" /> Verified Driver
+                      </span>
+                      {activeRequest.driver?.vehicles && (
+                        <span className="text-xs text-neutral-400">{activeRequest.driver.vehicles} Vehicles</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                {activeRequest.driver?.phone && (
+                  <div className="flex sm:flex-col items-center sm:items-end gap-2">
+                    <a 
+                      href={`tel:${activeRequest.driver.phone}`}
+                      className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-xl hover:bg-primary-dark transition-all shadow-md shadow-primary/20"
+                    >
+                      <FaPhone className="text-xs" /> Call Driver ({activeRequest.driver.phone})
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              {/* Driver Luggage & Vehicle Info Section */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100">
+                  <div className="flex items-center gap-2 text-neutral-500 text-xs font-bold uppercase tracking-wider mb-2">
+                    <FaSuitcase className="text-primary text-sm" /> Luggage Space & Capacity
+                  </div>
+                  <p className="text-sm font-semibold text-charcoal">
+                    {assignedBid?.luggageDescription || activeRequest.luggageInfo || "Standard private luggage capacity (Fits large suitcases)"}
+                  </p>
+                </div>
+
+                <div className="bg-neutral-50 p-4 rounded-xl border border-neutral-100">
+                  <div className="flex items-center gap-2 text-neutral-500 text-xs font-bold uppercase tracking-wider mb-2">
+                    <FaCar className="text-primary text-sm" /> Vehicle Information
+                  </div>
+                  <p className="text-sm font-semibold text-charcoal">
+                    {assignedBid?.vehicleDetails || (activeRequest.needsAC ? "Air-Conditioned Private Vehicle" : "Private Vehicle")}
+                  </p>
+                </div>
+
+                {(assignedBid?.furtherInformation || activeRequest.specialNotes) && (
+                  <div className="md:col-span-2 bg-neutral-50 p-4 rounded-xl border border-neutral-100">
+                    <div className="flex items-center gap-2 text-neutral-500 text-xs font-bold uppercase tracking-wider mb-2">
+                      <FaInfoCircle className="text-primary text-sm" /> Further Driver Notes & Instructions
+                    </div>
+                    <p className="text-sm text-neutral-700 italic">
+                      {assignedBid?.furtherInformation || activeRequest.specialNotes}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Journey Summary */}
+            <div className="bg-white p-6 md:p-8 rounded-2xl shadow-sm border border-neutral-200">
+              <h3 className="text-lg font-bold text-charcoal mb-4 flex items-center gap-2 border-b border-neutral-100 pb-3">
+                <FaMapMarkerAlt className="text-primary" /> Journey Details
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <span className="text-neutral-400 text-xs font-bold uppercase block mb-1">Pickup</span>
+                  <p className="font-bold text-charcoal">{activeRequest.pickupLocation}</p>
+                  {activeRequest.pickupState && <p className="text-xs text-neutral-500">{activeRequest.pickupState}</p>}
+                </div>
+                <div>
+                  <span className="text-neutral-400 text-xs font-bold uppercase block mb-1">Destination</span>
+                  <p className="font-bold text-charcoal">{activeRequest.destination}</p>
+                  {activeRequest.destinationState && <p className="text-xs text-neutral-500">{activeRequest.destinationState}</p>}
+                </div>
+                <div>
+                  <span className="text-neutral-400 text-xs font-bold uppercase block mb-1">Schedule</span>
+                  <p className="font-bold text-charcoal">{activeRequest.pickupDate} at {activeRequest.pickupTime}</p>
+                </div>
+                <div>
+                  <span className="text-neutral-400 text-xs font-bold uppercase block mb-1">Passengers & AC</span>
+                  <p className="font-bold text-charcoal">{activeRequest.passengersCount} Passenger(s) • {activeRequest.needsAC ? "AC Included" : "Standard"}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <button
+                onClick={() => navigate('/tracking', { state: { bookingId: activeRequest.requestId || `PR-${activeRequest.id}` } })}
+                className="flex-1 py-3.5 px-6 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 text-sm"
+              >
+                <FaMapMarkerAlt /> Track Driver Live GPS
+              </button>
+              <button
+                onClick={() => navigate('/my-bookings')}
+                className="py-3.5 px-6 bg-white text-charcoal border border-neutral-200 font-bold rounded-xl hover:bg-neutral-50 transition-all text-center text-sm"
+              >
+                View in My Bookings
+              </button>
+              <button
+                onClick={() => setActiveRequest(null)}
+                className="py-3.5 px-4 text-neutral-500 hover:text-neutral-700 font-bold text-xs transition-all text-center"
+              >
+                Request Another Ride
+              </button>
+            </div>
+          </div>
         ) : (
+          /* Bidding & Negotiation View */
           <div className="space-y-6">
             <div className="bg-white p-6 rounded-xl shadow-sm border border-neutral-200">
               <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4 mb-4">
                 <div className="flex items-center gap-4">
-                  <h2 className="text-2xl font-bold text-charcoal">Waiting for Bids</h2>
-                  <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full text-sm font-bold animate-pulse">
-                    Searching...
+                  <h2 className="text-2xl font-bold text-charcoal">
+                    {activeRequest.status === "awaiting_payment" ? "Offer Accepted - Awaiting Payment" : "Waiting for Bids"}
+                  </h2>
+                  <span className={`px-3 py-1 rounded-full text-sm font-bold ${
+                    activeRequest.status === "awaiting_payment"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-yellow-100 text-yellow-800 animate-pulse"
+                  }`}>
+                    {activeRequest.status === "awaiting_payment" ? "Ready to Pay" : "Searching..."}
                   </span>
                 </div>
                 <button
@@ -474,9 +675,16 @@ const PrivateRideBooking = () => {
                   Cancel Request
                 </button>
               </div>
-              <p className="text-neutral-600 mb-6">
-                Your request has been sent to nearby drivers. They will review it and propose their best prices.
-              </p>
+
+              {activeRequest.status === "awaiting_payment" ? (
+                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 mb-6 text-emerald-800 text-sm font-medium">
+                  🎉 You accepted an offer of <strong>₦{activeRequest.agreedPrice?.toLocaleString()}</strong>! Complete your payment below to officially assign the driver.
+                </div>
+              ) : (
+                <p className="text-neutral-600 mb-6">
+                  Your request has been sent to nearby drivers. They will review it and propose their best prices.
+                </p>
+              )}
               
               <div className="bg-neutral-50 p-4 rounded-lg border border-neutral-100 text-sm">
                 <h3 className="font-bold text-charcoal mb-3">Request Details</h3>
@@ -492,91 +700,132 @@ const PrivateRideBooking = () => {
               </div>
             </div>
 
-            {activeRequest.bids?.length > 0 ? (
+            {activeBids.length > 0 ? (
               <div className="space-y-4">
-                <h3 className="text-xl font-bold text-charcoal">Available Drivers</h3>
-                {activeRequest.bids.map((bid) => (
-                  <div key={bid.id} className="bg-white p-4 rounded-xl shadow-sm border border-neutral-200 flex flex-col md:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-4">
-                      {bid.driver?.avatar ? (
-                        <img src={bid.driver.avatar} alt={bid.driver.name} className="w-16 h-16 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-16 h-16 bg-neutral-200 rounded-full flex items-center justify-center">
-                          <span className="text-xl text-neutral-500 font-bold">{bid.driver?.name?.charAt(0)}</span>
+                <h3 className="text-xl font-bold text-charcoal flex items-center justify-between">
+                  <span>Available Driver Offers ({activeBids.length})</span>
+                  <span className="text-xs text-neutral-400 font-normal">Compare prices & luggage capacity</span>
+                </h3>
+
+                {activeBids.map((bid) => (
+                  <div key={bid.id} className="bg-white p-5 rounded-xl shadow-sm border border-neutral-200 flex flex-col gap-4">
+                    <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                      <div className="flex items-center gap-4">
+                        {bid.driver?.avatar ? (
+                          <img src={bid.driver.avatar} alt={bid.driver.name} className="w-14 h-14 rounded-full object-cover border border-neutral-200" />
+                        ) : (
+                          <div className="w-14 h-14 bg-neutral-100 rounded-full flex items-center justify-center text-primary font-bold text-lg">
+                            {bid.driver?.name?.charAt(0) || "D"}
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="font-bold text-lg text-charcoal">{bid.driver?.name}</h4>
+                          <div className="flex items-center gap-2 mt-0.5 text-xs text-neutral-500">
+                            <span className="bg-green-50 text-green-700 font-bold px-1.5 py-0.5 rounded border border-green-200 text-[10px]">Verified</span>
+                            <span>{bid.driver?.vehicles || 1} Vehicles</span>
+                            <span className="text-neutral-400">•</span>
+                            <span className="text-primary font-bold flex items-center gap-1">📞 {bid.driver?.phone}</span>
+                          </div>
                         </div>
-                      )}
-                      <div>
-                        <h4 className="font-bold text-lg text-charcoal">{bid.driver?.name}</h4>
-                        <p className="text-sm text-neutral-500 mb-1">{bid.driver?.vehicles} Vehicles Available</p>
-                        <p className="text-sm font-bold text-primary flex items-center gap-1">
-                          <span className="text-xs">📞</span> {bid.driver?.phone}
-                        </p>
                       </div>
-                    </div>
-                    <div className="flex flex-col items-end gap-2 w-full md:w-auto">
-                      <div className="flex items-center gap-2">
-                        {bid.status === "counter_offered" && (
-                          <span className="px-2.5 py-1 bg-green-50 text-green-700 border border-green-200 text-xs font-bold rounded-full">
-                            Final Offer
-                          </span>
-                        )}
+
+                      <div className="flex flex-col items-end gap-1 self-end md:self-center">
+                        <div className="flex items-center gap-2">
+                          {bid.status === "counter_offered" && (
+                            <span className="px-2.5 py-0.5 bg-green-50 text-green-700 border border-green-200 text-xs font-bold rounded-full">
+                              Final Offer
+                            </span>
+                          )}
+                          {bid.status === "negotiating" && (
+                            <span className="px-2.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-full animate-pulse">
+                              Negotiating...
+                            </span>
+                          )}
+                          <span className="text-2xl font-black text-primary">₦{bid.bidAmount.toLocaleString()}</span>
+                        </div>
                         {bid.status === "negotiating" && (
-                          <span className="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-xs font-bold rounded-full animate-pulse">
-                            Negotiating...
-                          </span>
-                        )}
-                        <span className="text-2xl font-bold text-primary">₦{bid.bidAmount.toLocaleString()}</span>
-                      </div>
-                      
-                      {bid.status === "negotiating" ? (
-                        <div className="flex flex-col items-end gap-1">
-                          <p className="text-xs font-bold text-amber-600 bg-amber-50 px-3 py-1.5 rounded-lg border border-amber-100">
+                          <p className="text-xs font-bold text-amber-600 bg-amber-50 px-2 py-0.5 rounded border border-amber-100">
                             You proposed: ₦{bid.passengerCounterOffer?.toLocaleString()}
                           </p>
-                          <p className="text-[10px] text-neutral-500 italic">Waiting for driver's response...</p>
-                        </div>
-                      ) : (
-                        <div className="flex flex-col gap-2 w-full md:w-auto items-end">
-                          {negotiatingBidId === bid.id ? (
-                            <div className="flex flex-col sm:flex-row gap-2 mt-2 w-full">
-                              <input
-                                type="number"
-                                placeholder="Your Offer (₦)"
-                                value={passengerCounterOfferAmount[bid.id] || ""}
-                                onChange={(e) => setPassengerCounterOfferAmount({...passengerCounterOfferAmount, [bid.id]: e.target.value})}
-                                className="w-full sm:w-32 px-3 py-2 border border-neutral-300 rounded-lg text-sm focus:outline-none focus:border-primary"
-                              />
-                              <Button onClick={() => handleNegotiate(bid.id)} variant="primary" className="py-2 text-sm w-full sm:w-auto">
-                                Submit
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Driver details: Luggage, Vehicle, Further Info */}
+                    {(bid.luggageDescription || bid.vehicleDetails || bid.furtherInformation) && (
+                      <div className="p-3 bg-neutral-50 rounded-lg border border-neutral-100 text-xs space-y-1.5 text-neutral-700">
+                        {bid.luggageDescription && (
+                          <div className="flex items-center gap-2">
+                            <FaSuitcase className="text-primary text-[11px] flex-shrink-0" />
+                            <span><strong className="text-neutral-600">Luggage Space:</strong> {bid.luggageDescription}</span>
+                          </div>
+                        )}
+                        {bid.vehicleDetails && (
+                          <div className="flex items-center gap-2">
+                            <FaCar className="text-primary text-[11px] flex-shrink-0" />
+                            <span><strong className="text-neutral-600">Vehicle:</strong> {bid.vehicleDetails}</span>
+                          </div>
+                        )}
+                        {bid.furtherInformation && (
+                          <div className="flex items-start gap-2 pt-1 border-t border-neutral-200/60">
+                            <FaInfoCircle className="text-primary text-[11px] mt-0.5 flex-shrink-0" />
+                            <span className="italic text-neutral-600">{bid.furtherInformation}</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Actions Row */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-neutral-100">
+                      {/* NO LONGER INTERESTED button */}
+                      <button
+                        type="button"
+                        onClick={() => handleNotInterested(bid.id)}
+                        className="text-xs font-bold text-red-600 hover:text-red-800 hover:bg-red-50 py-2 px-3 rounded-lg border border-red-200 transition-colors flex items-center justify-center gap-1.5"
+                      >
+                        <FaTimes className="text-[10px]" /> NO LONGER INTERESTED
+                      </button>
+
+                      <div className="flex items-center gap-2 justify-end">
+                        {negotiatingBidId === bid.id ? (
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
+                            <input
+                              type="number"
+                              placeholder="Your proposed price (₦)"
+                              value={passengerCounterOfferAmount[bid.id] || ""}
+                              onChange={(e) => setPassengerCounterOfferAmount({...passengerCounterOfferAmount, [bid.id]: e.target.value})}
+                              className="w-full sm:w-36 px-3 py-2 border border-neutral-300 rounded-lg text-xs font-bold focus:outline-none focus:border-primary"
+                            />
+                            <Button onClick={() => handleNegotiate(bid.id)} variant="primary" className="py-2 px-3 text-xs whitespace-nowrap">
+                              Submit
+                            </Button>
+                            <Button onClick={() => setNegotiatingBidId(null)} variant="secondary" className="py-2 px-2.5 text-xs">
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            {bid.status === "pending" && (
+                              <Button 
+                                onClick={() => setNegotiatingBidId(bid.id)} 
+                                variant="secondary" 
+                                className="py-2 px-4 border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-xs font-bold"
+                              >
+                                Negotiate Price
                               </Button>
-                              <Button onClick={() => setNegotiatingBidId(null)} variant="secondary" className="py-2 text-sm w-full sm:w-auto">
-                                Cancel
+                            )}
+                            {bid.status === "accepted" ? (
+                              <Button onClick={() => payForAcceptedBid(bid.bidAmount)} variant="primary" className="py-2 px-6 text-xs font-bold bg-green-600 hover:bg-green-700 border-none shadow-md shadow-green-600/20">
+                                Pay Now (₦{bid.bidAmount.toLocaleString()})
                               </Button>
-                            </div>
-                          ) : (
-                            <div className="flex gap-2 w-full md:w-auto justify-end">
-                              {bid.status === "pending" && (
-                                <Button 
-                                  onClick={() => setNegotiatingBidId(bid.id)} 
-                                  variant="secondary" 
-                                  className="py-2 border-neutral-300 text-neutral-700 hover:bg-neutral-50 text-sm"
-                                >
-                                  Negotiate
-                                </Button>
-                              )}
-                              {bid.status === "accepted" ? (
-                                <Button onClick={() => payForAcceptedBid(bid.bidAmount)} variant="primary" className="py-2 text-sm bg-green-600 hover:bg-green-700 border-none">
-                                  Pay Now
-                                </Button>
-                              ) : (
-                                <Button onClick={() => acceptBid(bid.id)} variant="primary" className="py-2 text-sm">
-                                  Accept & Pay
-                                </Button>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                            ) : (
+                              <Button onClick={() => acceptBid(bid.id)} variant="primary" className="py-2 px-5 text-xs font-bold">
+                                Accept & Pay
+                              </Button>
+                            )}
+                          </>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -584,7 +833,8 @@ const PrivateRideBooking = () => {
             ) : (
               <div className="bg-white p-12 rounded-xl shadow-sm border border-neutral-200 text-center">
                 <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                <p className="text-neutral-500">No bids yet. Please wait a moment...</p>
+                <p className="text-neutral-500 font-medium">Waiting for drivers to submit bids...</p>
+                <p className="text-xs text-neutral-400 mt-1">Drivers in your area will propose their best prices shortly.</p>
               </div>
             )}
           </div>

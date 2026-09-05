@@ -31,6 +31,8 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import Pagination from "../../components/Pagination";
+import { useLocationsAPI } from "../../hooks/useLocationsAPI";
+import { westAfricanCountries, westAfricanStates } from "../../data/locations";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -38,6 +40,10 @@ const SearchResults = () => {
   const [urlSearchParams] = useSearchParams();
   const companyId = urlSearchParams.get("companyId");
   const urlTransportType = urlSearchParams.get("transportType");
+
+  const { states, getCitiesForState, loadingStates } = useLocationsAPI();
+  const [fromCities, setFromCities] = useState([]);
+  const [toCities, setToCities] = useState([]);
 
   const getTodayDate = () => {
     const today = new Date();
@@ -50,6 +56,10 @@ const SearchResults = () => {
   const [searchParams, setSearchParams] = useState({
     from: "",
     to: "",
+    fromState: "",
+    toState: "",
+    fromCountry: "Nigeria",
+    toCountry: "",
     date: getTodayDate(),
     transportType: "all",
     serviceCategory: "passenger",
@@ -59,14 +69,48 @@ const SearchResults = () => {
   const [localSearchParams, setLocalSearchParams] = useState({
     from: "",
     to: "",
+    fromState: "",
+    toState: "",
+    fromCountry: "Nigeria",
+    toCountry: "",
     date: getTodayDate(),
     transportType: "all",
   });
+
+  // Fetch cities when fromState is selected
+  useEffect(() => {
+    let isMounted = true;
+    if (localSearchParams.fromState && localSearchParams.transportType !== "international") {
+      getCitiesForState(localSearchParams.fromState).then((cities) => {
+        if (isMounted) setFromCities(cities || []);
+      });
+    } else {
+      setFromCities([]);
+    }
+    return () => { isMounted = false; };
+  }, [localSearchParams.fromState, localSearchParams.transportType, getCitiesForState]);
+
+  // Fetch cities when toState is selected
+  useEffect(() => {
+    let isMounted = true;
+    if (localSearchParams.toState && localSearchParams.transportType !== "international") {
+      getCitiesForState(localSearchParams.toState).then((cities) => {
+        if (isMounted) setToCities(cities || []);
+      });
+    } else {
+      setToCities([]);
+    }
+    return () => { isMounted = false; };
+  }, [localSearchParams.toState, localSearchParams.transportType, getCitiesForState]);
 
   useEffect(() => {
     setLocalSearchParams({
       from: searchParams.from || "",
       to: searchParams.to || "",
+      fromState: searchParams.fromState || "",
+      toState: searchParams.toState || "",
+      fromCountry: searchParams.fromCountry || "Nigeria",
+      toCountry: searchParams.toCountry || "",
       date: searchParams.date || getTodayDate(),
       transportType: searchParams.transportType || "all",
     });
@@ -78,6 +122,8 @@ const SearchResults = () => {
       navigate("/request-private-ride", { state: { 
         from: localSearchParams.from, 
         to: localSearchParams.to, 
+        fromState: localSearchParams.fromState,
+        toState: localSearchParams.toState,
         date: localSearchParams.date 
       } });
       return;
@@ -95,6 +141,10 @@ const SearchResults = () => {
       if (
         localSearchParams.from !== searchParams.from ||
         localSearchParams.to !== searchParams.to ||
+        localSearchParams.fromState !== searchParams.fromState ||
+        localSearchParams.toState !== searchParams.toState ||
+        localSearchParams.fromCountry !== searchParams.fromCountry ||
+        localSearchParams.toCountry !== searchParams.toCountry ||
         localSearchParams.date !== searchParams.date ||
         localSearchParams.transportType !== searchParams.transportType
       ) {
@@ -102,6 +152,8 @@ const SearchResults = () => {
           navigate("/request-private-ride", { state: { 
             from: localSearchParams.from, 
             to: localSearchParams.to, 
+            fromState: localSearchParams.fromState,
+            toState: localSearchParams.toState,
             date: localSearchParams.date 
           } });
           return;
@@ -115,7 +167,18 @@ const SearchResults = () => {
     }, 450); // 450ms debounce delay
 
     return () => clearTimeout(timer);
-  }, [localSearchParams, searchParams.from, searchParams.to, searchParams.date, searchParams.transportType, navigate]);
+  }, [
+    localSearchParams, 
+    searchParams.from, 
+    searchParams.to, 
+    searchParams.fromState, 
+    searchParams.toState, 
+    searchParams.fromCountry, 
+    searchParams.toCountry, 
+    searchParams.date, 
+    searchParams.transportType, 
+    navigate
+  ]);
 
   const [trips, setTrips] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -226,7 +289,7 @@ const SearchResults = () => {
       }
 
       // If no trips found for the EXACT route, fetch ALL available trips for the category as fallback
-      if (foundTrips.length === 0 && (searchParams.from || searchParams.to)) {
+      if (foundTrips.length === 0 && (searchParams.from || searchParams.to || searchParams.fromState || searchParams.toState)) {
         setExactMatch(false);
         const fallbackParams = { status: "active" };
         if (searchParams.serviceCategory)
@@ -734,13 +797,19 @@ const SearchResults = () => {
                         navigate("/request-private-ride", { state: { 
                           from: searchParams.from, 
                           to: searchParams.to, 
+                          fromState: searchParams.fromState,
+                          toState: searchParams.toState,
                           date: searchParams.date 
                         } });
                         return;
                       }
                       setActiveFilter(filter.id);
                       setCurrentPage(1);
-                      setLocalSearchParams({...localSearchParams, transportType: filter.id});
+                      setLocalSearchParams(prev => ({
+                        ...prev, 
+                        transportType: filter.id,
+                        fromCountry: filter.id === "international" ? (prev.fromCountry || "Nigeria") : prev.fromCountry
+                      }));
                     }}
                     className={`px-4 py-1.5 rounded-xl text-[10px] font-bold transition-all ${
                       activeFilter === filter.id
@@ -757,100 +826,421 @@ const SearchResults = () => {
               {searchParams.companyId ? "Direct Booking Page" : "Search Results"}
             </h1>
 
-            {/* Premium Re-Search Bar */}
+            {/* Premium Re-Search Bar with State & City Selection */}
             {!searchParams.companyId && (
               <form onSubmit={handleFormSubmit} className="mt-6 mb-8 p-5 bg-white rounded-premium shadow-premium border border-neutral-200/60 animate-slide-up duration-500">
-                <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                  <div className="relative group">
-                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
-                      {localSearchParams.transportType === "international" ? "From Country" : localSearchParams.transportType === "carpooling" ? "From State" : "From City"}
-                    </label>
-                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
-                      <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
-                      <input 
-                        type="text" 
-                        value={localSearchParams.from} 
-                        onChange={(e) => setLocalSearchParams({...localSearchParams, from: e.target.value})}
-                        className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal"
-                        placeholder={localSearchParams.transportType === "international" ? "Departure country" : localSearchParams.transportType === "carpooling" ? "Departure state" : "Departure city"}
-                      />
-                      {localSearchParams.from && (
-                        <button 
-                          type="button"
-                          onClick={() => setLocalSearchParams({...localSearchParams, from: ""})}
-                          className="mr-2 p-1 text-neutral-400 hover:text-primary transition-colors"
-                        >
-                          <FaTimes size={12} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                  
-                  <div className="relative group">
-                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
-                      {localSearchParams.transportType === "international" ? "To Country" : localSearchParams.transportType === "carpooling" ? "To State" : "To City"}
-                    </label>
-                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
-                      <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
-                      <input 
-                        type="text" 
-                        value={localSearchParams.to} 
-                        onChange={(e) => setLocalSearchParams({...localSearchParams, to: e.target.value})}
-                        className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal"
-                        placeholder={localSearchParams.transportType === "international" ? "Destination country" : localSearchParams.transportType === "carpooling" ? "Destination state" : "Destination city"}
-                      />
-                      {localSearchParams.to && (
-                        <button 
-                          type="button"
-                          onClick={() => setLocalSearchParams({...localSearchParams, to: ""})}
-                          className="mr-2 p-1 text-neutral-400 hover:text-primary transition-colors"
-                        >
-                          <FaTimes size={12} />
-                        </button>
-                      )}
-                    </div>
-                  </div>
- 
-                  <div className="relative group">
-                    <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Date</label>
-                    <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
-                      <FaCalendar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
-                      <input 
-                        type="date" 
-                        value={localSearchParams.date} 
-                        onChange={(e) => setLocalSearchParams({...localSearchParams, date: e.target.value})}
-                        className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal cursor-pointer"
-                      />
-                    </div>
-                  </div>
- 
-                  <div className="flex gap-2">
-                    <div className="relative group flex-1">
-                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Type</label>
+                {localSearchParams.transportType === "international" ? (
+                  /* International / Cross-Border: Country & State/Region */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 items-end">
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        From Country
+                      </label>
                       <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
-                        <FaCar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors" />
-                        <select 
-                          value={localSearchParams.transportType} 
-                          onChange={(e) => setLocalSearchParams({...localSearchParams, transportType: e.target.value})}
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.fromCountry}
+                          onChange={(e) => setLocalSearchParams({
+                            ...localSearchParams,
+                            fromCountry: e.target.value,
+                            fromState: "",
+                            from: "",
+                          })}
                           className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                          required
                         >
-                          <option value="all">All Types</option>
-                          <option value="inter-state">Inter-State</option>
-                          <option value="carpooling">Carpooling</option>
-                          <option value="international">Cross-Border (West Africa)</option>
-                          <option value="private" className="font-bold text-primary"> Private Ride</option>
+                          <option value="">Select country</option>
+                          {westAfricanCountries.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
                         </select>
                       </div>
                     </div>
-                    <Button 
-                      type="submit"
-                      variant="primary" 
-                      className="px-6 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.03] transition-all duration-250 flex items-center justify-center"
-                    >
-                      <FaSyncAlt className={loading ? "animate-spin" : ""} />
-                    </Button>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        From State/Region
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.fromState}
+                          onChange={(e) => setLocalSearchParams({
+                            ...localSearchParams,
+                            fromState: e.target.value,
+                            from: e.target.value,
+                          })}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                        >
+                          <option value="">All Regions</option>
+                          {westAfricanStates[localSearchParams.fromCountry]?.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        To Country
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.toCountry}
+                          onChange={(e) => setLocalSearchParams({
+                            ...localSearchParams,
+                            toCountry: e.target.value,
+                            toState: "",
+                            to: "",
+                          })}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                          required
+                        >
+                          <option value="">Select country</option>
+                          {westAfricanCountries.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        To State/Region
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.toState}
+                          onChange={(e) => setLocalSearchParams({
+                            ...localSearchParams,
+                            toState: e.target.value,
+                            to: e.target.value,
+                          })}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                        >
+                          <option value="">All Regions</option>
+                          {westAfricanStates[localSearchParams.toCountry]?.map((s) => (
+                            <option key={s} value={s}>{s}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Date</label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaCalendar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <input 
+                          type="date" 
+                          value={localSearchParams.date} 
+                          onChange={(e) => setLocalSearchParams({...localSearchParams, date: e.target.value})}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="relative group flex-1">
+                        <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Type</label>
+                        <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                          <FaCar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                          <select 
+                            value={localSearchParams.transportType} 
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "private") {
+                                navigate("/request-private-ride", { state: { ...localSearchParams } });
+                                return;
+                              }
+                              setActiveFilter(val);
+                              setLocalSearchParams({...localSearchParams, transportType: val});
+                            }}
+                            className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                          >
+                            <option value="all">All Types</option>
+                            <option value="inter-state">Inter-State</option>
+                            <option value="carpooling">Carpooling</option>
+                            <option value="international">Cross-Border (West Africa)</option>
+                            <option value="private" className="font-bold text-primary">Private Ride</option>
+                          </select>
+                        </div>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        variant="primary" 
+                        className="px-5 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.03] transition-all duration-250 flex items-center justify-center"
+                      >
+                        <FaSyncAlt className={loading ? "animate-spin" : ""} />
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ) : localSearchParams.transportType === "carpooling" ? (
+                  /* Carpooling: State First, Then From City and To City */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3 items-end">
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        State
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.fromState}
+                          onChange={(e) => {
+                            const selectedState = e.target.value;
+                            setLocalSearchParams({
+                              ...localSearchParams,
+                              fromState: selectedState,
+                              toState: selectedState,
+                              from: "",
+                              to: "",
+                            });
+                          }}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                        >
+                          <option value="">{loadingStates ? "Loading..." : "Select State"}</option>
+                          {states.map((s) => (
+                            <option key={s.name} value={s.name}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        From City
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.from}
+                          onChange={(e) => setLocalSearchParams({ ...localSearchParams, from: e.target.value })}
+                          disabled={!localSearchParams.fromState}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer disabled:opacity-50"
+                        >
+                          <option value="">
+                            {!localSearchParams.fromState ? "Select State first" : "All Departure Cities"}
+                          </option>
+                          {fromCities.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        To City
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.to}
+                          onChange={(e) => setLocalSearchParams({ ...localSearchParams, to: e.target.value })}
+                          disabled={!localSearchParams.fromState}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer disabled:opacity-50"
+                        >
+                          <option value="">
+                            {!localSearchParams.fromState ? "Select State first" : "All Destination Cities"}
+                          </option>
+                          {fromCities.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Date</label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaCalendar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <input 
+                          type="date" 
+                          value={localSearchParams.date} 
+                          onChange={(e) => setLocalSearchParams({...localSearchParams, date: e.target.value})}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="relative group flex-1">
+                        <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Type</label>
+                        <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                          <FaCar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                          <select 
+                            value={localSearchParams.transportType} 
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "private") {
+                                navigate("/request-private-ride", { state: { ...localSearchParams } });
+                                return;
+                              }
+                              setActiveFilter(val);
+                              setLocalSearchParams({...localSearchParams, transportType: val});
+                            }}
+                            className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                          >
+                            <option value="all">All Types</option>
+                            <option value="inter-state">Inter-State</option>
+                            <option value="carpooling">Carpooling</option>
+                            <option value="international">Cross-Border (West Africa)</option>
+                            <option value="private" className="font-bold text-primary">Private Ride</option>
+                          </select>
+                        </div>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        variant="primary" 
+                        className="px-5 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.03] transition-all duration-250 flex items-center justify-center"
+                      >
+                        <FaSyncAlt className={loading ? "animate-spin" : ""} />
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  /* Inter-State & All Types: From State, From City, To State, To City */
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3 items-end">
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        Departure State
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.fromState}
+                          onChange={(e) => setLocalSearchParams({
+                            ...localSearchParams,
+                            fromState: e.target.value,
+                            from: "",
+                          })}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                        >
+                          <option value="">{loadingStates ? "Loading..." : "All States"}</option>
+                          {states.map((s) => (
+                            <option key={s.name} value={s.name}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        Departure City
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.from}
+                          onChange={(e) => setLocalSearchParams({ ...localSearchParams, from: e.target.value })}
+                          disabled={!localSearchParams.fromState}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer disabled:opacity-50"
+                        >
+                          <option value="">
+                            {!localSearchParams.fromState ? "Select State first" : "All Cities in State"}
+                          </option>
+                          {fromCities.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        Destination State
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.toState}
+                          onChange={(e) => setLocalSearchParams({
+                            ...localSearchParams,
+                            toState: e.target.value,
+                            to: "",
+                          })}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                        >
+                          <option value="">{loadingStates ? "Loading..." : "All States"}</option>
+                          {states.map((s) => (
+                            <option key={s.name} value={s.name}>{s.name}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">
+                        Destination City
+                      </label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaMapMarkerAlt className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <select
+                          value={localSearchParams.to}
+                          onChange={(e) => setLocalSearchParams({ ...localSearchParams, to: e.target.value })}
+                          disabled={!localSearchParams.toState}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer disabled:opacity-50"
+                        >
+                          <option value="">
+                            {!localSearchParams.toState ? "Select State first" : "All Cities in State"}
+                          </option>
+                          {toCities.map((c) => (
+                            <option key={c} value={c}>{c}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    <div className="relative group">
+                      <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Date</label>
+                      <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                        <FaCalendar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                        <input 
+                          type="date" 
+                          value={localSearchParams.date} 
+                          onChange={(e) => setLocalSearchParams({...localSearchParams, date: e.target.value})}
+                          className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none text-charcoal cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <div className="relative group flex-1">
+                        <label className="absolute left-3 -top-2 px-1 bg-white text-[9px] font-bold text-primary uppercase tracking-widest z-10">Type</label>
+                        <div className="flex items-center bg-neutral-50 rounded-xl border border-neutral-200 group-focus-within:border-primary group-focus-within:ring-2 group-focus-within:ring-primary/10 transition-all duration-250">
+                          <FaCar className="ml-3 text-neutral-400 group-focus-within:text-primary transition-colors shrink-0" />
+                          <select 
+                            value={localSearchParams.transportType} 
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "private") {
+                                navigate("/request-private-ride", { state: { ...localSearchParams } });
+                                return;
+                              }
+                              setActiveFilter(val);
+                              setLocalSearchParams({...localSearchParams, transportType: val});
+                            }}
+                            className="w-full px-3 py-3 bg-transparent text-sm font-semibold outline-none appearance-none text-charcoal cursor-pointer"
+                          >
+                            <option value="all">All Types</option>
+                            <option value="inter-state">Inter-State</option>
+                            <option value="carpooling">Carpooling</option>
+                            <option value="international">Cross-Border (West Africa)</option>
+                            <option value="private" className="font-bold text-primary">Private Ride</option>
+                          </select>
+                        </div>
+                      </div>
+                      <Button 
+                        type="submit" 
+                        variant="primary" 
+                        className="px-5 rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.03] transition-all duration-250 flex items-center justify-center"
+                      >
+                        <FaSyncAlt className={loading ? "animate-spin" : ""} />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </form>
             )}
 
