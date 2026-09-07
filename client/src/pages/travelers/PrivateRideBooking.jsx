@@ -26,7 +26,7 @@ import {
 const PrivateRideBooking = () => {
   const { state } = useLocation();
   const navigate = useNavigate();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, loading } = useAuth();
 
   const [formData, setFormData] = useState({
     pickupState: state?.fromState || "",
@@ -164,11 +164,11 @@ const PrivateRideBooking = () => {
   };
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!loading && !isAuthenticated) {
       toast.error("Please login to request a private ride");
       navigate("/signin", { state: { from: "/request-private-ride" } });
     }
-  }, [isAuthenticated, navigate]);
+  }, [loading, isAuthenticated, navigate]);
 
   useEffect(() => {
     return () => clearInterval(pollInterval.current);
@@ -276,7 +276,7 @@ const PrivateRideBooking = () => {
       setNegotiatingBidId(null);
       // Refresh active request
       const res = await api.get("/private-rides");
-      const req = res.data.requests.find(r => r.id === activeRequest.id);
+      const req = res.data.requests?.find(r => r.id === activeRequest?.id);
       if (req) {
         setActiveRequest(req);
       }
@@ -287,6 +287,7 @@ const PrivateRideBooking = () => {
 
   const cancelRequest = async () => {
     try {
+      if (!activeRequest?.id) return;
       await api.post(`/private-rides/${activeRequest.id}/cancel`);
       toast.info("Request cancelled successfully.");
       setActiveRequest(null);
@@ -294,6 +295,28 @@ const PrivateRideBooking = () => {
       toast.error(error.response?.data?.message || "Failed to cancel request");
     }
   };
+
+  const isPaid = activeRequest?.paymentStatus === "paid";
+  const isConfirmed = isPaid || ["driver_assigned", "en_route", "arrived", "started", "completed"].includes(activeRequest?.status);
+
+  const assignedBid = 
+    activeRequest?.bids?.find(b => b.status === "accepted" || b.driverId === activeRequest?.driverId) ||
+    (activeRequest?.bids && activeRequest.bids.length > 0 ? activeRequest.bids[0] : null);
+
+  const activeBids = (activeRequest?.bids || []).filter(
+    b => b.status !== "not_interested" && b.status !== "dismissed"
+  );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-neutral-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-neutral-600 font-medium">Loading ride details...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50">
@@ -526,7 +549,7 @@ const PrivateRideBooking = () => {
                   PAID • ₦{activeRequest.agreedPrice?.toLocaleString()}
                 </span>
                 <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-bold rounded-full uppercase tracking-wider">
-                  {activeRequest.status.replace("_", " ")}
+                  {activeRequest.status?.replace("_", " ") || ""}
                 </span>
               </div>
             </div>

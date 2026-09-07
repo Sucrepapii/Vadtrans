@@ -26,11 +26,9 @@ export const AuthProvider = ({ children }) => {
         const parsedUser = JSON.parse(storedUserStr);
         setUser(parsedUser);
 
-        // Migrate legacy localStorage users to sessionStorage on load
-        if (localStorage.getItem("vadtrans_user")) {
-          sessionStorage.setItem("vadtrans_user", storedUserStr);
-          localStorage.removeItem("vadtrans_user");
-        }
+        // Keep both storage stores in sync for mobile session resilience
+        sessionStorage.setItem("vadtrans_user", storedUserStr);
+        localStorage.setItem("vadtrans_user", storedUserStr);
       } catch (error) {
         console.error("Error parsing stored user data:", error);
         sessionStorage.removeItem("vadtrans_user");
@@ -90,6 +88,7 @@ export const AuthProvider = ({ children }) => {
     const userWithRole = { ...userData };
     setUser(userWithRole);
     sessionStorage.setItem("vadtrans_user", JSON.stringify(userWithRole));
+    localStorage.setItem("vadtrans_user", JSON.stringify(userWithRole));
     return userWithRole.role; // Return role for backward compatibility
   };
 
@@ -105,6 +104,7 @@ export const AuthProvider = ({ children }) => {
     const updatedUser = { ...user, ...updatedData };
     setUser(updatedUser);
     sessionStorage.setItem("vadtrans_user", JSON.stringify(updatedUser));
+    localStorage.setItem("vadtrans_user", JSON.stringify(updatedUser));
   };
 
   const value = {
