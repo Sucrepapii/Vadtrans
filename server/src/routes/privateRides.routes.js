@@ -11,9 +11,12 @@ router.post("/request", authorize("traveler", "admin"), privateRideController.cr
 router.get("/nearby-drivers", authorize("traveler", "admin"), privateRideController.getNearbyDrivers);
 router.post("/bids/:bidId/accept", authorize("traveler", "admin"), privateRideController.acceptBid);
 router.post("/bids/:bidId/negotiate", authorize("traveler", "admin"), privateRideController.negotiateBid);
-router.post("/bids/:bidId/not-interested", authorize("traveler", "admin"), privateRideController.notInterestedBid);
+router.post("/bids/:bidId/not-interested", authorize("traveler", "company", "admin"), privateRideController.notInterestedBid);
+router.post("/:id/not-interested", authorize("traveler", "company", "admin"), privateRideController.notInterestedBid);
+router.post("/not-interested/:id", authorize("traveler", "company", "admin"), privateRideController.notInterestedBid);
 router.post("/:id/pay", authorize("traveler", "admin"), privateRideController.initializePayment);
 router.get("/verify/:reference", privateRideController.verifyPayment);
+router.post("/verify/:reference", privateRideController.verifyPayment);
 
 // Company routes
 router.post("/:id/bid", authorize("company", "admin"), privateRideController.placeBid);

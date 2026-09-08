@@ -525,24 +525,24 @@ const MyBookings = () => {
                             )}
 
                             {/* Driver Luggage Space, Vehicle & Notes */}
-                            {(acceptedBid?.luggageDescription || acceptedBid?.vehicleDetails || acceptedBid?.furtherInformation) && (
+                            {(acceptedBid?.luggageDescription || acceptedBid?.vehicleDetails || acceptedBid?.furtherInformation || ride.driver) && (
                               <div className="mt-3 p-3 bg-primary/5 rounded-xl border border-primary/20 text-xs space-y-1.5 animate-fade-in">
                                 <p className="font-bold text-primary uppercase tracking-wider text-[10px] mb-1">
                                   Driver Proposal & Vehicle Details
                                 </p>
-                                {acceptedBid.luggageDescription && (
-                                  <div className="flex items-center gap-1.5 text-neutral-700">
-                                    <FaSuitcase className="text-primary text-xs shrink-0" />
-                                    <span><strong>Driver Luggage Capacity:</strong> {acceptedBid.luggageDescription}</span>
-                                  </div>
-                                )}
-                                {acceptedBid.vehicleDetails && (
+                                {(acceptedBid?.vehicleDetails || ride.driver) && (
                                   <div className="flex items-center gap-1.5 text-neutral-700">
                                     <FaCar className="text-primary text-xs shrink-0" />
-                                    <span><strong>Vehicle Info:</strong> {acceptedBid.vehicleDetails}</span>
+                                    <span><strong>Vehicle:</strong> {acceptedBid?.vehicleDetails || (ride.driver?.vehicles ? `${ride.driver.vehicles} Registered Vehicle(s)` : "Private Vehicle")}</span>
                                   </div>
                                 )}
-                                {acceptedBid.furtherInformation && (
+                                {acceptedBid?.luggageDescription && (
+                                  <div className="flex items-center gap-1.5 text-neutral-700">
+                                    <FaSuitcase className="text-primary text-xs shrink-0" />
+                                    <span><strong>Luggage Capacity:</strong> {acceptedBid.luggageDescription}</span>
+                                  </div>
+                                )}
+                                {acceptedBid?.furtherInformation && (
                                   <div className="flex items-start gap-1.5 text-neutral-600 italic">
                                     <FaInfoCircle className="text-primary text-xs shrink-0 mt-0.5" />
                                     <span><strong>Driver Note:</strong> {acceptedBid.furtherInformation}</span>

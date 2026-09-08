@@ -20,6 +20,7 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   const [privateRequests, setPrivateRequests] = useState([]);
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
   const { user, isAuthenticated, logout } = useAuth();
   const navigate = useNavigate();
 
@@ -44,7 +45,11 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
     };
   }, [isAuthenticated, user]);
 
-  const awaitingPaymentRide = privateRequests.find(r => r.status === "awaiting_payment");
+  const awaitingPaymentRide = !isBannerDismissed && privateRequests.find(r => 
+    r.status === "awaiting_payment" && 
+    r.paymentStatus !== "paid" &&
+    r.createdAt && (new Date() - new Date(r.createdAt)) < 2 * 60 * 60 * 1000
+  );
 
   const handleLogout = () => {
     logout();
@@ -58,12 +63,25 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
       <nav className="sticky top-0 z-50 w-full glass-panel border-b border-neutral-200/50 shadow-premium">
         {/* Sticky Alert Banner for pending bids */}
         {awaitingPaymentRide && (
-          <div 
-            onClick={() => navigate('/request-private-ride')}
-            className="bg-primary text-white py-2 px-4 text-center text-sm font-bold flex justify-center items-center gap-2 cursor-pointer hover:bg-primary-dark transition-colors"
-          >
-            <span className="animate-ping text-lg">🚨</span> 
-            A driver has placed a bid on your Private Ride request! Click here to view and accept.
+          <div className="bg-primary text-white py-2 px-4 text-center text-sm font-bold flex justify-between items-center transition-colors">
+            <div 
+              onClick={() => navigate('/request-private-ride')}
+              className="flex-1 flex justify-center items-center gap-2 cursor-pointer hover:underline"
+            >
+              <span className="animate-ping text-lg">🚨</span> 
+              A driver has placed a bid on your Private Ride request! Click here to view and accept.
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsBannerDismissed(true);
+              }}
+              className="text-white/80 hover:text-white p-1 rounded transition-colors text-xs font-bold"
+              title="Dismiss notification"
+            >
+              ✕
+            </button>
           </div>
         )}
         
@@ -229,13 +247,34 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                                   >
                                     <div className="flex justify-between items-start mb-1">
                                       <span className="text-xs font-bold text-primary uppercase">{req.rideType.replace('-', ' ')}</span>
-                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${req.status === 'awaiting_payment' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'}`}>
-                                        {req.status.replace('_', ' ')}
+                                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                                        req.paymentStatus === 'paid' || req.status === 'driver_assigned' ? 'bg-emerald-100 text-emerald-800' :
+                                        req.status === 'awaiting_payment' ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                                      }`}>
+                                        {req.paymentStatus === 'paid' ? 'PAID' : req.status.replace('_', ' ')}
                                       </span>
                                     </div>
                                     <p className="text-sm font-semibold text-charcoal truncate">{req.pickupLocation} → {req.destination}</p>
-                                    {req.status === 'awaiting_payment' && (
-                                      <p className="text-xs text-amber-600 font-bold mt-1">Driver bid received! Click to pay.</p>
+                                    {req.status === 'awaiting_payment' && req.paymentStatus !== 'paid' && (
+                                      <div className="flex items-center justify-between mt-1 pt-1 border-t border-neutral-100">
+                                        <p className="text-xs text-amber-600 font-bold">Driver bid received! Click to pay.</p>
+                                        <button
+                                          type="button"
+                                          onClick={async (e) => {
+                                            e.stopPropagation();
+                                            try {
+                                              await api.post(`/private-rides/${req.id}/cancel`);
+                                              toast.info("Request cancelled.");
+                                              fetchPrivateRequests();
+                                            } catch (err) {
+                                              console.error(err);
+                                            }
+                                          }}
+                                          className="text-[10px] text-red-500 hover:text-red-700 underline font-semibold ml-2"
+                                        >
+                                          Cancel
+                                        </button>
+                                      </div>
                                     )}
                                   </div>
                                 ))

@@ -364,6 +364,30 @@ const initializeDatabase = async () => {
       } catch (err) {
         console.log("ℹ️ Note: Could not update serviceCategory ENUM (might already be up to date)");
       }
+
+      try {
+        console.log("ℹ️ Ensuring critical columns exist in RideBids table...");
+        await sequelize.query('ALTER TABLE "RideBids" ADD COLUMN IF NOT EXISTS "luggageDescription" VARCHAR(255);');
+        await sequelize.query('ALTER TABLE "RideBids" ADD COLUMN IF NOT EXISTS "vehicleDetails" VARCHAR(255);');
+        await sequelize.query('ALTER TABLE "RideBids" ADD COLUMN IF NOT EXISTS "furtherInformation" TEXT;');
+        await sequelize.query('ALTER TABLE "RideBids" ADD COLUMN IF NOT EXISTS "driverDismissed" BOOLEAN DEFAULT false;');
+        console.log("✅ RideBids columns verified/added");
+      } catch (err) {
+        console.log("ℹ️ RideBids column migration note:", err.message);
+      }
+
+      try {
+        await sequelize.query(`
+          DO $$ 
+          BEGIN 
+            IF NOT EXISTS (SELECT 1 FROM pg_type t JOIN pg_enum e ON t.oid = e.enumtypid WHERE t.typname = 'enum_RideBids_status' AND e.enumlabel = 'not_interested') THEN
+              ALTER TYPE "enum_RideBids_status" ADD VALUE 'not_interested';
+            END IF;
+          END $$;
+        `);
+      } catch (err) {
+        console.log("ℹ️ Note: Could not update enum_RideBids_status ENUM (might already be up to date)");
+      }
     }
     if (!tripTableInfo.vehiclePlateNumber) {
       console.log("ℹ️ Adding missing column 'vehiclePlateNumber' to Trips...");

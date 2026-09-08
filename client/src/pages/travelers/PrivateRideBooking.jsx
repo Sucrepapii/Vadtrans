@@ -52,6 +52,11 @@ const PrivateRideBooking = () => {
   const [negotiatingBidId, setNegotiatingBidId] = useState(null);
   const [passengerCounterOfferAmount, setPassengerCounterOfferAmount] = useState({});
   const pollInterval = useRef(null);
+  const activeRequestRef = useRef(activeRequest);
+
+  useEffect(() => {
+    activeRequestRef.current = activeRequest;
+  }, [activeRequest]);
 
   const { states, getCitiesForState } = useLocationsAPI();
   const [pickupCities, setPickupCities] = useState([]);
@@ -59,12 +64,13 @@ const PrivateRideBooking = () => {
   const [paymentIntent, setPaymentIntent] = useState(null);
 
   const paystackConfig = React.useMemo(() => {
+    const reqId = paymentIntent?.requestId || activeRequest?.id;
     return {
       reference: new Date().getTime().toString(),
       email: user?.email || "",
       amount: paymentIntent ? Math.round(paymentIntent.amount * 100) : 0,
       publicKey: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-      metadata: { privateRideId: activeRequest?.id },
+      metadata: { privateRideId: reqId },
     };
   }, [user?.email, paymentIntent, activeRequest?.id]);
 
@@ -74,28 +80,30 @@ const PrivateRideBooking = () => {
     if (paymentIntent && paystackConfig.amount > 0) {
       initializePayment({
         onSuccess: async (reference) => {
+          const ref = reference?.reference || reference?.trxref || (typeof reference === "string" ? reference : null);
+          const reqId = paymentIntent?.requestId || activeRequestRef.current?.id;
           try {
-            const verifyRes = await privateRideAPI.verifyPayment(reference.reference, activeRequest.id);
+            const verifyRes = await privateRideAPI.verifyPayment(ref, reqId);
             if (verifyRes.data.success) {
               toast.success("Payment verified! Driver officially assigned.");
               if (verifyRes.data.request) {
                 setActiveRequest(verifyRes.data.request);
               } else {
                 const res = await api.get("/private-rides");
-                const req = res.data.requests?.find(r => r.id === activeRequest.id);
+                const req = res.data.requests?.find(r => r.id === reqId);
                 if (req) setActiveRequest(req);
               }
             } else {
               toast.warning("Payment received. Confirming driver assignment...");
               const res = await api.get("/private-rides");
-              const req = res.data.requests?.find(r => r.id === activeRequest.id);
+              const req = res.data.requests?.find(r => r.id === reqId);
               if (req) setActiveRequest(req);
             }
           } catch (error) {
             console.error("Payment verification error:", error);
             try {
               const res = await api.get("/private-rides");
-              const req = res.data.requests?.find(r => r.id === activeRequest.id);
+              const req = res.data.requests?.find(r => r.id === reqId);
               if (req) setActiveRequest(req);
             } catch (err) {
               console.error(err);
@@ -236,34 +244,39 @@ const PrivateRideBooking = () => {
       const res = await api.post(`/private-rides/bids/${bidId}/accept`);
       setActiveRequest(res.data.request);
       toast.success("Bid accepted! Proceeding to payment...");
-      setPaymentIntent({ amount: res.data.request.agreedPrice });
+      setPaymentIntent({ 
+        amount: res.data.request.agreedPrice,
+        requestId: res.data.request.id 
+      });
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to accept bid");
     }
   };
 
   const handleNotInterested = async (bidId) => {
+    if (!bidId) return;
+    // Optimistically remove/filter out from activeRequest bids immediately
+    setActiveRequest(prev => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        bids: (prev.bids || []).filter(b => b.id !== bidId)
+      };
+    });
+    toast.info("Offer discarded.");
+
     try {
       await privateRideAPI.notInterestedBid(bidId);
-      toast.info("Offer discarded.");
-      // Optimistically remove/filter out from activeRequest bids
-      setActiveRequest(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          bids: (prev.bids || []).map(b => b.id === bidId ? { ...b, status: "not_interested" } : b)
-        };
-      });
-      const res = await api.get("/private-rides");
-      const req = res.data.requests?.find(r => r.id === activeRequest?.id);
-      if (req) setActiveRequest(req);
     } catch (error) {
-      toast.error(error.response?.data?.message || "Failed to discard offer");
+      console.warn("Could not sync discarded offer with server:", error);
     }
   };
 
   const payForAcceptedBid = (bidAmount) => {
-    setPaymentIntent({ amount: activeRequest?.agreedPrice || bidAmount });
+    setPaymentIntent({ 
+      amount: activeRequest?.agreedPrice || bidAmount,
+      requestId: activeRequest?.id 
+    });
   };
 
   const handleNegotiate = async (bidId) => {
@@ -302,6 +315,8 @@ const PrivateRideBooking = () => {
   const assignedBid = 
     activeRequest?.bids?.find(b => b.status === "accepted" || b.driverId === activeRequest?.driverId) ||
     (activeRequest?.bids && activeRequest.bids.length > 0 ? activeRequest.bids[0] : null);
+
+  const assignedDriver = assignedBid?.driver || activeRequest?.driver;
 
   const activeBids = (activeRequest?.bids || []).filter(
     b => b.status !== "not_interested" && b.status !== "dismissed"
@@ -700,8 +715,75 @@ const PrivateRideBooking = () => {
               </div>
 
               {activeRequest.status === "awaiting_payment" ? (
-                <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 mb-6 text-emerald-800 text-sm font-medium">
-                  🎉 You accepted an offer of <strong>₦{activeRequest.agreedPrice?.toLocaleString()}</strong>! Complete your payment below to officially assign the driver.
+                <div className="space-y-4 mb-6">
+                  <div className="p-4 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-800 text-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+                    <div>
+                      <p className="font-bold text-base text-emerald-900">
+                        🎉 You accepted an offer of ₦{activeRequest.agreedPrice?.toLocaleString()}!
+                      </p>
+                      <p className="text-xs text-emerald-700 mt-0.5">
+                        Complete your payment below to officially assign the driver and begin tracking.
+                      </p>
+                    </div>
+                    <Button 
+                      onClick={() => payForAcceptedBid(activeRequest.agreedPrice)} 
+                      variant="primary" 
+                      className="py-2.5 px-6 font-bold bg-emerald-600 hover:bg-emerald-700 border-none shadow-md shadow-emerald-600/20 whitespace-nowrap text-sm text-white"
+                    >
+                      Pay Now (₦{activeRequest.agreedPrice?.toLocaleString()})
+                    </Button>
+                  </div>
+
+                  {/* Accepted Driver & Vehicle Details Card */}
+                  <div className="bg-gradient-to-br from-white to-blue-50/40 p-5 rounded-xl border border-blue-100 shadow-sm space-y-4">
+                    <div className="flex items-center justify-between gap-4 border-b border-neutral-100 pb-3">
+                      <div className="flex items-center gap-3">
+                        {assignedDriver?.avatar ? (
+                          <img src={assignedDriver.avatar} alt={assignedDriver.name} className="w-12 h-12 rounded-full object-cover border border-neutral-200 shadow-sm" />
+                        ) : (
+                          <div className="w-12 h-12 bg-primary/10 text-primary rounded-full flex items-center justify-center font-bold text-lg border border-primary/20">
+                            {assignedDriver?.name?.charAt(0) || "D"}
+                          </div>
+                        )}
+                        <div>
+                          <h4 className="font-bold text-charcoal text-base">{assignedDriver?.name || "Professional Driver"}</h4>
+                          <div className="flex items-center gap-2 text-xs text-neutral-500 mt-0.5">
+                            <span className="bg-green-100 text-green-800 font-bold px-1.5 py-0.5 rounded text-[10px]">Verified Driver</span>
+                            {assignedDriver?.phone && <span>📞 {assignedDriver.phone}</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <span className="text-xl font-black text-primary">₦{activeRequest.agreedPrice?.toLocaleString()}</span>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                      <div className="bg-white p-3 rounded-lg border border-neutral-100 flex items-center gap-2.5">
+                        <FaCar className="text-primary text-base shrink-0" />
+                        <div>
+                          <span className="text-neutral-400 block text-[10px] font-bold uppercase">Vehicle Information</span>
+                          <span className="font-semibold text-charcoal">{assignedBid?.vehicleDetails || "Private Vehicle"}</span>
+                        </div>
+                      </div>
+
+                      <div className="bg-white p-3 rounded-lg border border-neutral-100 flex items-center gap-2.5">
+                        <FaSuitcase className="text-primary text-base shrink-0" />
+                        <div>
+                          <span className="text-neutral-400 block text-[10px] font-bold uppercase">Luggage Space Allowance</span>
+                          <span className="font-semibold text-charcoal">{assignedBid?.luggageDescription || "Standard Private Luggage Capacity"}</span>
+                        </div>
+                      </div>
+
+                      {assignedBid?.furtherInformation && (
+                        <div className="sm:col-span-2 bg-white p-3 rounded-lg border border-neutral-100 flex items-start gap-2.5">
+                          <FaInfoCircle className="text-primary text-base shrink-0 mt-0.5" />
+                          <div>
+                            <span className="text-neutral-400 block text-[10px] font-bold uppercase">Driver Proposal & Note</span>
+                            <span className="italic text-neutral-700">{assignedBid.furtherInformation}</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <p className="text-neutral-600 mb-6">
@@ -775,28 +857,27 @@ const PrivateRideBooking = () => {
                     </div>
 
                     {/* Driver details: Luggage, Vehicle, Further Info */}
-                    {(bid.luggageDescription || bid.vehicleDetails || bid.furtherInformation) && (
-                      <div className="p-3 bg-neutral-50 rounded-lg border border-neutral-100 text-xs space-y-1.5 text-neutral-700">
-                        {bid.luggageDescription && (
-                          <div className="flex items-center gap-2">
-                            <FaSuitcase className="text-primary text-[11px] flex-shrink-0" />
-                            <span><strong className="text-neutral-600">Luggage Space:</strong> {bid.luggageDescription}</span>
-                          </div>
-                        )}
-                        {bid.vehicleDetails && (
-                          <div className="flex items-center gap-2">
-                            <FaCar className="text-primary text-[11px] flex-shrink-0" />
-                            <span><strong className="text-neutral-600">Vehicle:</strong> {bid.vehicleDetails}</span>
-                          </div>
-                        )}
-                        {bid.furtherInformation && (
-                          <div className="flex items-start gap-2 pt-1 border-t border-neutral-200/60">
-                            <FaInfoCircle className="text-primary text-[11px] mt-0.5 flex-shrink-0" />
-                            <span className="italic text-neutral-600">{bid.furtherInformation}</span>
-                          </div>
-                        )}
+                    <div className="p-3.5 bg-blue-50/40 rounded-xl border border-blue-100/80 text-xs space-y-2 text-neutral-700">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div className="flex items-center gap-2">
+                          <FaSuitcase className="text-primary text-xs flex-shrink-0" />
+                          <span><strong className="text-neutral-800">Luggage Space:</strong> {bid.luggageDescription || "Standard boot space available"}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <FaCar className="text-primary text-xs flex-shrink-0" />
+                          <span><strong className="text-neutral-800">Vehicle:</strong> {bid.vehicleDetails || "Private Vehicle"}</span>
+                        </div>
                       </div>
-                    )}
+                      {bid.furtherInformation && (
+                        <div className="flex items-start gap-2 pt-2 border-t border-blue-100/70">
+                          <FaInfoCircle className="text-primary text-xs mt-0.5 flex-shrink-0" />
+                          <div>
+                            <strong className="text-neutral-800 font-semibold">Driver Note: </strong>
+                            <span className="italic text-neutral-600">"{bid.furtherInformation}"</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Actions Row */}
                     <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 pt-2 border-t border-neutral-100">

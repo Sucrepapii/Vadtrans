@@ -14,6 +14,9 @@ import {
   FaSearch,
   FaMapMarkerAlt,
   FaUserSecret,
+  FaSuitcase,
+  FaWind,
+  FaCommentDots,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import { subscribeUserToPush } from "../../utils/pushHelper";
@@ -380,9 +383,32 @@ const DriverConsoleList = () => {
                       </div>
                     )}
 
-                    <div className="flex gap-4 text-sm text-neutral-600 mb-4 mt-2 border-t border-neutral-100 pt-3">
+                    <div className="flex gap-4 text-sm text-neutral-600 mb-3 mt-2 border-t border-neutral-100 pt-3">
                       <span className="flex items-center gap-1"><FaClock /> {req.pickupDate} at {req.pickupTime}</span>
                       <span>Passengers: {req.passengersCount}</span>
+                    </div>
+
+                    {/* Passenger Requirements: Luggage, AC & Special Notes */}
+                    <div className="mb-4 p-3 bg-blue-50/50 rounded-xl border border-blue-100 text-xs space-y-2">
+                      <div className="flex flex-wrap items-center gap-4 text-neutral-700">
+                        <div className="flex items-center gap-1.5">
+                          <FaSuitcase className="text-primary text-xs shrink-0" />
+                          <span><strong>Luggage:</strong> {req.luggageInfo || "Standard luggage"}</span>
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                          <FaWind className="text-primary text-xs shrink-0" />
+                          <span><strong>AC:</strong> {req.needsAC ? "Required (Yes)" : "Standard / No preference"}</span>
+                        </div>
+                      </div>
+                      {req.specialNotes && (
+                        <div className="pt-1.5 border-t border-blue-100/70 flex items-start gap-1.5 text-neutral-700">
+                          <FaCommentDots className="text-primary text-xs shrink-0 mt-0.5" />
+                          <div className="flex-1">
+                            <strong className="text-neutral-800 font-semibold">Passenger Note: </strong>
+                            <span className="italic text-neutral-600">"{req.specialNotes}"</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {myBid ? (
