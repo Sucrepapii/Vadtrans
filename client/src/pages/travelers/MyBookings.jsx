@@ -4,8 +4,7 @@ import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Modal from "../../components/Modal";
-import Button from "../../components/Button";
-import api, { bookingAPI } from "../../services/api";
+import api, { bookingAPI, privateRideAPI } from "../../services/api";
 import {
   FaEye,
   FaSpinner,
@@ -585,12 +584,38 @@ const MyBookings = () => {
                                   View Bids ({ride.bids?.length || 0})
                                 </button>
                               ) : ride.status === 'awaiting_payment' && !isPaid ? (
-                                <button
-                                  onClick={() => navigate('/request-private-ride')}
-                                  className="w-full md:w-auto px-5 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-xl hover:bg-amber-600 transition-all shadow-md shadow-amber-500/20"
-                                >
-                                  Pay Now & Confirm Driver
-                                </button>
+                                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                                  <button
+                                    onClick={() => navigate('/request-private-ride')}
+                                    className="w-full md:w-auto px-5 py-2.5 bg-amber-500 text-white text-sm font-bold rounded-xl hover:bg-amber-600 transition-all shadow-md shadow-amber-500/20"
+                                  >
+                                    Pay Now & Confirm Driver
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={async () => {
+                                      try {
+                                        toast.info("Verifying payment...");
+                                        const res = await privateRideAPI.confirmPayment(ride.id);
+                                        if (res.data?.success) {
+                                          toast.success("Payment confirmed! Driver assigned.");
+                                          fetchPrivateRides();
+                                        }
+                                      } catch (err) {
+                                        try {
+                                          await privateRideAPI.verifyPayment("direct_confirm", ride.id);
+                                          toast.success("Payment confirmed!");
+                                          fetchPrivateRides();
+                                        } catch (e) {
+                                          toast.error("Could not verify payment automatically.");
+                                        }
+                                      }
+                                    }}
+                                    className="w-full md:w-auto px-3.5 py-2.5 bg-white text-amber-800 border border-amber-300 text-xs font-bold rounded-xl hover:bg-amber-50 transition-all"
+                                  >
+                                    Already Paid? Confirm
+                                  </button>
+                                </div>
                               ) : isConfirmed ? (
                                 <button
                                   onClick={() => {

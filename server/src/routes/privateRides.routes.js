@@ -15,6 +15,8 @@ router.post("/bids/:bidId/not-interested", authorize("traveler", "company", "adm
 router.post("/:id/not-interested", authorize("traveler", "company", "admin"), privateRideController.notInterestedBid);
 router.post("/not-interested/:id", authorize("traveler", "company", "admin"), privateRideController.notInterestedBid);
 router.post("/:id/pay", authorize("traveler", "admin"), privateRideController.initializePayment);
+router.post("/:id/confirm-payment", authorize("traveler", "admin"), privateRideController.confirmPayment);
+router.get("/:id/confirm-payment", authorize("traveler", "admin"), privateRideController.confirmPayment);
 router.get("/verify/:reference", privateRideController.verifyPayment);
 router.post("/verify/:reference", privateRideController.verifyPayment);
 

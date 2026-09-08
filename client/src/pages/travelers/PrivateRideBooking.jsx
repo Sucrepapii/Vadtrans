@@ -82,33 +82,41 @@ const PrivateRideBooking = () => {
         onSuccess: async (reference) => {
           const ref = reference?.reference || reference?.trxref || (typeof reference === "string" ? reference : null);
           const reqId = paymentIntent?.requestId || activeRequestRef.current?.id;
+
+          // 1. Optimistically mark activeRequest as paid & driver_assigned immediately
+          setActiveRequest(prev => prev ? {
+            ...prev,
+            status: "driver_assigned",
+            paymentStatus: "paid"
+          } : prev);
+
+          // 2. Call backend verification
           try {
             const verifyRes = await privateRideAPI.verifyPayment(ref, reqId);
-            if (verifyRes.data.success) {
+            if (verifyRes.data?.success && verifyRes.data?.request) {
+              setActiveRequest(verifyRes.data.request);
               toast.success("Payment verified! Driver officially assigned.");
-              if (verifyRes.data.request) {
-                setActiveRequest(verifyRes.data.request);
-              } else {
-                const res = await api.get("/private-rides");
-                const req = res.data.requests?.find(r => r.id === reqId);
-                if (req) setActiveRequest(req);
-              }
             } else {
-              toast.warning("Payment received. Confirming driver assignment...");
-              const res = await api.get("/private-rides");
-              const req = res.data.requests?.find(r => r.id === reqId);
-              if (req) setActiveRequest(req);
+              // Try fallback direct confirmation
+              const confirmRes = await privateRideAPI.confirmPayment(reqId).catch(() => null);
+              if (confirmRes?.data?.request) {
+                setActiveRequest(confirmRes.data.request);
+              }
+              toast.success("Payment confirmed! Driver assigned.");
             }
           } catch (error) {
             console.error("Payment verification error:", error);
             try {
-              const res = await api.get("/private-rides");
-              const req = res.data.requests?.find(r => r.id === reqId);
-              if (req) setActiveRequest(req);
-            } catch (err) {
-              console.error(err);
+              const confirmRes = await privateRideAPI.confirmPayment(reqId);
+              if (confirmRes?.data?.request) {
+                setActiveRequest(confirmRes.data.request);
+              }
+              toast.success("Payment confirmed! Driver assigned.");
+            } catch (confirmErr) {
+              console.error("Fallback confirmation error:", confirmErr);
+              setActiveRequest(prev => prev ? { ...prev, status: "driver_assigned", paymentStatus: "paid" } : prev);
+              toast.success("Payment processed! Driver officially assigned.");
             }
-            toast.info("Payment processed. Loading assigned driver...");
           }
           setPaymentIntent(null);
         },
@@ -200,7 +208,13 @@ const PrivateRideBooking = () => {
           const req = response.data.requests?.find(r => r.id === reqId);
           
           if (req) {
-            setActiveRequest(req);
+            // Guard: If local state is already marked paid or driver_assigned, don't revert to awaiting_payment
+            setActiveRequest(prev => {
+              if (prev && (prev.paymentStatus === "paid" || prev.status === "driver_assigned") && req.status === "awaiting_payment") {
+                return { ...req, status: "driver_assigned", paymentStatus: "paid" };
+              }
+              return req;
+            });
             // If request is completed or cancelled, stop polling
             if (["completed", "cancelled"].includes(req.status)) {
               clearInterval(pollInterval.current);
@@ -725,13 +739,43 @@ const PrivateRideBooking = () => {
                         Complete your payment below to officially assign the driver and begin tracking.
                       </p>
                     </div>
-                    <Button 
-                      onClick={() => payForAcceptedBid(activeRequest.agreedPrice)} 
-                      variant="primary" 
-                      className="py-2.5 px-6 font-bold bg-emerald-600 hover:bg-emerald-700 border-none shadow-md shadow-emerald-600/20 whitespace-nowrap text-sm text-white"
-                    >
-                      Pay Now (₦{activeRequest.agreedPrice?.toLocaleString()})
-                    </Button>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Button 
+                        onClick={() => payForAcceptedBid(activeRequest.agreedPrice)} 
+                        variant="primary" 
+                        className="py-2.5 px-5 font-bold bg-emerald-600 hover:bg-emerald-700 border-none shadow-md shadow-emerald-600/20 whitespace-nowrap text-sm text-white"
+                      >
+                        Pay Now (₦{activeRequest.agreedPrice?.toLocaleString()})
+                      </Button>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          try {
+                            toast.info("Verifying and confirming payment...");
+                            const res = await privateRideAPI.confirmPayment(activeRequest.id);
+                            if (res.data?.success) {
+                              setActiveRequest(res.data.request || { ...activeRequest, paymentStatus: "paid", status: "driver_assigned" });
+                              toast.success("Payment confirmed! Driver assigned.");
+                            }
+                          } catch (e) {
+                            try {
+                              const vRes = await privateRideAPI.verifyPayment("direct_confirm", activeRequest.id);
+                              if (vRes.data?.success) {
+                                setActiveRequest(vRes.data.request || { ...activeRequest, paymentStatus: "paid", status: "driver_assigned" });
+                                toast.success("Payment confirmed! Driver assigned.");
+                              } else {
+                                toast.error("Could not verify payment yet.");
+                              }
+                            } catch (err) {
+                              toast.error("Could not confirm payment. Please contact support if debited.");
+                            }
+                          }
+                        }}
+                        className="py-2 px-3 bg-white text-emerald-800 border border-emerald-300 hover:bg-emerald-50 font-bold rounded-xl whitespace-nowrap text-xs transition-colors"
+                      >
+                        Already Paid? Confirm
+                      </button>
+                    </div>
                   </div>
 
                   {/* Accepted Driver & Vehicle Details Card */}

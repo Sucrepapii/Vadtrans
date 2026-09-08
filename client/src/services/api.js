@@ -171,6 +171,7 @@ export const privateRideAPI = {
   dismissBid: (bidId) => api.post(`/private-rides/bids/${bidId}/dismiss`),
   initializePayment: (id) => api.post(`/private-rides/${id}/pay`),
   verifyPayment: (reference, privateRideId) => api.get(`/private-rides/verify/${reference}`, { params: { privateRideId } }),
+  confirmPayment: (id) => api.post(`/private-rides/${id}/confirm-payment`),
   placeBid: (id, data) => api.post(`/private-rides/${id}/bid`, typeof data === "object" ? data : { bidAmount: data }),
   counterOfferBid: (bidId, amount) => api.post(`/private-rides/bids/${bidId}/counter-offer`, { amount }),
   updateRideStatus: (id, status) => api.put(`/private-rides/${id}/status`, { status }),
