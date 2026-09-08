@@ -51,8 +51,8 @@ const DriverConsoleList = () => {
   const fetchPrivateRequests = async () => {
     try {
       const res = await api.get("/private-rides");
-      // Only keep non-cancelled requests in the driver's view unless they are assigned
-      const activeRequests = res.data.requests?.filter(req => req.status !== "cancelled" || req.driverId === user?.id) || [];
+      // Exclude cancelled requests completely so cancelled rides are removed from driver console
+      const activeRequests = res.data.requests?.filter(req => req.status !== "cancelled") || [];
       setPrivateRequests(activeRequests);
     } catch (error) {
       console.error(error);

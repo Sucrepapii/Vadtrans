@@ -254,21 +254,21 @@ const PrivateRideBooking = () => {
   };
 
   const handleNotInterested = async (bidId) => {
-    if (!bidId) return;
-    // Optimistically remove/filter out from activeRequest bids immediately
-    setActiveRequest(prev => {
-      if (!prev) return prev;
-      return {
-        ...prev,
-        bids: (prev.bids || []).filter(b => b.id !== bidId)
-      };
-    });
-    toast.info("Offer discarded.");
-
     try {
-      await privateRideAPI.notInterestedBid(bidId);
+      const reqId = activeRequest?.id;
+      // Immediately remove the ride from passenger view
+      setActiveRequest(null);
+      toast.info("Ride cancelled. You are no longer interested in this trip.");
+
+      // Cancel the ride request on the backend so it's removed for both driver and passenger
+      if (reqId) {
+        await api.post(`/private-rides/${reqId}/cancel`).catch(() => {});
+      }
+      if (bidId) {
+        await privateRideAPI.notInterestedBid(bidId).catch(() => {});
+      }
     } catch (error) {
-      console.warn("Could not sync discarded offer with server:", error);
+      console.warn("Could not cancel ride request:", error);
     }
   };
 

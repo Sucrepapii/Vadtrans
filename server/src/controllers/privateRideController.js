@@ -150,6 +150,14 @@ exports.notInterestedBid = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
+    // If passenger is no longer interested, cancel the entire ride request and reject all bids
+    if (bid.request && (bid.request.passengerId === req.user.id || req.user.role === "admin")) {
+      bid.request.status = "cancelled";
+      bid.request.cancellationReason = "Passenger is no longer interested in trip";
+      await bid.request.save().catch(e => console.error("Error updating request status:", e));
+      await RideBid.update({ status: "rejected" }, { where: { requestId: bid.request.id } }).catch(() => {});
+    }
+
     try {
       bid.status = "not_interested";
       await bid.save();
@@ -159,10 +167,10 @@ exports.notInterestedBid = async (req, res) => {
       await bid.save();
     }
 
-    res.status(200).json({ success: true, message: "Bid discarded", bid });
+    res.status(200).json({ success: true, message: "Trip cancelled and ride removed from driver and passenger", bid });
   } catch (error) {
     console.error("Not Interested Bid Error:", error);
-    res.status(200).json({ success: true, message: "Bid discarded" });
+    res.status(200).json({ success: true, message: "Trip cancelled" });
   }
 };
 
@@ -282,15 +290,14 @@ exports.cancelRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: "Can only cancel requests that are searching or awaiting payment" });
     }
 
-    // If there is an accepted bid, we should probably mark it as rejected or cancelled
-    if (request.status === "awaiting_payment") {
-      await RideBid.update({ status: "rejected" }, { where: { requestId: request.id, status: "accepted" }});
-    }
+    // Reject all bids for this request
+    await RideBid.update({ status: "rejected" }, { where: { requestId: request.id } }).catch(() => {});
 
     request.status = "cancelled";
+    request.cancellationReason = "Passenger is no longer interested in trip";
     await request.save();
 
-    res.status(200).json({ success: true, message: "Request cancelled" });
+    res.status(200).json({ success: true, message: "Request cancelled and removed" });
   } catch (error) {
     console.error("Cancel Request Error:", error);
     res.status(500).json({ success: false, message: "Server error" });

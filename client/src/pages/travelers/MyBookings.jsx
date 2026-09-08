@@ -601,6 +601,26 @@ const MyBookings = () => {
                                   <FaShieldAlt className="text-xs" /> Track Live Ride
                                 </button>
                               ) : null}
+
+                              {['searching', 'awaiting_payment'].includes(ride.status) && !isPaid && (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    if (window.confirm("Are you sure you want to cancel this ride request?")) {
+                                      try {
+                                        await api.post(`/private-rides/${ride.id}/cancel`);
+                                        toast.info("Ride cancelled.");
+                                        fetchPrivateRides();
+                                      } catch (e) {
+                                        toast.error("Failed to cancel ride.");
+                                      }
+                                    }
+                                  }}
+                                  className="w-full md:w-auto px-4 py-2.5 bg-red-50 text-red-600 hover:bg-red-100 text-sm font-bold rounded-xl transition-all border border-red-200"
+                                >
+                                  Cancel Ride
+                                </button>
+                              )}
                             </div>
                           </div>
                         </div>
