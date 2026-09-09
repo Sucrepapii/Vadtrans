@@ -269,20 +269,29 @@ const PrivateRideBooking = () => {
 
   const handleNotInterested = async (bidId) => {
     try {
-      const reqId = activeRequest?.id;
-      // Immediately remove the ride from passenger view
-      setActiveRequest(null);
-      toast.info("Ride cancelled. You are no longer interested in this trip.");
+      // 1. Optimistically filter out only this specific driver's bid from local state
+      setActiveRequest(prev => {
+        if (!prev) return prev;
+        const updatedBids = (prev.bids || []).map(b => 
+          b.id === bidId ? { ...b, status: "not_interested" } : b
+        );
+        return { ...prev, bids: updatedBids };
+      });
+      toast.info("Offer declined. You can continue reviewing other driver offers.");
 
-      // Cancel the ride request on the backend so it's removed for both driver and passenger
-      if (reqId) {
-        await api.post(`/private-rides/${reqId}/cancel`).catch(() => {});
-      }
+      // 2. Notify backend that passenger is not interested in this specific bid
       if (bidId) {
         await privateRideAPI.notInterestedBid(bidId).catch(() => {});
       }
+
+      // 3. Refresh active request from backend
+      const res = await api.get("/private-rides");
+      const req = res.data.requests?.find(r => r.id === activeRequest?.id);
+      if (req) {
+        setActiveRequest(req);
+      }
     } catch (error) {
-      console.warn("Could not cancel ride request:", error);
+      console.warn("Could not decline driver offer:", error);
     }
   };
 

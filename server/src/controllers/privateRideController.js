@@ -151,14 +151,7 @@ exports.notInterestedBid = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
-    // If passenger is no longer interested, cancel the entire ride request and reject all bids
-    if (bid.request && (bid.request.passengerId === req.user.id || req.user.role === "admin")) {
-      bid.request.status = "cancelled";
-      bid.request.cancellationReason = "Passenger is no longer interested in trip";
-      await bid.request.save().catch(e => console.error("Error updating request status:", e));
-      await RideBid.update({ status: "rejected" }, { where: { requestId: bid.request.id } }).catch(() => {});
-    }
-
+    // Update ONLY this specific bid's status to not_interested so other driver bids stay active
     try {
       bid.status = "not_interested";
       await bid.save();
@@ -168,10 +161,10 @@ exports.notInterestedBid = async (req, res) => {
       await bid.save();
     }
 
-    res.status(200).json({ success: true, message: "Trip cancelled and ride removed from driver and passenger", bid });
+    res.status(200).json({ success: true, message: "Driver offer declined", bid });
   } catch (error) {
     console.error("Not Interested Bid Error:", error);
-    res.status(200).json({ success: true, message: "Trip cancelled" });
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
