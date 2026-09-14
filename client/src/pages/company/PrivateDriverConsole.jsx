@@ -35,7 +35,13 @@ const PrivateDriverConsole = () => {
 
   useEffect(() => {
     fetchRequestDetails();
-    return () => stopTracking(); // Cleanup tracking on unmount
+    const interval = setInterval(() => {
+      fetchRequestDetails();
+    }, 5000);
+    return () => {
+      clearInterval(interval);
+      stopTracking(); // Cleanup tracking on unmount
+    };
   }, [id]);
 
   const fetchRequestDetails = async () => {
@@ -172,31 +178,64 @@ const PrivateDriverConsole = () => {
             </div>
           </div>
 
+          {/* Cancellation Banner if request status is cancelled */}
+          {request.status === "cancelled" && (
+            <div className="mb-6 p-4 bg-red-100 border border-red-300 rounded-xl text-red-800 flex flex-col md:flex-row items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-red-600 text-white flex items-center justify-center font-bold text-lg shrink-0">
+                  ✕
+                </div>
+                <div>
+                  <h3 className="font-bold text-base">Trip Request Cancelled</h3>
+                  <p className="text-xs text-red-700">
+                    {request.cancellationReason || "The passenger is no longer interested and cancelled this private ride request."}
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="primary"
+                onClick={() => navigate("/company/driver-console")}
+                className="bg-red-600 hover:bg-red-700 text-white py-2 px-4 text-xs font-bold whitespace-nowrap"
+              >
+                Return to Dashboard
+              </Button>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
             {/* Left: Info Details */}
             <div className="lg:col-span-5 space-y-6">
               {/* Passenger Card */}
               <Card className="border border-neutral-200 shadow-sm">
                 <h2 className="text-lg font-bold text-charcoal mb-4 border-b border-neutral-100 pb-2">Passenger Information</h2>
-                <div className="flex items-center gap-4 mb-6">
-                  {request.passenger?.avatar ? (
-                    <img 
-                      src={request.passenger.avatar} 
-                      alt={request.passenger.name} 
-                      className="w-16 h-16 rounded-full object-cover border border-neutral-200 shadow-sm"
-                    />
-                  ) : (
-                    <div className="w-16 h-16 bg-primary/10 text-primary rounded-full flex items-center justify-center border border-primary/20 shadow-sm">
-                      <FaUser className="text-2xl" />
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 p-4 bg-green-50/70 border border-green-200 rounded-xl">
+                  <div className="flex items-center gap-3">
+                    {request.passenger?.avatar ? (
+                      <img 
+                        src={request.passenger.avatar} 
+                        alt={request.passenger.name} 
+                        className="w-14 h-14 rounded-full object-cover border border-white shadow-sm"
+                      />
+                    ) : (
+                      <div className="w-14 h-14 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-xl shadow-sm">
+                        {request.passenger?.name?.charAt(0) || "P"}
+                      </div>
+                    )}
+                    <div>
+                      <h3 className="font-bold text-charcoal text-base">{request.passenger?.name || "Passenger"}</h3>
+                      <p className="text-xs text-neutral-600 font-medium mt-0.5">
+                        📞 <span className="font-bold text-green-700">{request.passenger?.phone || "No Phone Provided"}</span>
+                      </p>
                     </div>
-                  )}
-                  <div>
-                    <h3 className="font-bold text-charcoal text-lg">{request.passenger?.name || "Passenger"}</h3>
-                    <p className="text-sm text-neutral-500 flex items-center gap-1 font-bold mt-1">
-                      <FaPhone className="text-primary text-xs" />
-                      <a href={`tel:${request.passenger?.phone}`} className="hover:underline text-primary">{request.passenger?.phone || "No Phone"}</a>
-                    </p>
                   </div>
+                  {request.passenger?.phone && (
+                    <a
+                      href={`tel:${request.passenger.phone}`}
+                      className="px-3.5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors shrink-0"
+                    >
+                      <FaPhone className="text-xs" /> Call Passenger
+                    </a>
+                  )}
                 </div>
 
                 <div className="space-y-4 text-sm text-neutral-700">

@@ -17,6 +17,7 @@ import {
   FaSuitcase,
   FaWind,
   FaCommentDots,
+  FaPhone,
 } from "react-icons/fa";
 import { useAuth } from "../../context/AuthContext";
 import { subscribeUserToPush } from "../../utils/pushHelper";
@@ -30,7 +31,15 @@ const DriverConsoleList = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("shared");
   const [privateFilter, setPrivateFilter] = useState("active");
-  const displayedPrivateRequests = privateRequests.filter(req => privateFilter === "active" ? !['completed', 'cancelled'].includes(req.status) : ['completed', 'cancelled'].includes(req.status));
+  const displayedPrivateRequests = privateRequests.filter(req => {
+    const myBid = req.bids?.find(b => b.driverId === user?.id);
+    const isCancelledForDriver = req.status === 'cancelled' || (myBid && (myBid.status === 'not_interested' || myBid.driverDismissed));
+    if (privateFilter === "active") {
+      return !['completed', 'cancelled'].includes(req.status) && !isCancelledForDriver;
+    } else {
+      return ['completed', 'cancelled'].includes(req.status) || isCancelledForDriver;
+    }
+  });
   const [isOnline, setIsOnline] = useState(user?.isOnline || false);
   const [bidAmount, setBidAmount] = useState({});
   const [bidData, setBidData] = useState({});
@@ -51,8 +60,13 @@ const DriverConsoleList = () => {
   const fetchPrivateRequests = async () => {
     try {
       const res = await api.get("/private-rides");
-      // Exclude cancelled requests completely so cancelled rides are removed from driver console
-      const activeRequests = res.data.requests?.filter(req => req.status !== "cancelled") || [];
+      // Filter out requests that are cancelled or marked as not_interested/dismissed for this driver
+      const activeRequests = res.data.requests?.filter(req => {
+        if (req.status === "cancelled") return false;
+        const myBid = req.bids?.find(b => b.driverId === user?.id);
+        if (myBid && (myBid.status === "not_interested" || myBid.driverDismissed)) return false;
+        return true;
+      }) || [];
       setPrivateRequests(activeRequests);
     } catch (error) {
       console.error(error);
@@ -344,18 +358,33 @@ const DriverConsoleList = () => {
                         </span>
                       </div>
                     </div>
-                    <div className="flex items-center gap-3 mb-4 p-3 bg-neutral-50 rounded-xl border border-neutral-100">
-                      {req.passenger?.avatar ? (
-                        <img src={req.passenger.avatar} alt="Passenger" className="w-10 h-10 rounded-full object-cover shadow-sm" />
-                      ) : (
-                        <div className="w-10 h-10 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold">
-                          {req.passenger?.name?.charAt(0) || "P"}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 p-3 bg-green-50/70 rounded-xl border border-green-100 shadow-sm">
+                      <div className="flex items-center gap-3">
+                        {req.passenger?.avatar ? (
+                          <img src={req.passenger.avatar} alt="Passenger" className="w-10 h-10 rounded-full object-cover shadow-sm border border-white" />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-green-600 text-white flex items-center justify-center font-bold shadow-sm">
+                            {req.passenger?.name?.charAt(0) || "P"}
+                          </div>
+                        )}
+                        <div>
+                          <p className="font-bold text-charcoal text-sm">{req.passenger?.name || "Passenger"}</p>
+                          <p className="text-xs text-neutral-600 font-medium flex items-center gap-1">
+                            <span>Phone:</span>
+                            <span className="font-bold text-green-700">{req.passenger?.phone || "Not provided"}</span>
+                          </p>
                         </div>
-                      )}
-                      <div>
-                        <p className="font-bold text-charcoal text-sm">{req.passenger?.name || "Passenger"}</p>
-                        <p className="text-xs text-neutral-500 font-medium">📞 {req.passenger?.phone || "No phone"}</p>
                       </div>
+                      {req.passenger?.phone ? (
+                        <a
+                          href={`tel:${req.passenger.phone}`}
+                          className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold text-xs shadow-sm transition-colors shrink-0"
+                        >
+                          <FaPhone className="text-[10px]" /> Call Passenger
+                        </a>
+                      ) : (
+                        <span className="text-xs text-neutral-400 italic">No Phone</span>
+                      )}
                     </div>
                     
                     <h3 className="text-lg font-bold text-charcoal mb-1 flex flex-col gap-1">

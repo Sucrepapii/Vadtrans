@@ -151,17 +151,26 @@ exports.notInterestedBid = async (req, res) => {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
-    // Update ONLY this specific bid's status to not_interested so other driver bids stay active
+    // Update ONLY this specific bid's status to not_interested and dismiss from driver console
     try {
       bid.status = "not_interested";
+      bid.driverDismissed = true;
       await bid.save();
     } catch (statusErr) {
       console.warn("Could not save status as not_interested, falling back to rejected:", statusErr.message);
       bid.status = "rejected";
+      bid.driverDismissed = true;
       await bid.save();
     }
 
-    res.status(200).json({ success: true, message: "Driver offer declined", bid });
+    // If request was assigned to this driver, mark request as cancelled so driver console stops tracking
+    if (bid.request && (bid.request.driverId === bid.driverId || bid.status === "accepted")) {
+      bid.request.status = "cancelled";
+      bid.request.cancellationReason = "Passenger is no longer interested in trip";
+      await bid.request.save();
+    }
+
+    res.status(200).json({ success: true, message: "Driver offer declined and removed from driver console", bid });
   } catch (error) {
     console.error("Not Interested Bid Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
