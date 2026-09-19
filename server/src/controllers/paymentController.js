@@ -4,6 +4,7 @@ const Trip = require("../models/Trip");
 const Notification = require("../models/Notification");
 const { sequelize } = require("../config/database");
 const { syncTripSeats } = require("./tripController");
+const { recordBookingPayment, handlePaystackWebhook } = require("../utils/payoutService");
 
 // Startup check
 if (!process.env.PAYSTACK_SECRET_KEY) {
@@ -110,11 +111,37 @@ exports.verifyPayment = async (req, res) => {
           {
             message: `Booking #${displayId} has been paid (₦${parseFloat(booking.totalAmount).toLocaleString()}).`,
             type: "payment",
-            // relatedBookingId: booking.id, // Removed to fix UUID Postgres error
             actionUrl: `/admin/bookings?search=${displayId}`,
           },
           { transaction },
         );
+
+        // Fetch Trip to identify provider/company
+        const trip = await Trip.findByPk(booking.tripId, { transaction });
+        const providerId = trip ? trip.companyId : null;
+        const gatewayFee = response.data.fees ? response.data.fees / 100 : null;
+
+        // Automatically record in TransactionLedger and initialize ProviderPayable
+        try {
+          await recordBookingPayment({
+            bookingId: booking.id,
+            providerId,
+            userId: booking.userId,
+            reference,
+            grossAmount: booking.paidAmount || booking.totalAmount,
+            gatewayFee,
+            channel: response.data.channel || "card",
+            metadata: {
+              bookingRef: booking.bookingId,
+              customer: response.data.customer,
+              tripId: booking.tripId,
+            },
+            transaction,
+          });
+          console.log(`📊 Recorded payment and escrow payable for Booking #${booking.id} (Provider #${providerId})`);
+        } catch (ledgerErr) {
+          console.error("Ledger recording note:", ledgerErr.message);
+        }
       } else {
         console.error(`❌ Booking with ID ${bookingId} not found in database!`);
       }
@@ -160,5 +187,23 @@ exports.verifyPayment = async (req, res) => {
         ? "PAYSTACK_SECRET_KEY is not set on the server"
         : "Check server logs for details",
     });
+  }
+};
+
+/**
+ * @desc    Paystack Webhook Handler
+ * @route   POST /api/payment/webhook
+ * @access  Public (Protected by IP / Signature)
+ */
+exports.handleWebhook = async (req, res) => {
+  try {
+    const event = req.body.event;
+    const data = req.body.data;
+
+    await handlePaystackWebhook(event, data);
+    res.status(200).json({ status: "success" });
+  } catch (err) {
+    console.error("Webhook processing error:", err);
+    res.status(500).json({ status: "error", message: err.message });
   }
 };

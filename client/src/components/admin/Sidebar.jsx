@@ -36,7 +36,7 @@ const Sidebar = () => {
     { icon: FaBox, label: "Shipments", path: "/admin/shipments" },
     { icon: FaQuestionCircle, label: "FAQs", path: "/admin/faqs" },
     { icon: FaUserShield, label: "Staff", path: "/admin/staff" },
-    { icon: FaMoneyBillWave, label: "Settlements", path: "/admin/settlements" },
+    { icon: FaMoneyBillWave, label: "Finance & Payouts", path: "/admin/settlements" },
   ];
 
   const handleLogout = () => {

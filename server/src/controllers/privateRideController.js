@@ -5,6 +5,7 @@ const { Op } = require("sequelize");
 const Notification = require("../models/Notification");
 
 const { sendPushNotification } = require("../utils/pushService");
+const { recordBookingPayment, triggerPayoutsForCompletedTrip } = require("../utils/payoutService");
 
 // @desc    Create private ride request
 // @route   POST /api/private-rides/request
@@ -147,11 +148,16 @@ exports.notInterestedBid = async (req, res) => {
       return res.status(200).json({ success: true, message: "Bid already removed or not found" });
     }
     
-    if (bid.request && bid.request.passengerId !== req.user.id && bid.driverId !== req.user.id && req.user.role !== "admin") {
+    const request = bid.request || (bid.requestId ? await PrivateRideRequest.findByPk(bid.requestId) : null);
+    const isPassenger = request && String(request.passengerId) === String(req.user.id);
+    const isDriver = String(bid.driverId) === String(req.user.id);
+    const isAdmin = req.user.role === "admin";
+
+    if (!isPassenger && !isDriver && !isAdmin) {
       return res.status(403).json({ success: false, message: "Not authorized" });
     }
 
-    // Update ONLY this specific bid's status to not_interested and dismiss from driver console
+    // Update this specific bid's status to not_interested and dismiss from driver console
     try {
       bid.status = "not_interested";
       bid.driverDismissed = true;
@@ -164,13 +170,13 @@ exports.notInterestedBid = async (req, res) => {
     }
 
     // If request was assigned to this driver, mark request as cancelled so driver console stops tracking
-    if (bid.request && (bid.request.driverId === bid.driverId || bid.status === "accepted")) {
-      bid.request.status = "cancelled";
-      bid.request.cancellationReason = "Passenger is no longer interested in trip";
-      await bid.request.save();
+    if (request && (String(request.driverId) === String(bid.driverId) || bid.status === "accepted")) {
+      request.status = "cancelled";
+      request.cancellationReason = "Passenger is no longer interested in trip";
+      await request.save();
     }
 
-    res.status(200).json({ success: true, message: "Driver offer declined and removed from driver console", bid });
+    res.status(200).json({ success: true, message: "Driver offer declined and removed", bidId: bid.id, bid });
   } catch (error) {
     console.error("Not Interested Bid Error:", error);
     res.status(500).json({ success: false, message: "Server error" });
@@ -266,6 +272,13 @@ exports.updateRideStatus = async (req, res) => {
 
     request.status = status;
     await request.save();
+
+    // Automatically trigger automated payout when private ride is marked completed
+    if (status === "completed") {
+      triggerPayoutsForCompletedTrip(request.id, true).catch(err => 
+        console.error("Private ride payout error:", err)
+      );
+    }
 
     res.status(200).json({ success: true, request });
   } catch (error) {
@@ -507,8 +520,28 @@ exports.verifyPayment = async (req, res) => {
 
       const finalPrice = request.agreedPrice || verifiedAmount || (acceptedBid?.bidAmount) || 0;
       request.agreedPrice = finalPrice;
-      request.commissionAmount = finalPrice * 0.20;
+      request.commissionAmount = finalPrice * 0.10; // Standard 10% marketplace commission
       await request.save();
+
+      // Automatically record in TransactionLedger and initialize ProviderPayable
+      try {
+        await recordBookingPayment({
+          privateRideId: request.id,
+          providerId: request.driverId,
+          userId: request.passengerId,
+          reference: reference || `REF-PR-${request.id}-${Date.now()}`,
+          grossAmount: finalPrice,
+          gatewayFee: paystackResponse?.data?.fees ? paystackResponse.data.fees / 100 : null,
+          channel: paystackResponse?.data?.channel || "card",
+          metadata: {
+            requestId: request.requestId,
+            driverId: request.driverId,
+            passengerId: request.passengerId,
+          }
+        });
+      } catch (ledgerErr) {
+        console.error("Private ride ledger recording error:", ledgerErr);
+      }
 
       // Create Admin Notification
       if (Notification) {
@@ -614,8 +647,27 @@ exports.confirmPayment = async (req, res) => {
 
     const finalPrice = request.agreedPrice || acceptedBid?.bidAmount || 0;
     request.agreedPrice = finalPrice;
-    request.commissionAmount = finalPrice * 0.20;
+    request.commissionAmount = finalPrice * 0.10; // Standard 10% commission
     await request.save();
+
+    // Automatically record in TransactionLedger and initialize ProviderPayable
+    try {
+      await recordBookingPayment({
+        privateRideId: request.id,
+        providerId: request.driverId,
+        userId: request.passengerId,
+        reference: `DIRECT-PR-${request.id}-${Date.now()}`,
+        grossAmount: finalPrice,
+        channel: "card",
+        metadata: {
+          requestId: request.requestId,
+          driverId: request.driverId,
+          passengerId: request.passengerId,
+        }
+      });
+    } catch (ledgerErr) {
+      console.error("Direct payment ledger recording error:", ledgerErr);
+    }
 
     // Create Admin Notification
     if (Notification) {

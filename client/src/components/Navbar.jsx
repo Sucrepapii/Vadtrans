@@ -164,15 +164,26 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                     Driver Console
                   </NavLink>
                 ) : (
-                  <NavLink
-                    to="/tracking"
-                    className={({ isActive }) =>
-                      isActive
-                        ? "text-primary font-bold transition-colors"
-                        : "text-charcoal hover:text-primary transition-colors font-medium"
-                    }>
-                    Tracking
-                  </NavLink>
+                  <>
+                    <NavLink
+                      to="/my-bookings"
+                      className={({ isActive }) =>
+                        isActive
+                          ? "text-primary font-bold transition-colors"
+                          : "text-charcoal hover:text-primary transition-colors font-medium"
+                      }>
+                      My Tickets
+                    </NavLink>
+                    <NavLink
+                      to="/tracking"
+                      className={({ isActive }) =>
+                        isActive
+                          ? "text-primary font-bold transition-colors"
+                          : "text-charcoal hover:text-primary transition-colors font-medium"
+                      }>
+                      Tracking
+                    </NavLink>
+                  </>
                 )}
                 <NavLink
                   to="/search?transportType=carpooling"
@@ -355,11 +366,18 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                   Driver Console
                 </Link>
               ) : (
-                <Link
-                  to="/tracking"
-                  className="block py-2 hover:text-primary transition-colors">
-                  Tracking
-                </Link>
+                <>
+                  <Link
+                    to="/my-bookings"
+                    className="block py-2 hover:text-primary transition-colors">
+                    My Tickets
+                  </Link>
+                  <Link
+                    to="/tracking"
+                    className="block py-2 hover:text-primary transition-colors">
+                    Tracking
+                  </Link>
+                </>
               )}
               <Link
                 to="/search?transportType=carpooling"

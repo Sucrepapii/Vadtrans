@@ -3,10 +3,14 @@ const router = express.Router();
 const {
   initializePayment,
   verifyPayment,
+  handleWebhook,
 } = require("../controllers/paymentController");
 const { protect } = require("../middleware/auth");
 
-// All payment routes require authentication
+// Public webhook route (called by Paystack)
+router.post("/webhook", handleWebhook);
+
+// Protected routes below
 router.use(protect);
 
 router.post("/initialize", initializePayment);

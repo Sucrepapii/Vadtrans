@@ -21,6 +21,7 @@ import {
   FaShieldAlt,
   FaTimes,
   FaBan,
+  FaTicketAlt,
 } from "react-icons/fa";
 
 const PrivateRideBooking = () => {
@@ -267,28 +268,24 @@ const PrivateRideBooking = () => {
     }
   };
 
+  const [dismissedBidIds, setDismissedBidIds] = useState(new Set());
+
   const handleNotInterested = async (bidId) => {
     try {
-      // 1. Optimistically filter out only this specific driver's bid from local state
+      // 1. Permanently track this bid as dismissed for the session
+      setDismissedBidIds(prev => new Set([...prev, bidId]));
+
+      // 2. Optimistically filter out only this specific driver's bid from local state
       setActiveRequest(prev => {
         if (!prev) return prev;
-        const updatedBids = (prev.bids || []).map(b => 
-          b.id === bidId ? { ...b, status: "not_interested" } : b
-        );
+        const updatedBids = (prev.bids || []).filter(b => b.id !== bidId);
         return { ...prev, bids: updatedBids };
       });
       toast.info("Offer declined. You can continue reviewing other driver offers.");
 
-      // 2. Notify backend that passenger is not interested in this specific bid
+      // 3. Notify backend that passenger is not interested in this specific bid
       if (bidId) {
-        await privateRideAPI.notInterestedBid(bidId).catch(() => {});
-      }
-
-      // 3. Refresh active request from backend
-      const res = await api.get("/private-rides");
-      const req = res.data.requests?.find(r => r.id === activeRequest?.id);
-      if (req) {
-        setActiveRequest(req);
+        await privateRideAPI.notInterestedBid(bidId);
       }
     } catch (error) {
       console.warn("Could not decline driver offer:", error);
@@ -342,7 +339,7 @@ const PrivateRideBooking = () => {
   const assignedDriver = assignedBid?.driver || activeRequest?.driver;
 
   const activeBids = (activeRequest?.bids || []).filter(
-    b => b.status !== "not_interested" && b.status !== "dismissed"
+    b => !dismissedBidIds.has(b.id) && !["not_interested", "dismissed", "rejected"].includes(b.status)
   );
 
   if (loading) {
@@ -691,7 +688,32 @@ const PrivateRideBooking = () => {
             </div>
 
             {/* Actions */}
-            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+            <div className="flex flex-col sm:flex-row flex-wrap gap-4 pt-2">
+              <button
+                onClick={() => navigate('/booking/confirmation', {
+                  state: {
+                    bookingId: activeRequest.requestId || `PR-${activeRequest.id}`,
+                    isPrivateRide: true,
+                    privateRide: activeRequest,
+                    trip: {
+                      from: activeRequest.pickupLocation,
+                      to: activeRequest.destination,
+                      departureTime: activeRequest.pickupTime,
+                      departureDate: activeRequest.pickupDate,
+                      transportType: "private",
+                      vehicleName: assignedBid?.vehicleDetails || "Private Vehicle",
+                      driverContact: assignedDriver?.phone,
+                      company: { name: assignedDriver?.name || "Professional Driver" }
+                    },
+                    totalAmount: activeRequest.agreedPrice,
+                    paidAmount: activeRequest.agreedPrice,
+                    paymentMethod: "card",
+                  }
+                })}
+                className="flex-1 py-3.5 px-6 bg-emerald-600 text-white font-bold rounded-xl hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 text-sm"
+              >
+                <FaTicketAlt /> View E-Ticket & Receipt
+              </button>
               <button
                 onClick={() => navigate('/tracking', { state: { bookingId: activeRequest.requestId || `PR-${activeRequest.id}` } })}
                 className="flex-1 py-3.5 px-6 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 text-sm"

@@ -17,6 +17,7 @@ import {
   FaInfoCircle,
   FaShieldAlt,
   FaCheckCircle,
+  FaTicketAlt,
 } from "react-icons/fa";
 
 const MyBookings = () => {
@@ -293,8 +294,10 @@ const MyBookings = () => {
                                 },
                               })
                             }
-                            className="text-primary hover:text-primary-dark">
-                            <FaEye size={20} />
+                            className="flex items-center gap-1 text-xs font-bold bg-primary/10 text-primary px-2.5 py-1.5 rounded-lg hover:bg-primary/20 transition-colors"
+                            title="View E-Ticket & Receipt">
+                            <FaTicketAlt size={12} />
+                            <span>Ticket</span>
                           </button>
                         </div>
                       </div>
@@ -402,9 +405,9 @@ const MyBookings = () => {
                               },
                             })
                           }
-                          className="text-primary hover:text-primary-dark flex items-center gap-1 text-sm">
-                          <span>View</span>
-                          <FaEye />
+                          className="text-primary hover:text-primary-dark font-bold flex items-center gap-1.5 text-xs bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
+                          <FaTicketAlt />
+                          <span>View E-Ticket</span>
                         </button>
                       </div>
                     </div>
@@ -617,14 +620,43 @@ const MyBookings = () => {
                                   </button>
                                 </div>
                               ) : isConfirmed ? (
-                                <button
-                                  onClick={() => {
-                                    navigate('/tracking', { state: { bookingId: ride.requestId || `PR-${ride.id}` } });
-                                  }}
-                                  className="w-full md:w-auto px-5 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5"
-                                >
-                                  <FaShieldAlt className="text-xs" /> Track Live Ride
-                                </button>
+                                <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                                  <button
+                                    onClick={() => {
+                                      navigate('/booking/confirmation', {
+                                        state: {
+                                          bookingId: ride.requestId || `PR-${ride.id}`,
+                                          isPrivateRide: true,
+                                          privateRide: ride,
+                                          trip: {
+                                            from: ride.pickupLocation,
+                                            to: ride.destination,
+                                            departureTime: ride.pickupTime,
+                                            departureDate: ride.pickupDate,
+                                            transportType: "private",
+                                            vehicleName: ride.bids?.[0]?.vehicleDetails || "Private Vehicle",
+                                            driverContact: ride.driver?.phone,
+                                            company: { name: ride.driver?.name || "Professional Driver" }
+                                          },
+                                          totalAmount: ride.agreedPrice,
+                                          paidAmount: ride.agreedPrice,
+                                          paymentMethod: "card",
+                                        }
+                                      });
+                                    }}
+                                    className="w-full md:w-auto px-4 py-2.5 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-dark transition-all shadow-md shadow-primary/20 flex items-center justify-center gap-1.5"
+                                  >
+                                    <FaTicketAlt className="text-xs" /> View E-Ticket / Receipt
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      navigate('/tracking', { state: { bookingId: ride.requestId || `PR-${ride.id}` } });
+                                    }}
+                                    className="w-full md:w-auto px-4 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-all shadow-md shadow-emerald-600/20 flex items-center justify-center gap-1.5"
+                                  >
+                                    <FaShieldAlt className="text-xs" /> Track Live Ride
+                                  </button>
+                                </div>
                               ) : null}
 
                               {['searching', 'awaiting_payment'].includes(ride.status) && !isPaid && (

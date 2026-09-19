@@ -85,13 +85,32 @@ const EarningsTab = () => {
       </div>
       
       <Card>
-        <h3 className="font-bold text-gray-800 text-lg mb-4">How Payouts Work</h3>
-        <p className="text-gray-600 text-sm leading-relaxed mb-4">
-          Your <strong>Pending Balance</strong> is calculated as the sum of all tickets sold for your trips, minus the Vadtrans service fee. 
-          When a passenger completes a booking and pays, the funds enter your pending balance. 
-        </p>
-        <p className="text-gray-600 text-sm leading-relaxed">
-          The Vadtrans admin team processes payouts regularly. Once a payout is initiated, your pending balance will reset to zero, and the funds will be transferred to the bank account listed in your profile. Ensure your bank details are up to date!
+        <div className="flex items-center gap-2 mb-3">
+          <FaMoneyBillWave className="text-emerald-600 text-lg" />
+          <h3 className="font-bold text-gray-800 text-lg">Automated Marketplace Payouts</h3>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+          <div className="p-3 bg-blue-50 border border-blue-100 rounded-xl">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-700">1. Instant Booking Escrow</span>
+            <p className="text-xs text-blue-900 mt-1 leading-relaxed">
+              When a passenger pays, funds are securely held in platform escrow. Gross amount, Paystack processing fees, and 10% platform commission are recorded.
+            </p>
+          </div>
+          <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-700">2. Trip Completion</span>
+            <p className="text-xs text-amber-900 mt-1 leading-relaxed">
+              Once you complete the trip or private ride, your net payable balance becomes eligible for immediate automated disbursement.
+            </p>
+          </div>
+          <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-xl">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-700">3. Direct NUBAN Transfer</span>
+            <p className="text-xs text-emerald-900 mt-1 leading-relaxed">
+              Vadtrans automated transfer engine sends your money directly to your verified bank account without manual delays.
+            </p>
+          </div>
+        </div>
+        <p className="text-gray-500 text-xs leading-relaxed">
+          * Please ensure your bank account details under the <strong>Profile</strong> tab are verified with Paystack to avoid transfer delays.
         </p>
       </Card>
     </div>

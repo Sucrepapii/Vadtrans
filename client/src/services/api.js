@@ -181,4 +181,15 @@ export const privateRideAPI = {
   cancelRequest: (id) => api.post(`/private-rides/${id}/cancel`),
 };
 
+// Finance & Automated Payout API
+export const financeAPI = {
+  getOverview: () => api.get("/finance/overview"),
+  getLedger: (params) => api.get("/finance/ledger", { params }),
+  getPayables: (params) => api.get("/finance/payables", { params }),
+  getPayouts: (params) => api.get("/finance/payouts", { params }),
+  triggerPayout: (payableId) => api.post(`/finance/payables/${payableId}/execute`),
+  verifyBank: (data) => api.post("/finance/verify-bank", data),
+  getBanks: () => api.get("/finance/banks"),
+};
+
 export default api;

@@ -36,6 +36,10 @@ const Shipment = require("./models/Shipment");
 const PrivateRideRequest = require("./models/PrivateRideRequest");
 const RideBid = require("./models/RideBid");
 const Lead = require("./models/Lead");
+const Payment = require("./models/Payment");
+const TransactionLedger = require("./models/TransactionLedger");
+const ProviderPayable = require("./models/ProviderPayable");
+const Payout = require("./models/Payout");
 
 // Set up model associations
 const models = {
@@ -50,6 +54,10 @@ const models = {
   PrivateRideRequest,
   RideBid,
   Lead,
+  Payment,
+  TransactionLedger,
+  ProviderPayable,
+  Payout,
 };
 
 // Call associate methods if they exist
@@ -64,6 +72,8 @@ const app = express();
 
 // Initialize Cron Jobs
 require("./cron/tripCron");
+const { initPayoutCron } = require("./cron/payoutCron");
+initPayoutCron();
 
 // Trust proxy for express-rate-limit behind proxies (like Render)
 app.set("trust proxy", 1);
@@ -174,6 +184,10 @@ const initializeDatabase = async () => {
     await PrivateRideRequest.sync({ alter: true });
     await RideBid.sync({ alter: true });
     await Lead.sync({ alter: true });
+    await Payment.sync({ alter: true });
+    await Payout.sync({ alter: true });
+    await ProviderPayable.sync({ alter: true });
+    await TransactionLedger.sync({ alter: true });
     // We do NOT use Trip.sync({ alter: true }) here because it causes syntax errors in Postgres ENUM updates.
     // Instead, we use manual migration logic below.
 
@@ -582,6 +596,7 @@ app.use("/api/shipments", require("./routes/shipmentRoutes"));
 app.use("/api/earnings", require("./routes/earnings"));
 app.use("/api/private-rides", require("./routes/privateRides.routes"));
 app.use("/api/leads", require("./routes/leadRoutes"));
+app.use("/api/finance", require("./routes/finance.routes"));
 
 // Routes mounted below...
 

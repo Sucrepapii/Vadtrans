@@ -5,7 +5,8 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import Card from "../../components/Card";
-import { bookingAPI } from "../../services/api";
+import api, { bookingAPI, privateRideAPI } from "../../services/api";
+import { useAuth } from "../../context/AuthContext";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
 import {
   FaCheckCircle,
@@ -27,6 +28,11 @@ import jsPDF from "jspdf";
 const BookingConfirmation = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
+  
+  const queryParams = new URLSearchParams(location.search);
+  const queryBookingId = queryParams.get("bookingId") || queryParams.get("id");
+
   const {
     trip,
     searchParams,
@@ -35,22 +41,53 @@ const BookingConfirmation = () => {
     selectedSeats,
     totalAmount,
     paymentMethod,
-    bookingId,
+    bookingId: stateBookingId,
     paidAmount,
     isDeposit,
-  } = location.state || {}; // bookingId might be passed from MyBookings
+    isPrivateRide: stateIsPrivate,
+    privateRide,
+  } = location.state || {};
+
+  const effectiveBookingId = stateBookingId || queryBookingId;
+  const isPrivate = stateIsPrivate || (effectiveBookingId && String(effectiveBookingId).startsWith("PR-"));
 
   // State to hold fetched booking details
   const [fetchedBooking, setFetchedBooking] = useState(null);
-  const [loading, setLoading] = useState(!trip && !!bookingId); // Only load if we have an ID but no trip data
+  const [loading, setLoading] = useState(!trip && !!effectiveBookingId);
 
   useEffect(() => {
     const fetchBookingDetails = async () => {
-      if (!trip && bookingId) {
+      if (!trip && effectiveBookingId) {
         try {
-          const response = await bookingAPI.getBooking(bookingId);
-          if (response.data && response.data.success) {
-            setFetchedBooking(response.data.booking);
+          if (isPrivate) {
+            const rawId = String(effectiveBookingId).replace("PR-", "");
+            const res = await api.get("/private-rides");
+            const foundRide = res.data.requests?.find(r => String(r.id) === rawId || r.requestId === effectiveBookingId);
+            if (foundRide) {
+              setFetchedBooking({
+                bookingId: foundRide.requestId || `PR-${foundRide.id}`,
+                totalAmount: foundRide.agreedPrice,
+                paidAmount: foundRide.agreedPrice,
+                paymentMethod: "Paystack (Online)",
+                createdAt: foundRide.createdAt,
+                passengers: [{ fullName: user?.name || "Private Ride Passenger", phone: user?.phone || "" }],
+                trip: {
+                  from: foundRide.pickupLocation,
+                  to: foundRide.destination,
+                  departureTime: foundRide.pickupTime,
+                  departureDate: foundRide.pickupDate,
+                  transportType: "private",
+                  company: { name: foundRide.driver?.name || "Professional Private Driver" },
+                  driverContact: foundRide.driver?.phone,
+                  vehicleName: foundRide.bids?.[0]?.vehicleDetails || "Private Vehicle",
+                }
+              });
+            }
+          } else {
+            const response = await bookingAPI.getBooking(effectiveBookingId);
+            if (response.data && response.data.success) {
+              setFetchedBooking(response.data.booking);
+            }
           }
         } catch (error) {
           console.error("Failed to fetch booking details:", error);
@@ -61,22 +98,23 @@ const BookingConfirmation = () => {
       }
     };
     fetchBookingDetails();
-  }, [trip, bookingId]);
+  }, [trip, effectiveBookingId, isPrivate, user]);
 
   // Use fetched data if available, otherwise use location state, otherwise fallback
   const finalTrip = fetchedBooking?.trip ||
     trip || {
-      from: "Lagos",
-      to: "Abuja",
-      departureTime: "08:00 AM",
-      company: "Vadtrans",
-      type: "inter-state",
+      from: privateRide?.pickupLocation || "Lagos",
+      to: privateRide?.destination || "Abuja",
+      departureTime: privateRide?.pickupTime || "08:00 AM",
+      company: privateRide?.driver?.name || "Vadtrans",
+      type: isPrivate ? "private" : "inter-state",
     };
 
   // Robust check for driver contact number from all possible sources
   const driverNumber = 
     finalTrip?.driverContact || 
     trip?.driverContact || 
+    privateRide?.driver?.phone ||
     fetchedBooking?.trip?.driverContact ||
     null;
 
@@ -89,17 +127,19 @@ const BookingConfirmation = () => {
       : finalTrip.company || "Vadtrans";
 
   const finalPassengers =
-    fetchedBooking?.passengers || passengerDetails || passengers || [];
+    fetchedBooking?.passengers || passengerDetails || passengers || [
+      { fullName: user?.name || "Passenger 1", phone: user?.phone || "" }
+    ];
   const passengerCount = finalPassengers.length || 1;
   const finalTotal = fetchedBooking?.totalAmount
     ? Number(fetchedBooking.totalAmount)
-    : Number(totalAmount) || 0;
+    : Number(totalAmount || privateRide?.agreedPrice) || 0;
   const finalPaidAmount = fetchedBooking?.paidAmount
     ? Number(fetchedBooking.paidAmount)
-    : Number(paidAmount) || finalTotal;
+    : Number(paidAmount || privateRide?.agreedPrice) || finalTotal;
   const finalIsDeposit = fetchedBooking?.isDeposit ?? isDeposit;
   const finalBookingId =
-    fetchedBooking?.bookingId || bookingId || `BK-${Date.now()}`;
+    fetchedBooking?.bookingId || effectiveBookingId || `BK-${Date.now()}`;
   const finalPaymentMethod =
     fetchedBooking?.paymentMethod || paymentMethod || "Paystack";
 

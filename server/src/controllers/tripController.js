@@ -580,6 +580,12 @@ exports.updateTrip = async (req, res) => {
           } 
         }
       );
+
+      // Trigger automated payouts for provider
+      const { triggerPayoutsForCompletedTrip } = require("../utils/payoutService");
+      triggerPayoutsForCompletedTrip(trip.id, false).catch(err => 
+        console.error("Automated payout error on trip completion:", err)
+      );
       
       // Reset the seats for the next journey
       trip.bookedSeats = [];

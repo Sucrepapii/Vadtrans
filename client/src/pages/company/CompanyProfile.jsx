@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
-import { authAPI, tripAPI } from "../../services/api";
+import { authAPI, tripAPI, financeAPI } from "../../services/api";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Card from "../../components/Card";
@@ -39,7 +39,7 @@ import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 import MaterialDatePicker, {
   MaterialTimePicker,
 } from "../../components/MaterialDatePicker";
-import { nigerianBanks } from "../../data/banks";
+import { nigerianBanks, nigerianBanksList } from "../../data/banks";
 import DocumentsTab from "../../components/company/DocumentsTab";
 import PassengersTab from "../../components/company/PassengersTab";
 import ShipmentsTab from "../../components/company/ShipmentsTab";
@@ -79,8 +79,10 @@ const CompanyProfile = () => {
     verificationStatus: "pending",
     bankDetails: {
       bankName: "",
+      bankCode: "",
       accountNumber: "",
       accountName: "",
+      isVerified: false,
     },
     freightCapabilities: {
       vehicleTypes: "", // stored as comma-separated string for simplicity in frontend
@@ -91,6 +93,7 @@ const CompanyProfile = () => {
     },
   });
   const [editData, setEditData] = useState(companyData);
+  const [verifyingBank, setVerifyingBank] = useState(false);
 
   // Documents Data
   const [documents, setDocuments] = useState({
@@ -188,8 +191,10 @@ const CompanyProfile = () => {
         verificationStatus: userData.verificationStatus || "pending",
         bankDetails: userData.bankDetails || {
           bankName: "",
+          bankCode: "",
           accountNumber: "",
           accountName: "",
+          isVerified: false,
         },
         freightCapabilities: userData.freightCapabilities || {
           vehicleTypes: "",
@@ -229,6 +234,57 @@ const CompanyProfile = () => {
     } catch (error) {
       console.error("Error fetching trips:", error);
       toast.error("Failed to load trips");
+    }
+  };
+
+  const handleVerifyBank = async () => {
+    const bankName = editData.bankDetails?.bankName;
+    const bankCode = editData.bankDetails?.bankCode;
+    const accountNumber = editData.bankDetails?.accountNumber;
+
+    if (!bankCode || !accountNumber || accountNumber.length !== 10) {
+      toast.error("Please select a bank and enter a valid 10-digit NUBAN account number");
+      return;
+    }
+
+    try {
+      setVerifyingBank(true);
+      const res = await financeAPI.verifyBank({
+        accountNumber,
+        bankCode,
+        bankName,
+      });
+      if (res.data.success) {
+        const resolved = res.data.data;
+        setEditData((prev) => ({
+          ...prev,
+          bankDetails: {
+            ...prev.bankDetails,
+            accountName: resolved.accountName,
+            bankCode: resolved.bankCode,
+            bankName: resolved.bankName,
+            recipientCode: resolved.recipientCode,
+            isVerified: true,
+          },
+        }));
+        setCompanyData((prev) => ({
+          ...prev,
+          bankDetails: {
+            ...prev.bankDetails,
+            accountName: resolved.accountName,
+            bankCode: resolved.bankCode,
+            bankName: resolved.bankName,
+            recipientCode: resolved.recipientCode,
+            isVerified: true,
+          },
+        }));
+        toast.success(`Account verified: ${resolved.accountName}`);
+      }
+    } catch (err) {
+      console.error("Bank verification failed:", err);
+      toast.error(err.response?.data?.message || "Could not verify bank account details");
+    } finally {
+      setVerifyingBank(false);
     }
   };
 
@@ -853,94 +909,151 @@ const CompanyProfile = () => {
 
                 {/* Bank Information */}
                 <Card>
-                  <h2 className="text-lg font-semibold mb-4">
-                    Bank Information
-                  </h2>
+                  <div className="flex justify-between items-center mb-4">
+                    <div className="flex items-center gap-2">
+                      <FaMoneyBillWave className="text-emerald-600 text-lg" />
+                      <h2 className="text-lg font-semibold">
+                        Bank Details & Automated Payouts
+                      </h2>
+                    </div>
+                    {companyData.bankDetails?.isVerified ? (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <FaCheckCircle className="text-emerald-600" />
+                        Verified for Instant Payouts
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 border border-amber-300">
+                        Unverified Bank Details
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs text-neutral-500 mb-4">
+                    Vadtrans automatically transfers trip and private ride earnings directly to this verified NUBAN account upon trip completion.
+                  </p>
                   <div className="space-y-4">
                     {isEditing ? (
                       <>
                         <div>
-                          <label className="block text-sm font-medium mb-2 text-neutral-700">
+                          <label className="block text-sm font-medium mb-1.5 text-neutral-700">
                             Bank Name
                           </label>
                           <select
-                            value={editData.bankDetails?.bankName || ""}
+                            value={
+                              editData.bankDetails?.bankCode ||
+                              nigerianBanksList.find(
+                                (b) => b.name.toLowerCase() === (editData.bankDetails?.bankName || "").toLowerCase()
+                              )?.code ||
+                              ""
+                            }
+                            onChange={(e) => {
+                              const code = e.target.value;
+                              const selected = nigerianBanksList.find((b) => b.code === code);
+                              setEditData({
+                                ...editData,
+                                bankDetails: {
+                                  ...editData.bankDetails,
+                                  bankCode: code,
+                                  bankName: selected ? selected.name : "",
+                                  isVerified: false,
+                                },
+                              });
+                            }}
+                            className="w-full px-4 py-2.5 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                            disabled={saving || verifyingBank}>
+                            <option value="">Select Nigerian Bank</option>
+                            {nigerianBanksList.map((bank) => (
+                              <option key={bank.code} value={bank.code}>
+                                {bank.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div className="flex flex-col sm:flex-row gap-2 sm:items-end">
+                          <div className="flex-1">
+                            <Input
+                              label="10-Digit NUBAN Account Number"
+                              value={editData.bankDetails?.accountNumber || ""}
+                              maxLength={10}
+                              placeholder="e.g. 0123456789"
+                              onChange={(e) => {
+                                const val = e.target.value.replace(/\D/g, "");
+                                setEditData({
+                                  ...editData,
+                                  bankDetails: {
+                                    ...editData.bankDetails,
+                                    accountNumber: val,
+                                    isVerified: false,
+                                  },
+                                });
+                              }}
+                              disabled={saving || verifyingBank}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            onClick={handleVerifyBank}
+                            disabled={
+                              verifyingBank ||
+                              !editData.bankDetails?.accountNumber ||
+                              editData.bankDetails.accountNumber.length !== 10 ||
+                              !(editData.bankDetails?.bankCode || editData.bankDetails?.bankName)
+                            }
+                            className="h-11 px-5 mb-1 whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 rounded-lg font-medium text-sm"
+                          >
+                            {verifyingBank ? <FaSpinner className="animate-spin" /> : <FaCheckCircle />}
+                            <span>{verifyingBank ? "Verifying..." : "Verify on Paystack"}</span>
+                          </Button>
+                        </div>
+
+                        <div>
+                          <Input
+                            label="Account Name (Auto-resolved from NIBSS)"
+                            value={editData.bankDetails?.accountName || ""}
                             onChange={(e) =>
                               setEditData({
                                 ...editData,
                                 bankDetails: {
                                   ...editData.bankDetails,
-                                  bankName: e.target.value,
+                                  accountName: e.target.value,
                                 },
                               })
                             }
-                            className="w-full px-4 py-2 border border-neutral-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
-                            disabled={saving}>
-                            <option value="">Select Bank</option>
-                            {nigerianBanks.map((bank) => (
-                              <option key={bank} value={bank}>
-                                {bank}
-                              </option>
-                            ))}
-                          </select>
+                            placeholder="Click 'Verify on Paystack' to auto-detect"
+                            disabled={saving || verifyingBank}
+                          />
+                          {editData.bankDetails?.isVerified && (
+                            <p className="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
+                              <FaCheckCircle /> Name officially verified against Nigerian banking network
+                            </p>
+                          )}
                         </div>
-                        <Input
-                          label="Account Number"
-                          value={editData.bankDetails?.accountNumber || ""}
-                          onChange={(e) =>
-                            setEditData({
-                              ...editData,
-                              bankDetails: {
-                                ...editData.bankDetails,
-                                accountNumber: e.target.value,
-                              },
-                            })
-                          }
-                          disabled={saving}
-                        />
-                        <Input
-                          label="Account Name"
-                          value={editData.bankDetails?.accountName || ""}
-                          onChange={(e) =>
-                            setEditData({
-                              ...editData,
-                              bankDetails: {
-                                ...editData.bankDetails,
-                                accountName: e.target.value,
-                              },
-                            })
-                          }
-                          disabled={saving}
-                        />
                       </>
                     ) : (
                       <>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-neutral-50 p-4 rounded-xl border border-neutral-200">
                           <div>
-                            <p className="text-sm text-neutral-600">
+                            <p className="text-xs text-neutral-500 font-semibold uppercase tracking-wider">
                               Bank Name
                             </p>
-                            <p className="font-semibold">
-                              {companyData.bankDetails?.bankName ||
-                                "Not provided"}
+                            <p className="font-semibold text-neutral-800 mt-1">
+                              {companyData.bankDetails?.bankName || "Not provided"}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-neutral-600">
+                            <p className="text-xs text-neutral-500 font-semibold uppercase tracking-wider">
                               Account Number
                             </p>
-                            <p className="font-semibold">
-                              {companyData.bankDetails?.accountNumber ||
-                                "Not provided"}
+                            <p className="font-semibold font-mono text-neutral-800 mt-1">
+                              {companyData.bankDetails?.accountNumber || "Not provided"}
                             </p>
                           </div>
                           <div>
-                            <p className="text-sm text-neutral-600">
-                              Account Name
+                            <p className="text-xs text-neutral-500 font-semibold uppercase tracking-wider">
+                              Verified Account Name
                             </p>
-                            <p className="font-semibold">
-                              {companyData.bankDetails?.accountName ||
-                                "Not provided"}
+                            <p className="font-semibold text-neutral-800 mt-1">
+                              {companyData.bankDetails?.accountName || "Not provided"}
                             </p>
                           </div>
                         </div>
