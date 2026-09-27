@@ -109,6 +109,60 @@ const MyBookings = () => {
     }
   };
 
+  const handleOpenTicket = (booking) => {
+    let safePassengers = booking.passengers;
+    if (typeof safePassengers === "string") {
+      try { safePassengers = JSON.parse(safePassengers); } catch (e) { safePassengers = []; }
+    }
+    let safeSeats = booking.selectedSeats;
+    if (typeof safeSeats === "string") {
+      try { safeSeats = JSON.parse(safeSeats); } catch (e) { safeSeats = []; }
+    }
+
+    navigate(`/booking/confirmation`, {
+      state: {
+        id: booking.id,
+        bookingId: booking.bookingId || `BK-${booking.id}`,
+        trip: booking.trip,
+        passengers: safePassengers,
+        passengerDetails: safePassengers,
+        selectedSeats: safeSeats,
+        paymentMethod: booking.paymentMethod,
+        totalAmount: booking.totalAmount,
+        paidAmount: booking.paidAmount || booking.totalAmount,
+        isDeposit: booking.isDeposit,
+        serviceFee: booking.serviceFee,
+      },
+    });
+  };
+
+  const handleVerifyPendingBooking = async (booking) => {
+    try {
+      toast.info("Checking payment status with Paystack...");
+      const ref = booking.paymentReference || booking.bookingId;
+      if (ref) {
+        const verifyRes = await bookingAPI.verifyPayment(ref, booking.id).catch(() => null);
+        if (verifyRes?.data?.success) {
+          toast.success("Payment verified! Your ticket is confirmed.");
+          fetchBookings();
+          handleOpenTicket(verifyRes.data.booking || booking);
+          return;
+        }
+      }
+
+      const res = await bookingAPI.getBooking(booking.id);
+      if (res.data?.booking?.paymentStatus === "paid") {
+        toast.success("Payment confirmed!");
+        fetchBookings();
+        handleOpenTicket(res.data.booking);
+      } else {
+        toast.warning("Booking payment is still pending. If you completed the bank transfer, please allow a moment and verify again.");
+      }
+    } catch (err) {
+      toast.error("Could not verify payment yet. Please try again in a few moments.");
+    }
+  };
+
   // Filter bookings by search term
   const filteredBookings = bookings.filter((booking) => {
     const searchLower = searchTerm.toLowerCase();
@@ -280,25 +334,23 @@ const MyBookings = () => {
                               Cancelled
                             </span>
                           ) : null}
-                          <button
-                            onClick={() =>
-                              navigate(`/booking/confirmation`, {
-                                state: {
-                                  bookingId: booking.bookingId,
-                                  trip: booking.trip,
-                                  passengers: booking.passengers,
-                                  selectedSeats: booking.selectedSeats,
-                                  paymentMethod: booking.paymentMethod,
-                                  totalAmount: booking.totalAmount,
-                                  serviceFee: booking.serviceFee,
-                                },
-                              })
-                            }
-                            className="flex items-center gap-1 text-xs font-bold bg-primary/10 text-primary px-2.5 py-1.5 rounded-lg hover:bg-primary/20 transition-colors"
-                            title="View E-Ticket & Receipt">
-                            <FaTicketAlt size={12} />
-                            <span>Ticket</span>
-                          </button>
+                          {booking.paymentStatus === "pending" ? (
+                            <button
+                              onClick={() => handleVerifyPendingBooking(booking)}
+                              className="flex items-center gap-1.5 text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white px-2.5 py-1.5 rounded-lg shadow-sm transition-colors"
+                              title="Verify bank transfer or payment">
+                              <FaCheckCircle size={12} />
+                              <span>Verify Payment</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleOpenTicket(booking)}
+                              className="flex items-center gap-1 text-xs font-bold bg-primary/10 text-primary px-2.5 py-1.5 rounded-lg hover:bg-primary/20 transition-colors"
+                              title="View E-Ticket & Receipt">
+                              <FaTicketAlt size={12} />
+                              <span>Ticket</span>
+                            </button>
+                          )}
                         </div>
                       </div>
                       <div>
@@ -391,24 +443,21 @@ const MyBookings = () => {
                             <span>Cancel</span>
                           </button>
                         )}
-                        <button
-                          onClick={() =>
-                            navigate(`/booking/confirmation`, {
-                              state: {
-                                bookingId: booking.bookingId,
-                                trip: booking.trip,
-                                passengers: booking.passengers,
-                                selectedSeats: booking.selectedSeats,
-                                paymentMethod: booking.paymentMethod,
-                                totalAmount: booking.totalAmount,
-                                serviceFee: booking.serviceFee,
-                              },
-                            })
-                          }
-                          className="text-primary hover:text-primary-dark font-bold flex items-center gap-1.5 text-xs bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
-                          <FaTicketAlt />
-                          <span>View E-Ticket</span>
-                        </button>
+                        {booking.paymentStatus === "pending" ? (
+                          <button
+                            onClick={() => handleVerifyPendingBooking(booking)}
+                            className="text-white bg-amber-500 hover:bg-amber-600 font-bold flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg shadow-sm transition-colors">
+                            <FaCheckCircle />
+                            <span>Verify Payment</span>
+                          </button>
+                        ) : (
+                          <button
+                            onClick={() => handleOpenTicket(booking)}
+                            className="text-primary hover:text-primary-dark font-bold flex items-center gap-1.5 text-xs bg-primary/10 px-3 py-1.5 rounded-lg hover:bg-primary/20 transition-colors">
+                            <FaTicketAlt />
+                            <span>View E-Ticket</span>
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

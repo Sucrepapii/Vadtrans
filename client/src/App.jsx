@@ -138,8 +138,14 @@ const App = () => {
           }
         />
         <Route path="/notifications" element={<Notifications />} />
-        <Route path="/profile" element={<UserProfile />} />
-        <Route path="/my-bookings" element={<MyBookings />} />
+        <Route
+          path="/my-bookings"
+          element={
+            <ProtectedRoute>
+              <MyBookings />
+            </ProtectedRoute>
+          }
+        />
         <Route
           path="/offer-ride"
           element={

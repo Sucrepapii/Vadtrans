@@ -78,21 +78,28 @@ exports.verifyPayment = async (req, res) => {
       console.log("📦 Metadata present:", !!response.data.metadata);
       console.log("🔍 Query params:", JSON.stringify(req.query));
 
-      if (!bookingId) {
-        console.warn("❌ No Booking ID found in metadata or query params!");
-        await transaction.rollback();
-        return res.status(400).json({
-          success: false,
-          message: "Booking ID missing from transaction metadata and query",
-          debug: {
-            hasMetadata: !!response.data.metadata,
-            query: req.query
-          }
+      let booking = null;
+      if (bookingId) {
+        const isNumeric = !isNaN(bookingId) && /^\d+$/.test(String(bookingId));
+        booking = isNumeric
+          ? await Booking.findByPk(bookingId, { transaction })
+          : await Booking.findOne({ where: { bookingId }, transaction });
+      }
+
+      // Fallback: look up by reference if not found by ID
+      if (!booking && reference) {
+        booking = await Booking.findOne({ where: { paymentReference: reference }, transaction });
+      }
+
+      // Fallback 2: look up latest pending booking for this user
+      if (!booking && req.user?.id) {
+        booking = await Booking.findOne({
+          where: { userId: req.user.id, paymentStatus: "pending" },
+          order: [["createdAt", "DESC"]],
+          transaction,
         });
       }
 
-      const booking = await Booking.findByPk(bookingId, { transaction });
-      
       if (booking) {
         console.log(`✅ Found Booking #${booking.id} (Ref: ${booking.bookingId}). Updating to paid.`);
         booking.paymentStatus = "paid";
@@ -114,7 +121,7 @@ exports.verifyPayment = async (req, res) => {
             actionUrl: `/admin/bookings?search=${displayId}`,
           },
           { transaction },
-        );
+        ).catch(e => console.warn("Admin notification note:", e.message));
 
         // Fetch Trip to identify provider/company
         const trip = await Trip.findByPk(booking.tripId, { transaction });
@@ -143,7 +150,25 @@ exports.verifyPayment = async (req, res) => {
           console.error("Ledger recording note:", ledgerErr.message);
         }
       } else {
-        console.error(`❌ Booking with ID ${bookingId} not found in database!`);
+        console.warn(`⚠️ No matching shared booking found for reference ${reference}, checking private rides.`);
+        const PrivateRideRequest = require("../models/PrivateRideRequest");
+        const privateRideId = response.data.metadata?.privateRideId || req.query.privateRideId;
+        let ride = null;
+        if (privateRideId) {
+          const isNumeric = !isNaN(privateRideId) && /^\d+$/.test(String(privateRideId));
+          ride = isNumeric 
+            ? await PrivateRideRequest.findByPk(privateRideId, { transaction })
+            : await PrivateRideRequest.findOne({ where: { requestId: privateRideId }, transaction });
+        }
+        if (!ride && reference) {
+          ride = await PrivateRideRequest.findOne({ where: { paymentReference: reference }, transaction });
+        }
+        if (ride) {
+          ride.paymentStatus = "paid";
+          ride.status = "driver_assigned";
+          ride.paymentReference = reference;
+          await ride.save({ transaction });
+        }
       }
 
       await transaction.commit();
@@ -162,6 +187,7 @@ exports.verifyPayment = async (req, res) => {
         success: true,
         message: "Payment verified successfully",
         data: response.data,
+        booking,
       });
     } else {
       console.warn("❌ Paystack reported transaction status as NOT success:", response.data.status);

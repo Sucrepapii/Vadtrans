@@ -7,6 +7,8 @@ const Payout = require("../models/Payout");
 const User = require("../models/User");
 const Booking = require("../models/Booking");
 const PrivateRideRequest = require("../models/PrivateRideRequest");
+const Trip = require("../models/Trip");
+const Notification = require("../models/Notification");
 
 const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
 
@@ -542,7 +544,108 @@ const handlePaystackWebhook = async (event, data) => {
 
     switch (event) {
       case "charge.success": {
-        // Handled via verifyPayment or direct webhook
+        const reference = data.reference;
+        const bookingId = data.metadata?.bookingId || data.metadata?.custom_fields?.find(f => f.variable_name === 'bookingId')?.value;
+        const privateRideId = data.metadata?.privateRideId || data.metadata?.custom_fields?.find(f => f.variable_name === 'privateRideId')?.value;
+
+        console.log(`💳 Processing webhook charge.success for ref: ${reference}, bookingId: ${bookingId}, privateRideId: ${privateRideId}`);
+
+        // 1. Check if shared booking
+        let booking = null;
+        if (bookingId) {
+          const isNumeric = !isNaN(bookingId) && /^\d+$/.test(String(bookingId));
+          booking = isNumeric
+            ? await Booking.findByPk(bookingId)
+            : await Booking.findOne({ where: { bookingId } });
+        }
+        if (!booking && reference) {
+          booking = await Booking.findOne({ where: { paymentReference: reference } });
+        }
+
+        if (booking) {
+          const wasPaid = booking.paymentStatus === "paid";
+          booking.paymentStatus = "paid";
+          booking.bookingStatus = "confirmed";
+          booking.paymentReference = reference;
+          booking.paidAmount = data.amount ? data.amount / 100 : booking.totalAmount;
+          booking.isConfirmed = true;
+          await booking.save();
+
+          if (!wasPaid) {
+            // Create notification for admin
+            const displayId = booking.bookingId || String(booking.id).padStart(5, "0");
+            await Notification.create({
+              message: `Booking #${displayId} has been confirmed & paid via webhook (₦${parseFloat(booking.paidAmount || booking.totalAmount).toLocaleString()}).`,
+              type: "payment",
+              actionUrl: `/admin/bookings?search=${displayId}`,
+            }).catch(e => console.warn("Admin notification note:", e.message));
+
+            // Record payment ledger and payable
+            try {
+              const trip = await Trip.findByPk(booking.tripId);
+              await recordBookingPayment({
+                bookingId: booking.id,
+                providerId: trip ? trip.companyId : null,
+                userId: booking.userId,
+                reference,
+                grossAmount: booking.paidAmount || booking.totalAmount,
+                gatewayFee: data.fees ? data.fees / 100 : null,
+                channel: data.channel || "card",
+                metadata: {
+                  bookingRef: booking.bookingId,
+                  customer: data.customer,
+                  tripId: booking.tripId,
+                  webhookProcessedAt: new Date(),
+                },
+              });
+            } catch (err) {
+              console.error("Webhook ledger recording note:", err.message);
+            }
+
+            // Sync trip seats
+            try {
+              const { syncTripSeats } = require("../controllers/tripController");
+              await syncTripSeats(booking.tripId);
+            } catch (syncErr) {
+              console.error("Webhook seat sync note:", syncErr.message);
+            }
+          }
+        }
+
+        // 2. Check if private ride
+        if (privateRideId) {
+          const isNumeric = !isNaN(privateRideId) && /^\d+$/.test(String(privateRideId));
+          const ride = isNumeric
+            ? await PrivateRideRequest.findByPk(privateRideId)
+            : await PrivateRideRequest.findOne({ where: { requestId: privateRideId } });
+
+          if (ride) {
+            ride.paymentStatus = "paid";
+            ride.status = "driver_assigned";
+            ride.paymentReference = reference;
+            await ride.save();
+
+            // Record private ride payment
+            try {
+              await recordBookingPayment({
+                privateRideId: ride.id,
+                providerId: ride.driverId,
+                userId: ride.passengerId,
+                reference,
+                grossAmount: ride.agreedPrice,
+                gatewayFee: data.fees ? data.fees / 100 : null,
+                channel: data.channel || "card",
+                metadata: {
+                  requestId: ride.requestId,
+                  customer: data.customer,
+                  webhookProcessedAt: new Date(),
+                },
+              });
+            } catch (err) {
+              console.error("Private ride webhook ledger note:", err.message);
+            }
+          }
+        }
         break;
       }
 

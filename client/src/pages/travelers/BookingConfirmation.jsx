@@ -85,16 +85,20 @@ const BookingConfirmation = () => {
             }
           } else {
             const response = await bookingAPI.getBooking(effectiveBookingId);
-            if (response.data && response.data.success) {
+            if (response.data && (response.data.success || response.data.booking)) {
               setFetchedBooking(response.data.booking);
             }
           }
         } catch (error) {
-          console.error("Failed to fetch booking details:", error);
-          toast.error("Failed to load full ticket details.");
+          console.warn("Could not fetch remote booking details:", error);
+          if (!trip) {
+            toast.error("Could not load booking details.");
+          }
         } finally {
           setLoading(false);
         }
+      } else {
+        setLoading(false);
       }
     };
     fetchBookingDetails();
@@ -126,10 +130,27 @@ const BookingConfirmation = () => {
         "Unknown Company"
       : finalTrip.company || "Vadtrans";
 
-  const finalPassengers =
-    fetchedBooking?.passengers || passengerDetails || passengers || [
-      { fullName: user?.name || "Passenger 1", phone: user?.phone || "" }
-    ];
+  // Safely parse passengers array
+  let rawPassengers = fetchedBooking?.passengers || passengerDetails || passengers || [
+    { fullName: user?.name || "Passenger 1", phone: user?.phone || "" }
+  ];
+  if (typeof rawPassengers === "string") {
+    try { rawPassengers = JSON.parse(rawPassengers); } catch (e) { rawPassengers = []; }
+  }
+  if (!Array.isArray(rawPassengers)) {
+    rawPassengers = rawPassengers ? [rawPassengers] : [];
+  }
+  const finalPassengers = rawPassengers.length > 0 ? rawPassengers : [
+    { fullName: user?.name || "Passenger 1", phone: user?.phone || "" }
+  ];
+
+  // Safely parse selected seats array
+  let rawSeats = fetchedBooking?.selectedSeats || selectedSeats || [];
+  if (typeof rawSeats === "string") {
+    try { rawSeats = JSON.parse(rawSeats); } catch (e) { rawSeats = []; }
+  }
+  const safeSeats = Array.isArray(rawSeats) ? rawSeats : [];
+
   const passengerCount = finalPassengers.length || 1;
   const finalTotal = fetchedBooking?.totalAmount
     ? Number(fetchedBooking.totalAmount)
@@ -158,23 +179,32 @@ const BookingConfirmation = () => {
     if (!element) return;
 
     try {
+      toast.info("Generating your complete ticket PDF...");
+
+      // Render canvas cleanly with high scale and fixed width
       const canvas = await html2canvas(element, {
         scale: 2,
         logging: false,
         useCORS: true,
+        scrollY: 0,
+        scrollX: 0,
+        windowWidth: 1024,
       });
 
       const imgData = canvas.toDataURL("image/png");
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfWidth = 210; // A4 width mm
       const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      // Ensure full ticket is visible on a complete continuous boarding pass
+      const pageHeight = Math.max(297, pdfHeight + 15);
+      const pdf = new jsPDF("p", "mm", [pdfWidth, pageHeight]);
+
+      pdf.addImage(imgData, "PNG", 0, 8, pdfWidth, pdfHeight, undefined, "FAST");
       pdf.save(`VadTrans-Ticket-${finalBookingId}.pdf`);
       toast.success("Ticket downloaded successfully!");
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Failed to download ticket");
+      toast.error("Failed to download ticket. Please use the Print option as an alternative.");
     }
   };
 
@@ -184,13 +214,13 @@ const BookingConfirmation = () => {
 
   // Calculate arrival time based on departure time and duration
   const calculateArrivalTime = () => {
-    if (!finalTrip.departureTime) return "-";
+    if (!finalTrip?.departureTime) return "-";
 
     try {
-      const duration = Number(finalTrip.duration) || 12; // default 12 hours
+      const duration = Number(finalTrip?.duration) || 12; // default 12 hours
 
       // Parse departure time
-      const timeMatch = finalTrip.departureTime.match(
+      const timeMatch = String(finalTrip.departureTime).match(
         /(\d+):(\d+)\s*(AM|PM)?/i,
       );
       if (!timeMatch) return "-";
@@ -224,9 +254,9 @@ const BookingConfirmation = () => {
   };
 
   const arrivalTime = calculateArrivalTime();
-  const durationText = finalTrip.duration
+  const durationText = finalTrip?.duration
     ? `${finalTrip.duration} hrs`
-    : finalTrip.transportType === "carpooling" ? "" : "12 hrs";
+    : finalTrip?.transportType === "carpooling" ? "" : "12 hrs";
 
   if (loading) {
     return (
@@ -290,7 +320,25 @@ const BookingConfirmation = () => {
           </div>
 
           {/* Main Content */}
-          <div id="ticket-content">
+          <div id="ticket-content" className="bg-white rounded-2xl p-2 sm:p-4">
+            {/* Official Boarding Pass Header (Included in PDF & Print) */}
+            <div className="bg-gradient-to-r from-emerald-600 to-teal-700 text-white rounded-xl p-4 sm:p-5 mb-4 flex flex-wrap items-center justify-between gap-3 shadow-md shadow-emerald-700/15">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-200 block">
+                  Official E-Ticket & Boarding Pass
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white">VadTrans Mobility</h2>
+                <p className="text-xs text-emerald-100 mt-0.5">
+                  Ticket ID: <span className="font-mono font-bold text-white tracking-wide">{finalBookingId}</span>
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="inline-block bg-white/20 text-white font-bold text-xs px-3 py-1 rounded-full uppercase tracking-wider backdrop-blur-sm">
+                  {fetchedBooking?.bookingStatus === "confirmed" || fetchedBooking?.paymentStatus === "paid" ? "Confirmed & Paid" : "Confirmed"}
+                </span>
+                <p className="text-[11px] text-emerald-100 mt-1">Issue Date: {new Date().toLocaleDateString()}</p>
+              </div>
+            </div>
             <Card className="p-4 sm:p-6 mb-6">
               {/* Trip Card */}
               <div className="bg-white border-2 border-neutral-200 rounded-lg p-4 sm:p-6 mb-6">
@@ -493,9 +541,9 @@ const BookingConfirmation = () => {
                                       {passenger.phone}
                                     </p>
                                   )}
-                                  {selectedSeats && selectedSeats[index] && (
+                                  {safeSeats && safeSeats[index] && (
                                     <p className="text-xs text-neutral-600 bg-neutral-200 px-1.5 rounded">
-                                      Seat {selectedSeats[index]}
+                                      Seat {safeSeats[index]}
                                     </p>
                                   )}
                                 </div>

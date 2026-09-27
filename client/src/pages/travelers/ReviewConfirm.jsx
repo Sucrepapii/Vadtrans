@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { toast } from "react-toastify";
 import { usePaystackPayment } from "react-paystack";
@@ -18,6 +18,7 @@ import {
   FaSpinner,
   FaBus,
   FaMapMarkerAlt,
+  FaClock,
 } from "react-icons/fa";
 
 const ReviewConfirm = () => {
@@ -62,54 +63,130 @@ const ReviewConfirm = () => {
   const depositAmount = total * 0.05; // 5% deposit
   const amountToPay = paymentOption === "deposit" ? depositAmount : total;
 
+  const [paystackRef, setPaystackRef] = useState(() => {
+    return sessionStorage.getItem("lastPaystackRef") || new Date().getTime().toString();
+  });
+  const [isVerifying, setIsVerifying] = useState(false);
+  const [pendingBookingData, setPendingBookingData] = useState(() => {
+    const id = sessionStorage.getItem("lastPendingBookingId");
+    const ref = sessionStorage.getItem("lastPendingBookingRef");
+    return id ? { id, ref } : null;
+  });
+
+  // Re-check when window/tab regains focus (e.g. user returns from bank app)
+  useEffect(() => {
+    const handleFocus = () => {
+      const pendingId = sessionStorage.getItem("lastPendingBookingId");
+      if (pendingId) {
+        checkPendingPaymentStatus(pendingId, false);
+      }
+    };
+    window.addEventListener("focus", handleFocus);
+    return () => window.removeEventListener("focus", handleFocus);
+  }, [paystackRef]);
+
   // Stabilize the config to prevent hook re-initialization issues
   const paystackConfig = React.useMemo(() => {
     const email = user?.email || passengers?.[0]?.email || "";
     const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+    const currentBookingId = pendingBookingData?.id || sessionStorage.getItem("lastPendingBookingId");
 
     return {
-      reference: new Date().getTime().toString(),
+      reference: paystackRef,
       email,
       amount: Math.round(amountToPay * 100),
       publicKey,
+      metadata: {
+        bookingId: currentBookingId,
+        custom_fields: [
+          { display_name: "Booking ID", variable_name: "bookingId", value: currentBookingId },
+          { display_name: "Route", variable_name: "route", value: `${tripData?.from || ""} - ${tripData?.to || ""}` }
+        ]
+      }
     };
-  }, [user?.email, passengers?.[0]?.email, amountToPay]);
+  }, [user?.email, passengers?.[0]?.email, amountToPay, paystackRef, pendingBookingData?.id, tripData?.from, tripData?.to]);
 
   const initializePayment = usePaystackPayment(paystackConfig);
+
+
+  // Helper to navigate to confirmation — always called after Paystack approval
+  const goToConfirmation = (confirmedBooking = null) => {
+    const bookingId = confirmedBooking?.id || sessionStorage.getItem("lastPendingBookingId");
+    const savedRef =
+      confirmedBooking?.bookingId ||
+      sessionStorage.getItem("lastPendingBookingRef") ||
+      `BK-${bookingId || Date.now()}`;
+
+    sessionStorage.removeItem("lastPendingBookingId");
+    sessionStorage.removeItem("lastPendingBookingRef");
+    sessionStorage.removeItem("lastPaystackRef");
+
+    navigate("/booking/confirmation", {
+      state: {
+        trip: confirmedBooking?.trip || tripData,
+        bookingId: savedRef,
+        passengers: confirmedBooking?.passengers || passengers,
+        passengerDetails: confirmedBooking?.passengers || passengers,
+        selectedSeats: confirmedBooking?.selectedSeats || selectedSeats,
+        totalAmount: confirmedBooking?.totalAmount || total,
+        paidAmount: confirmedBooking?.paidAmount || amountToPay,
+        isDeposit: paymentOption === "deposit",
+        paymentMethod: "card",
+        searchParams: {
+          date:
+            searchDate ||
+            tripData?.departureDate ||
+            tripData?.date ||
+            new Date().toLocaleDateString(),
+        },
+      },
+    });
+  };
+
+  // Check if pending booking has already been paid or verify it
+  const checkPendingPaymentStatus = async (bookingIdToCheck, manual = false) => {
+    const id = bookingIdToCheck || pendingBookingData?.id || sessionStorage.getItem("lastPendingBookingId");
+    const ref = pendingBookingData?.ref || sessionStorage.getItem("lastPendingBookingRef") || `BK-${id}`;
+    if (!id) return;
+
+    try {
+      if (manual) setIsVerifying(true);
+      // First check if booking is already marked paid on backend
+      const res = await bookingAPI.getBooking(id).catch(() => null);
+      if (res?.data?.booking?.paymentStatus === "paid") {
+        toast.success("Payment confirmed! Generating your e-ticket...");
+        goToConfirmation(res.data.booking);
+        return;
+      }
+
+      // If not marked paid yet, try verifying transaction with Paystack using saved reference
+      const lastTxRef = sessionStorage.getItem("lastPaystackRef") || paystackRef;
+      if (lastTxRef) {
+        const verifyRes = await bookingAPI.verifyPayment(lastTxRef, id).catch(() => null);
+        if (verifyRes?.data?.success) {
+          toast.success("Payment verified successfully! Generating your ticket...");
+          goToConfirmation(verifyRes.data.booking || { bookingId: ref, id });
+          return;
+        }
+      }
+
+      if (manual) {
+        toast.warning("Payment has not been confirmed yet. If you completed the bank transfer, please allow a moment and check again.");
+      }
+    } catch (err) {
+      console.warn("Payment check warning:", err.message);
+      if (manual) {
+        toast.error("Could not verify payment yet. Please ensure the transfer was sent.");
+      }
+    } finally {
+      if (manual) setIsVerifying(false);
+    }
+  };
 
   const handlePaystackSuccess = async (reference) => {
     setTransactionActive(false);
     setIsProcessing(true);
     const bookingId = sessionStorage.getItem("lastPendingBookingId");
-    const savedRef =
-      sessionStorage.getItem("lastPendingBookingRef") ||
-      `BK-${bookingId || Date.now()}`;
-
-    // Helper to navigate to confirmation — always called after Paystack approval
-    const goToConfirmation = () => {
-      sessionStorage.removeItem("lastPendingBookingId");
-      sessionStorage.removeItem("lastPendingBookingRef");
-      navigate("/booking/confirmation", {
-        state: {
-          trip: tripData,
-          bookingId: savedRef,
-          passengers,
-          passengerDetails: passengers,
-          selectedSeats,
-          totalAmount: total,
-          paidAmount: amountToPay,
-          isDeposit: paymentOption === "deposit",
-          paymentMethod: "card",
-          searchParams: {
-            date:
-              searchDate ||
-              tripData?.departureDate ||
-              tripData?.date ||
-              new Date().toLocaleDateString(),
-          },
-        },
-      });
-    };
 
     try {
       
@@ -127,11 +204,11 @@ const ReviewConfirm = () => {
 
       // Verify payment on backend
       
+      const refString = reference?.reference || reference?.trxref || (typeof reference === "string" ? reference : "");
       const verifyRes = await bookingAPI.verifyPayment(
-        reference.reference,
+        refString,
         bookingId,
       );
-      
 
       if (verifyRes.data.success) {
         toast.success("Booking confirmed successfully!");
@@ -139,7 +216,7 @@ const ReviewConfirm = () => {
         console.warn("⚠️ Backend returned success:false for verification");
         toast.warning("Payment received — booking confirmation pending.");
       }
-      goToConfirmation();
+      goToConfirmation(verifyRes.data.booking);
     } catch (error) {
       console.error("❌ Payment verification error:", error);
       console.error("📄 Error Response:", error.response?.data);
@@ -153,22 +230,19 @@ const ReviewConfirm = () => {
     }
   };
 
-  const handlePaystackClose = async () => {
+  const handlePaystackClose = () => {
     setTransactionActive(false);
-    toast.info("Transaction cancelled");
     setIsProcessing(false);
 
-    // Release seats immediately if we have a pending booking ID
+    // DO NOT DELETE BOOKING!
+    // When customer transfers from their bank app or USSD, the modal often closes or loses focus.
     const bookingId = sessionStorage.getItem("lastPendingBookingId");
     if (bookingId) {
-      try {
-        await api.delete(`/bookings/${bookingId}/abandon`);
-        sessionStorage.removeItem("lastPendingBookingId");
-        sessionStorage.removeItem("lastPendingBookingRef");
-        
-      } catch (err) {
-        console.error("Failed to release seats:", err);
-      }
+      toast.info("Payment window closed. If you moved to your bank app to transfer, click 'I Have Paid / Confirm Ticket' below.");
+      // Check in background if payment succeeded
+      checkPendingPaymentStatus(bookingId, false);
+    } else {
+      toast.info("Transaction cancelled");
     }
   };
 
@@ -193,8 +267,12 @@ const ReviewConfirm = () => {
           const bookingId = response.data.booking.id;
           const bookingRef =
             response.data.booking.bookingId || `BK-${bookingId}`;
+          const newTxRef = new Date().getTime().toString();
+          setPaystackRef(newTxRef);
           sessionStorage.setItem("lastPendingBookingId", bookingId);
           sessionStorage.setItem("lastPendingBookingRef", bookingRef);
+          sessionStorage.setItem("lastPaystackRef", newTxRef);
+          setPendingBookingData({ id: bookingId, ref: bookingRef });
 
           // Validation before opening
           if (!paystackConfig.publicKey) {
@@ -516,6 +594,71 @@ const ReviewConfirm = () => {
                     </p>
                   )}
                 </div>
+
+                {pendingBookingData && (
+                  <div className="bg-gradient-to-r from-amber-50 to-blue-50 border-2 border-amber-200 rounded-2xl p-4 mb-4 text-left shadow-sm">
+                    <div className="flex items-start gap-2.5">
+                      <div className="p-2 bg-amber-100 text-amber-700 rounded-xl mt-0.5 flex-shrink-0">
+                        <FaClock className="text-sm animate-pulse" />
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-1">
+                          <h4 className="font-bold text-gray-900 text-xs sm:text-sm">
+                            Payment in Progress ({pendingBookingData.ref || pendingBookingData.id})
+                          </h4>
+                          <span className="text-[10px] bg-amber-200 text-amber-900 font-bold px-2 py-0.5 rounded-full uppercase">
+                            Pending
+                          </span>
+                        </div>
+                        <p className="text-[11px] text-gray-600 mt-1 leading-relaxed">
+                          If you transferred in your bank app, your seats are reserved. Click below to verify and view your ticket immediately:
+                        </p>
+                        <div className="flex flex-wrap gap-2 mt-2.5">
+                          <button
+                            type="button"
+                            onClick={() => checkPendingPaymentStatus(pendingBookingData.id, true)}
+                            disabled={isVerifying}
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-sm transition flex items-center gap-1.5 disabled:opacity-50"
+                          >
+                            <FaCheckCircle className="text-xs" />
+                            <span>{isVerifying ? "Verifying..." : "I Have Paid / Confirm Ticket"}</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setTransactionActive(true);
+                              initializePayment({
+                                onSuccess: handlePaystackSuccess,
+                                onClose: handlePaystackClose,
+                              });
+                            }}
+                            className="px-2.5 py-1.5 bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 font-medium text-xs rounded-lg transition"
+                          >
+                            Re-open Modal
+                          </button>
+                          <button
+                            type="button"
+                            onClick={async () => {
+                              if (window.confirm("Are you sure you want to release these seats and cancel this booking?")) {
+                                try {
+                                  await api.delete(`/bookings/${pendingBookingData.id}/abandon`);
+                                } catch (e) {}
+                                sessionStorage.removeItem("lastPendingBookingId");
+                                sessionStorage.removeItem("lastPendingBookingRef");
+                                sessionStorage.removeItem("lastPaystackRef");
+                                setPendingBookingData(null);
+                                toast.info("Booking cancelled.");
+                              }
+                            }}
+                            className="px-2 py-1.5 text-red-600 hover:bg-red-50 font-medium text-xs rounded-lg transition"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
                 <Button
                   variant="primary"

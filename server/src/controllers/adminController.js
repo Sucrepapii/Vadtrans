@@ -5,6 +5,8 @@ const Shipment = require("../models/Shipment");
 const Fare = require("../models/Fare");
 const Notification = require("../models/Notification");
 const Review = require("../models/Review");
+const PrivateRideRequest = require("../models/PrivateRideRequest");
+const Payment = require("../models/Payment");
 const { Op } = require("sequelize");
 const { sequelize } = require("../config/database");
 const { sendAccountDeletedEmail } = require("../utils/emailService");
@@ -23,20 +25,36 @@ exports.getDashboardStats = async (req, res) => {
     try { totalBookings = await Booking.count(); } catch (e) { console.error("totalBookings err:", e.message); }
     try { totalShipments = await Shipment.count(); } catch (e) { console.error("totalShipments err:", e.message); }
 
-    // Calculate revenue (sum of paid or manually completed bookings)
+    // Calculate revenue (sum of paid or completed bookings + private rides + successful payments)
     let totalRevenueNaira = 0;
     try {
-      const revenueData = await Booking.findAll({
-        where: {
-          [Op.or]: [{ paymentStatus: "paid" }, { bookingStatus: "completed" }],
-        },
-        attributes: [
-          [sequelize.fn("SUM", sequelize.col("paidAmount")), "total"],
-        ],
-      });
-      totalRevenueNaira = revenueData[0]?.dataValues?.total
-        ? parseFloat(revenueData[0].dataValues.total)
-        : 0;
+      const [bookingRev, rideRev, paymentRev] = await Promise.all([
+        Booking.findAll({
+          where: {
+            [Op.or]: [{ paymentStatus: "paid" }, { bookingStatus: "completed" }],
+          },
+          attributes: [
+            [sequelize.fn("SUM", sequelize.fn("COALESCE", sequelize.col("paidAmount"), sequelize.col("totalAmount"))), "total"],
+          ],
+          raw: true,
+        }),
+        PrivateRideRequest.findAll({
+          where: { paymentStatus: "paid" },
+          attributes: [[sequelize.fn("SUM", sequelize.col("agreedPrice")), "total"]],
+          raw: true,
+        }),
+        Payment.findAll({
+          where: { status: "success" },
+          attributes: [[sequelize.fn("SUM", sequelize.col("grossAmount")), "total"]],
+          raw: true,
+        }),
+      ]);
+
+      const sumBookings = parseFloat(bookingRev[0]?.total) || 0;
+      const sumRides = parseFloat(rideRev[0]?.total) || 0;
+      const sumPayments = parseFloat(paymentRev[0]?.total) || 0;
+
+      totalRevenueNaira = Math.max(sumBookings + sumRides, sumPayments);
     } catch (e) {
       console.error("Revenue sum err:", e.message);
     }

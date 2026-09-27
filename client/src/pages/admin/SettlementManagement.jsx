@@ -67,13 +67,25 @@ const SettlementManagement = () => {
       ]);
 
       if (overviewRes.status === "fulfilled" && overviewRes.value.data.success) {
-        setOverview(overviewRes.value.data.data.metrics);
+        const raw = overviewRes.value.data.data;
+        const m = raw.metrics || raw;
+        setOverview({
+          grossInflow: Number(m.grossInflow ?? m.totalGrossVolume ?? 0),
+          platformCommission: Number(m.platformCommission ?? m.totalVadtransRevenue ?? 0),
+          gatewayFees: Number(m.gatewayFees ?? m.totalGatewayFees ?? 0),
+          payoutsDisbursed: Number(m.payoutsDisbursed ?? m.totalDisbursedAmount ?? 0),
+          escrowHeld: Number(m.escrowHeld ?? m.totalEscrowBalance ?? 0),
+          eligiblePayables: Number(m.eligiblePayables ?? m.pendingPayablesCount ?? 0),
+          successPayoutsCount: Number(m.successPayoutsCount ?? m.totalPayoutsCount ?? 0),
+          failedPayoutsCount: Number(m.failedPayoutsCount ?? 0),
+        });
       }
       if (payablesRes.status === "fulfilled" && payablesRes.value.data.success) {
         setPayables(payablesRes.value.data.data.payables || []);
       }
       if (ledgerRes.status === "fulfilled" && ledgerRes.value.data.success) {
-        setLedgerEntries(ledgerRes.value.data.data.entries || []);
+        const raw = ledgerRes.value.data.data;
+        setLedgerEntries(raw.ledgerEntries || raw.entries || []);
       }
       if (payoutsRes.status === "fulfilled" && payoutsRes.value.data.success) {
         setPayouts(payoutsRes.value.data.data.payouts || []);

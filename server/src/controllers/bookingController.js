@@ -2,6 +2,7 @@ const Booking = require("../models/Booking");
 const Trip = require("../models/Trip");
 const User = require("../models/User");
 const Notification = require("../models/Notification");
+const { Op } = require("sequelize");
 const { sequelize } = require("../config/database");
 const { syncTripSeats } = require("./tripController");
 
@@ -179,7 +180,19 @@ exports.getUserBookings = async (req, res) => {
   try {
     const bookings = await Booking.findAll({
       where: { userId: req.user.id },
-      include: [{ model: Trip, as: "trip" }],
+      include: [
+        {
+          model: Trip,
+          as: "trip",
+          include: [
+            {
+              model: User,
+              as: "company",
+              attributes: ["id", "name", "email", "phone", "companyName"],
+            },
+          ],
+        },
+      ],
       order: [["createdAt", "DESC"]],
     });
 
@@ -249,9 +262,25 @@ exports.getCompanyBookings = async (req, res) => {
 // @access  Private
 exports.getBooking = async (req, res) => {
   try {
-    const booking = await Booking.findByPk(req.params.id, {
+    const isNumeric = !isNaN(req.params.id) && /^\d+$/.test(String(req.params.id));
+    const where = isNumeric
+      ? { [Op.or]: [{ id: req.params.id }, { bookingId: req.params.id }] }
+      : { bookingId: req.params.id };
+
+    const booking = await Booking.findOne({
+      where,
       include: [
-        { model: Trip, as: "trip" },
+        {
+          model: Trip,
+          as: "trip",
+          include: [
+            {
+              model: User,
+              as: "company",
+              attributes: ["id", "name", "email", "phone", "companyName"],
+            },
+          ],
+        },
         { model: User, as: "user", attributes: ["name", "email", "phone"] },
       ],
     });
