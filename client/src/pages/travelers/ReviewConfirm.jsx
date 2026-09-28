@@ -64,32 +64,51 @@ const ReviewConfirm = () => {
   const amountToPay = paymentOption === "deposit" ? depositAmount : total;
 
   const [paystackRef, setPaystackRef] = useState(() => {
-    return sessionStorage.getItem("lastPaystackRef") || new Date().getTime().toString();
+    return (
+      localStorage.getItem("lastPaystackRef") ||
+      sessionStorage.getItem("lastPaystackRef") ||
+      new Date().getTime().toString()
+    );
   });
   const [isVerifying, setIsVerifying] = useState(false);
   const [pendingBookingData, setPendingBookingData] = useState(() => {
-    const id = sessionStorage.getItem("lastPendingBookingId");
-    const ref = sessionStorage.getItem("lastPendingBookingRef");
+    const id =
+      localStorage.getItem("lastPendingBookingId") ||
+      sessionStorage.getItem("lastPendingBookingId");
+    const ref =
+      localStorage.getItem("lastPendingBookingRef") ||
+      sessionStorage.getItem("lastPendingBookingRef");
     return id ? { id, ref } : null;
   });
 
-  // Re-check when window/tab regains focus (e.g. user returns from bank app)
+  // Re-check when window/tab regains focus or visibility (e.g. user returns from bank app)
   useEffect(() => {
-    const handleFocus = () => {
-      const pendingId = sessionStorage.getItem("lastPendingBookingId");
-      if (pendingId) {
-        checkPendingPaymentStatus(pendingId, false);
+    const handleRecheck = () => {
+      if (document.visibilityState === "visible" || document.hasFocus()) {
+        const pendingId =
+          localStorage.getItem("lastPendingBookingId") ||
+          sessionStorage.getItem("lastPendingBookingId");
+        if (pendingId) {
+          checkPendingPaymentStatus(pendingId, false);
+        }
       }
     };
-    window.addEventListener("focus", handleFocus);
-    return () => window.removeEventListener("focus", handleFocus);
+    window.addEventListener("focus", handleRecheck);
+    document.addEventListener("visibilitychange", handleRecheck);
+    return () => {
+      window.removeEventListener("focus", handleRecheck);
+      document.removeEventListener("visibilitychange", handleRecheck);
+    };
   }, [paystackRef]);
 
   // Stabilize the config to prevent hook re-initialization issues
   const paystackConfig = React.useMemo(() => {
     const email = user?.email || passengers?.[0]?.email || "";
     const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-    const currentBookingId = pendingBookingData?.id || sessionStorage.getItem("lastPendingBookingId");
+    const currentBookingId =
+      pendingBookingData?.id ||
+      localStorage.getItem("lastPendingBookingId") ||
+      sessionStorage.getItem("lastPendingBookingId");
 
     return {
       reference: paystackRef,
@@ -99,24 +118,46 @@ const ReviewConfirm = () => {
       metadata: {
         bookingId: currentBookingId,
         custom_fields: [
-          { display_name: "Booking ID", variable_name: "bookingId", value: currentBookingId },
-          { display_name: "Route", variable_name: "route", value: `${tripData?.from || ""} - ${tripData?.to || ""}` }
-        ]
-      }
+          {
+            display_name: "Booking ID",
+            variable_name: "bookingId",
+            value: currentBookingId,
+          },
+          {
+            display_name: "Route",
+            variable_name: "route",
+            value: `${tripData?.from || ""} - ${tripData?.to || ""}`,
+          },
+        ],
+      },
     };
-  }, [user?.email, passengers?.[0]?.email, amountToPay, paystackRef, pendingBookingData?.id, tripData?.from, tripData?.to]);
+  }, [
+    user?.email,
+    passengers?.[0]?.email,
+    amountToPay,
+    paystackRef,
+    pendingBookingData?.id,
+    tripData?.from,
+    tripData?.to,
+  ]);
 
   const initializePayment = usePaystackPayment(paystackConfig);
 
-
   // Helper to navigate to confirmation — always called after Paystack approval
   const goToConfirmation = (confirmedBooking = null) => {
-    const bookingId = confirmedBooking?.id || sessionStorage.getItem("lastPendingBookingId");
+    const bookingId =
+      confirmedBooking?.id ||
+      localStorage.getItem("lastPendingBookingId") ||
+      sessionStorage.getItem("lastPendingBookingId");
     const savedRef =
       confirmedBooking?.bookingId ||
+      localStorage.getItem("lastPendingBookingRef") ||
       sessionStorage.getItem("lastPendingBookingRef") ||
       `BK-${bookingId || Date.now()}`;
 
+    localStorage.removeItem("lastPendingBookingId");
+    localStorage.removeItem("lastPendingBookingRef");
+    localStorage.removeItem("lastPaystackRef");
     sessionStorage.removeItem("lastPendingBookingId");
     sessionStorage.removeItem("lastPendingBookingRef");
     sessionStorage.removeItem("lastPaystackRef");
@@ -269,6 +310,9 @@ const ReviewConfirm = () => {
             response.data.booking.bookingId || `BK-${bookingId}`;
           const newTxRef = new Date().getTime().toString();
           setPaystackRef(newTxRef);
+          localStorage.setItem("lastPendingBookingId", bookingId);
+          localStorage.setItem("lastPendingBookingRef", bookingRef);
+          localStorage.setItem("lastPaystackRef", newTxRef);
           sessionStorage.setItem("lastPendingBookingId", bookingId);
           sessionStorage.setItem("lastPendingBookingRef", bookingRef);
           sessionStorage.setItem("lastPaystackRef", newTxRef);

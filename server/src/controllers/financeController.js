@@ -11,7 +11,64 @@ const {
   resolveBankAccount,
   getOrCreateTransferRecipient,
   executeProviderPayout,
+  recordBookingPayment,
 } = require("../utils/payoutService");
+
+// Auto-sync unrecorded paid bookings and rides into payables/ledger
+const syncUnrecordedPayables = async () => {
+  try {
+    const paidBookings = await Booking.findAll({
+      where: {
+        [Op.or]: [{ paymentStatus: "paid" }, { bookingStatus: "completed" }],
+      },
+      include: [{ model: Trip, as: "trip" }],
+      limit: 100,
+    });
+
+    for (const b of paidBookings) {
+      const exists = await ProviderPayable.findOne({ where: { bookingId: b.id } });
+      if (!exists && b.trip) {
+        const gross = parseFloat(b.paidAmount || b.totalAmount) || 0;
+        if (gross > 0) {
+          await recordBookingPayment({
+            bookingId: b.id,
+            providerId: b.trip.companyId,
+            userId: b.userId,
+            reference: b.paymentReference || `SYNC-BK-${b.id}`,
+            grossAmount: gross,
+            channel: b.paymentMethod || "card",
+            metadata: { autoSynced: true, bookingRef: b.bookingId },
+          }).catch((e) => console.warn("Auto-sync booking note:", e.message));
+        }
+      }
+    }
+
+    const paidRides = await PrivateRideRequest.findAll({
+      where: { paymentStatus: "paid" },
+      limit: 100,
+    });
+
+    for (const r of paidRides) {
+      const exists = await ProviderPayable.findOne({ where: { privateRideId: r.id } });
+      if (!exists && r.driverId) {
+        const gross = parseFloat(r.agreedPrice) || 0;
+        if (gross > 0) {
+          await recordBookingPayment({
+            privateRideId: r.id,
+            providerId: r.driverId,
+            userId: r.passengerId,
+            reference: r.paymentReference || `SYNC-PR-${r.id}`,
+            grossAmount: gross,
+            channel: "card",
+            metadata: { autoSynced: true, requestId: r.requestId },
+          }).catch((e) => console.warn("Auto-sync ride note:", e.message));
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("syncUnrecordedPayables note:", err.message);
+  }
+};
 
 /**
  * @desc    Get Financial KPI Overview (Admin)
@@ -20,6 +77,7 @@ const {
  */
 exports.getFinancialOverview = async (req, res) => {
   try {
+    await syncUnrecordedPayables();
     // 1. Total Gross Volume (Successful Payments)
     const totalPayments = await Payment.findAll({
       where: { status: "success" },
@@ -202,6 +260,7 @@ exports.getTransactionLedger = async (req, res) => {
  */
 exports.getProviderPayables = async (req, res) => {
   try {
+    await syncUnrecordedPayables();
     const { status, providerId, page = 1, limit = 20 } = req.query;
     const where = {};
 

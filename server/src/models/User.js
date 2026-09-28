@@ -23,6 +23,12 @@ const User = sequelize.define(
       type: DataTypes.STRING,
       allowNull: false,
     },
+    companyName: {
+      type: DataTypes.VIRTUAL,
+      get() {
+        return this.name;
+      },
+    },
     email: {
       type: DataTypes.STRING,
       allowNull: false,

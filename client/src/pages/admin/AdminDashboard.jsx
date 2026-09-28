@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import Sidebar from "../../components/admin/Sidebar";
 import { useAuth } from "../../context/AuthContext";
 import Card from "../../components/Card";
@@ -11,12 +12,19 @@ import {
   FaArrowUp,
   FaArrowDown,
   FaBox,
+  FaLock,
+  FaWallet,
+  FaCheckCircle,
+  FaArrowRight,
+  FaExternalLinkAlt,
+  FaShieldAlt,
 } from "react-icons/fa";
 
-import { adminAPI } from "../../services/api";
+import { adminAPI, financeAPI } from "../../services/api";
 import { toast } from "react-toastify";
 
 const AdminDashboard = () => {
+  const navigate = useNavigate();
   const { isModerator } = useAuth();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -27,8 +35,19 @@ const AdminDashboard = () => {
     totalShipments: 0,
     totalRevenue: 0,
     recentBookings: [],
+    finance: null,
   });
+  const [financeOverview, setFinanceOverview] = useState(null);
   const [topCompanies, setTopCompanies] = useState([]);
+
+  const formatNaira = (amount) => {
+    return new Intl.NumberFormat("en-NG", {
+      style: "currency",
+      currency: "NGN",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(Number(amount) || 0);
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -38,9 +57,18 @@ const AdminDashboard = () => {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const response = await adminAPI.getStats();
-      if (response.data.success) {
-        setStats(response.data.data);
+      const [statsRes, financeRes] = await Promise.allSettled([
+        adminAPI.getStats(),
+        financeAPI.getOverview(),
+      ]);
+
+      if (statsRes.status === "fulfilled" && statsRes.value.data.success) {
+        setStats(statsRes.value.data.data);
+      }
+      if (financeRes.status === "fulfilled" && financeRes.value.data.success) {
+        setFinanceOverview(
+          financeRes.value.data.data?.metrics || financeRes.value.data.data,
+        );
       }
     } catch (error) {
       console.error("Error fetching dashboard data:", error);
@@ -217,6 +245,132 @@ const AdminDashboard = () => {
               );
             })}
           </div>
+
+          {/* Financial & Automated Payout Engine Section */}
+          {!isModerator && (
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-charcoal text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-700/50 relative overflow-hidden">
+              <div className="absolute -right-12 -bottom-12 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-white/10 mb-6">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span className="text-[11px] font-extrabold uppercase tracking-widest text-emerald-400">
+                      Live Financial Operations
+                    </span>
+                  </div>
+                  <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-white flex items-center gap-2">
+                    <FaWallet className="text-emerald-400" />
+                    Financial & Automated Payout Engine
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl">
+                    Real-time marketplace revenue, escrow balance held for providers, and automated Paystack bank disbursements.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/admin/settlements")}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-emerald-900/30 transition-all flex items-center gap-2 self-start md:self-auto hover:-translate-y-0.5"
+                >
+                  <span>Open Full Payout Engine</span>
+                  <FaArrowRight size={12} />
+                </button>
+              </div>
+
+              {/* Engine Metrics Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Gross Inflow */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      Gross Payments Inflow
+                    </span>
+                    <div className="p-1.5 bg-blue-500/20 text-blue-400 rounded-lg">
+                      <FaMoneyBillWave size={14} />
+                    </div>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-white tracking-tight">
+                    {formatNaira(
+                      financeOverview?.grossInflow ??
+                        stats.finance?.grossInflow ??
+                        stats.totalRevenue,
+                    )}
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    Total paid bookings & rides
+                  </p>
+                </div>
+
+                {/* Vadtrans Platform Revenue */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      Platform Commission (10%)
+                    </span>
+                    <div className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg">
+                      <FaShieldAlt size={14} />
+                    </div>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
+                    {formatNaira(
+                      financeOverview?.platformCommission ??
+                        stats.finance?.platformCommission ??
+                        stats.totalRevenue * 0.1,
+                    )}
+                  </p>
+                  <p className="text-[11px] text-emerald-300/70 mt-1">
+                    Vadtrans retained platform fee
+                  </p>
+                </div>
+
+                {/* Held in Escrow */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      Held in Escrow
+                    </span>
+                    <div className="p-1.5 bg-amber-500/20 text-amber-400 rounded-lg">
+                      <FaLock size={14} />
+                    </div>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-amber-300 tracking-tight">
+                    {formatNaira(
+                      financeOverview?.escrowHeld ??
+                        stats.finance?.escrowHeld ??
+                        stats.totalRevenue * 0.9,
+                    )}
+                  </p>
+                  <p className="text-[11px] text-amber-200/70 mt-1">
+                    Awaiting trip completion
+                  </p>
+                </div>
+
+                {/* Disbursed Payouts */}
+                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                      Disbursed Payouts
+                    </span>
+                    <div className="p-1.5 bg-purple-500/20 text-purple-400 rounded-lg">
+                      <FaCheckCircle size={14} />
+                    </div>
+                  </div>
+                  <p className="text-xl sm:text-2xl font-black text-purple-300 tracking-tight">
+                    {formatNaira(
+                      financeOverview?.payoutsDisbursed ??
+                        stats.finance?.payoutsDisbursed ??
+                        0,
+                    )}
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-1">
+                    {financeOverview?.successPayoutsCount ??
+                      stats.finance?.payoutsCount ??
+                      0}{" "}
+                    transfers paid to bank
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className={`grid grid-cols-1 ${isModerator ? 'lg:grid-cols-1' : 'lg:grid-cols-3'} gap-6`}>
             {/* Main Chart Section */}

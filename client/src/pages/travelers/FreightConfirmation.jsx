@@ -42,14 +42,28 @@ const FreightConfirmation = () => {
         scale: 2,
         logging: false,
         useCORS: true,
+        scrollY: -window.scrollY,
+        scrollX: 0,
       });
 
       const imgData = canvas.toDataURL("image/png");
       const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const printableWidth = pageWidth - margin * 2;
+      const printableHeight = pageHeight - margin * 2;
+      const imgHeight = (canvas.height * printableWidth) / canvas.width;
 
-      pdf.addImage(imgData, "PNG", 0, 0, pdfWidth, pdfHeight);
+      if (imgHeight <= printableHeight) {
+        pdf.addImage(imgData, "PNG", margin, margin, printableWidth, imgHeight, undefined, "FAST");
+      } else {
+        const scaledHeight = printableHeight;
+        const scaledWidth = (canvas.width * scaledHeight) / canvas.height;
+        const xOffset = (pageWidth - scaledWidth) / 2;
+        pdf.addImage(imgData, "PNG", xOffset, margin, scaledWidth, scaledHeight, undefined, "FAST");
+      }
+
       pdf.save(`VadTrans-Waybill-${bookingId}.pdf`);
       toast.success("Waybill downloaded successfully!");
     } catch (error) {

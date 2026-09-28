@@ -45,11 +45,96 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
     };
   }, [isAuthenticated, user]);
 
-  const awaitingPaymentRide = !isBannerDismissed && privateRequests.find(r => 
-    r.status === "awaiting_payment" && 
-    r.paymentStatus !== "paid" &&
-    r.createdAt && (new Date() - new Date(r.createdAt)) < 2 * 60 * 60 * 1000
-  );
+  const awaitingPaymentRide =
+    !isBannerDismissed &&
+    privateRequests.find(
+      (r) =>
+        r.status === "awaiting_payment" &&
+        r.paymentStatus !== "paid" &&
+        r.createdAt &&
+        new Date() - new Date(r.createdAt) < 2 * 60 * 60 * 1000,
+    );
+
+  const unacceptedBidsRide =
+    !isBannerDismissed &&
+    !awaitingPaymentRide &&
+    privateRequests.find(
+      (r) =>
+        r.status === "searching" &&
+        r.bids &&
+        r.bids.length > 0 &&
+        r.createdAt &&
+        new Date() - new Date(r.createdAt) < 2 * 60 * 60 * 1000,
+    );
+
+  // Auto-verify when tab regains focus or visibility (user returns from banking app)
+  useEffect(() => {
+    const handleReturnToSite = async () => {
+      // 1. Check awaiting payment private ride
+      const awaiting = privateRequests.find(
+        (r) => r.status === "awaiting_payment" && r.paymentStatus !== "paid",
+      );
+      if (awaiting) {
+        try {
+          const vRes = await api
+            .get(`/private-rides/verify/return_check?privateRideId=${awaiting.id}`)
+            .catch(() => null);
+          if (vRes?.data?.success) {
+            toast.success("Payment confirmed! Driver assigned.");
+            fetchPrivateRequests();
+          }
+        } catch (e) {}
+      }
+
+      // 2. Check pending shared ticket booking
+      const pendingBookingId =
+        localStorage.getItem("lastPendingBookingId") ||
+        sessionStorage.getItem("lastPendingBookingId");
+      const pendingRef =
+        localStorage.getItem("lastPendingBookingRef") ||
+        sessionStorage.getItem("lastPendingBookingRef");
+      const pendingTx =
+        localStorage.getItem("lastPaystackRef") ||
+        sessionStorage.getItem("lastPaystackRef");
+
+      if (pendingBookingId && pendingTx) {
+        try {
+          const checkRes = await api
+            .get(`/payment/verify/${pendingTx}?bookingId=${pendingBookingId}`)
+            .catch(() => null);
+          if (checkRes?.data?.success) {
+            toast.success("Ticket payment verified successfully!");
+            localStorage.removeItem("lastPendingBookingId");
+            localStorage.removeItem("lastPendingBookingRef");
+            localStorage.removeItem("lastPaystackRef");
+            sessionStorage.removeItem("lastPendingBookingId");
+            sessionStorage.removeItem("lastPendingBookingRef");
+            sessionStorage.removeItem("lastPaystackRef");
+            navigate("/booking/confirmation", {
+              state: {
+                id: pendingBookingId,
+                bookingId: pendingRef || `BK-${pendingBookingId}`,
+                trip: checkRes.data.booking?.trip,
+                passengers: checkRes.data.booking?.passengers,
+                passengerDetails: checkRes.data.booking?.passengers,
+                selectedSeats: checkRes.data.booking?.selectedSeats,
+                totalAmount: checkRes.data.booking?.totalAmount,
+                paidAmount: checkRes.data.booking?.paidAmount,
+                paymentMethod: "card",
+              },
+            });
+          }
+        } catch (e) {}
+      }
+    };
+
+    window.addEventListener("focus", handleReturnToSite);
+    document.addEventListener("visibilitychange", handleReturnToSite);
+    return () => {
+      window.removeEventListener("focus", handleReturnToSite);
+      document.removeEventListener("visibilitychange", handleReturnToSite);
+    };
+  }, [privateRequests]);
 
   const handleLogout = () => {
     logout();
@@ -61,15 +146,19 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
   if (variant === "desktop") {
     return (
       <nav className="sticky top-0 z-50 w-full glass-panel border-b border-neutral-200/50 shadow-premium">
-        {/* Sticky Alert Banner for pending bids */}
-        {awaitingPaymentRide && (
-          <div className="bg-primary text-white py-2 px-4 text-center text-sm font-bold flex justify-between items-center transition-colors">
-            <div 
-              onClick={() => navigate('/request-private-ride')}
+        {/* Sticky Alert Banner for awaiting payment or bids */}
+        {awaitingPaymentRide ? (
+          <div className="bg-amber-600 text-white py-2 px-4 text-center text-sm font-bold flex justify-between items-center transition-colors shadow-md">
+            <div
+              onClick={() => navigate("/request-private-ride")}
               className="flex-1 flex justify-center items-center gap-2 cursor-pointer hover:underline"
             >
-              <span className="animate-ping text-lg">🚨</span> 
-              A driver has placed a bid on your Private Ride request! Click here to view and accept.
+              <span className="text-lg">💳</span>
+              <span>
+                Your accepted private ride offer (₦
+                {awaitingPaymentRide.agreedPrice?.toLocaleString()}) is awaiting
+                payment confirmation. Click here to confirm or track driver.
+              </span>
             </div>
             <button
               type="button"
@@ -83,7 +172,29 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
               ✕
             </button>
           </div>
-        )}
+        ) : unacceptedBidsRide ? (
+          <div className="bg-primary text-white py-2 px-4 text-center text-sm font-bold flex justify-between items-center transition-colors">
+            <div
+              onClick={() => navigate("/request-private-ride")}
+              className="flex-1 flex justify-center items-center gap-2 cursor-pointer hover:underline"
+            >
+              <span className="animate-ping text-lg">🚨</span>
+              A driver has placed a bid on your Private Ride request! Click here
+              to view and accept.
+            </div>
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setIsBannerDismissed(true);
+              }}
+              className="text-white/80 hover:text-white p-1 rounded transition-colors text-xs font-bold"
+              title="Dismiss notification"
+            >
+              ✕
+            </button>
+          </div>
+        ) : null}
         
         {/* Top contact bar - Hidden on mobile */}
         <div className="hidden md:block bg-charcoal text-white/80 py-1.5 border-b border-charcoal-light/10 text-xs">
@@ -267,24 +378,47 @@ const Navbar = ({ variant = "desktop", portalLabel }) => {
                                     </div>
                                     <p className="text-sm font-semibold text-charcoal truncate">{req.pickupLocation} → {req.destination}</p>
                                     {req.status === 'awaiting_payment' && req.paymentStatus !== 'paid' && (
-                                      <div className="flex items-center justify-between mt-1 pt-1 border-t border-neutral-100">
-                                        <p className="text-xs text-amber-600 font-bold">Driver bid received! Click to pay.</p>
-                                        <button
-                                          type="button"
-                                          onClick={async (e) => {
-                                            e.stopPropagation();
-                                            try {
-                                              await api.post(`/private-rides/${req.id}/cancel`);
-                                              toast.info("Request cancelled.");
-                                              fetchPrivateRequests();
-                                            } catch (err) {
-                                              console.error(err);
-                                            }
-                                          }}
-                                          className="text-[10px] text-red-500 hover:text-red-700 underline font-semibold ml-2"
-                                        >
-                                          Cancel
-                                        </button>
+                                      <div className="mt-2 pt-2 border-t border-neutral-100">
+                                        <p className="text-xs text-amber-700 font-medium mb-1.5">
+                                          Driver bid accepted (₦{(req.price || req.estimatedPrice || 0).toLocaleString()}).
+                                        </p>
+                                        <div className="flex items-center gap-2">
+                                          <button
+                                            type="button"
+                                            onClick={async (e) => {
+                                              e.stopPropagation();
+                                              try {
+                                                await api.post(`/private-rides/${req.id}/confirm-payment`);
+                                                toast.success("Payment confirmed! Driver is assigned.");
+                                                setIsNotificationsOpen(false);
+                                                fetchPrivateRequests();
+                                                navigate('/tracking', { state: { bookingId: req.requestId } });
+                                              } catch (err) {
+                                                toast.info("Checking status... opening ride details.");
+                                                navigate('/request-private-ride');
+                                              }
+                                            }}
+                                            className="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold rounded shadow-sm transition-colors"
+                                          >
+                                            I Paid / Confirm
+                                          </button>
+                                          <button
+                                            type="button"
+                                            onClick={async (e) => {
+                                              e.stopPropagation();
+                                              try {
+                                                await api.post(`/private-rides/${req.id}/cancel`);
+                                                toast.info("Request cancelled.");
+                                                fetchPrivateRequests();
+                                              } catch (err) {
+                                                console.error(err);
+                                              }
+                                            }}
+                                            className="text-[10px] text-red-500 hover:text-red-700 underline font-semibold ml-auto"
+                                          >
+                                            Cancel
+                                          </button>
+                                        </div>
                                       </div>
                                     )}
                                   </div>

@@ -7,6 +7,8 @@ const Notification = require("../models/Notification");
 const Review = require("../models/Review");
 const PrivateRideRequest = require("../models/PrivateRideRequest");
 const Payment = require("../models/Payment");
+const ProviderPayable = require("../models/ProviderPayable");
+const Payout = require("../models/Payout");
 const { Op } = require("sequelize");
 const { sequelize } = require("../config/database");
 const { sendAccountDeletedEmail } = require("../utils/emailService");
@@ -102,6 +104,43 @@ exports.getDashboardStats = async (req, res) => {
       console.error("recentBookings err:", e.message);
     }
 
+    // Calculate financial & automated payout engine metrics
+    let grossInflow = totalRevenueNaira;
+    let platformCommission = Math.round(totalRevenueNaira * 0.10);
+    let escrowHeld = 0;
+    let payoutsDisbursed = 0;
+    let eligiblePayables = 0;
+    let payoutsCount = 0;
+
+    try {
+      const [payoutsData, payablesData, eligibleCount] = await Promise.all([
+        Payout.findAll({
+          where: { status: "success" },
+          attributes: [
+            [sequelize.fn("SUM", sequelize.col("amount")), "totalDisbursed"],
+            [sequelize.fn("COUNT", sequelize.col("id")), "count"],
+          ],
+          raw: true,
+        }),
+        ProviderPayable.findAll({
+          where: { status: { [Op.in]: ["pending_trip", "eligible", "queued"] } },
+          attributes: [[sequelize.fn("SUM", sequelize.col("netPayableAmount")), "totalEscrow"]],
+          raw: true,
+        }),
+        ProviderPayable.count({ where: { status: "eligible" } }),
+      ]);
+
+      payoutsDisbursed = parseFloat(payoutsData[0]?.totalDisbursed) || 0;
+      payoutsCount = parseInt(payoutsData[0]?.count) || 0;
+      escrowHeld =
+        parseFloat(payablesData[0]?.totalEscrow) ||
+        Math.max(0, Math.round(grossInflow * 0.90) - payoutsDisbursed);
+      eligiblePayables = eligibleCount;
+    } catch (e) {
+      console.warn("Financial stats note in adminController:", e.message);
+      escrowHeld = Math.max(0, Math.round(grossInflow * 0.90) - payoutsDisbursed);
+    }
+
     res.status(200).json({
       success: true,
       data: {
@@ -113,6 +152,14 @@ exports.getDashboardStats = async (req, res) => {
         totalRevenue: totalRevenueNaira,
         totalRevenueUSD: totalRevenueUSD,
         recentBookings,
+        finance: {
+          grossInflow,
+          platformCommission,
+          escrowHeld,
+          payoutsDisbursed,
+          eligiblePayables,
+          payoutsCount,
+        },
       },
     });
   } catch (error) {

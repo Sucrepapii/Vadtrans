@@ -188,7 +188,7 @@ exports.getUserBookings = async (req, res) => {
             {
               model: User,
               as: "company",
-              attributes: ["id", "name", "email", "phone", "companyName"],
+              attributes: ["id", "name", "email", "phone", "avatar"],
             },
           ],
         },
@@ -277,7 +277,7 @@ exports.getBooking = async (req, res) => {
             {
               model: User,
               as: "company",
-              attributes: ["id", "name", "email", "phone", "companyName"],
+              attributes: ["id", "name", "email", "phone", "avatar"],
             },
           ],
         },

@@ -186,25 +186,103 @@ const BookingConfirmation = () => {
         scale: 2,
         logging: false,
         useCORS: true,
-        scrollY: 0,
+        scrollY: -window.scrollY,
         scrollX: 0,
-        windowWidth: 1024,
+        onclone: (clonedDoc) => {
+          const clonedEl = clonedDoc.getElementById("ticket-content");
+          if (clonedEl) {
+            clonedEl.style.width = "780px";
+            clonedEl.style.maxWidth = "780px";
+            clonedEl.style.margin = "0 auto";
+            clonedEl.style.padding = "24px";
+            // Remove sticky positioning which truncates or misplaces elements in html2canvas
+            const stickyElements = clonedEl.querySelectorAll(".sticky");
+            stickyElements.forEach((el) => {
+              el.classList.remove("sticky");
+              el.style.position = "static";
+            });
+          }
+        },
       });
 
       const imgData = canvas.toDataURL("image/png");
-      const pdfWidth = 210; // A4 width mm
-      const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth(); // 210mm
+      const pageHeight = pdf.internal.pageSize.getHeight(); // 297mm
 
-      // Ensure full ticket is visible on a complete continuous boarding pass
-      const pageHeight = Math.max(297, pdfHeight + 15);
-      const pdf = new jsPDF("p", "mm", [pdfWidth, pageHeight]);
+      const margin = 10;
+      const printableWidth = pageWidth - margin * 2; // 190mm
+      const printableHeight = pageHeight - margin * 2; // 277mm
 
-      pdf.addImage(imgData, "PNG", 0, 8, pdfWidth, pdfHeight, undefined, "FAST");
+      const imgHeight = (canvas.height * printableWidth) / canvas.width;
+
+      if (imgHeight <= printableHeight) {
+        // Fits comfortably on 1 standard A4 page
+        pdf.addImage(
+          imgData,
+          "PNG",
+          margin,
+          margin,
+          printableWidth,
+          imgHeight,
+          undefined,
+          "FAST",
+        );
+      } else if (imgHeight <= printableHeight * 1.25) {
+        // Scale down slightly to fit on a single clean page
+        const scaledHeight = printableHeight;
+        const scaledWidth = (canvas.width * scaledHeight) / canvas.height;
+        const xOffset = (pageWidth - scaledWidth) / 2;
+        pdf.addImage(
+          imgData,
+          "PNG",
+          xOffset,
+          margin,
+          scaledWidth,
+          scaledHeight,
+          undefined,
+          "FAST",
+        );
+      } else {
+        // Paginate cleanly across multiple A4 pages
+        let heightLeft = imgHeight;
+        let position = margin;
+        pdf.addImage(
+          imgData,
+          "PNG",
+          margin,
+          position,
+          printableWidth,
+          imgHeight,
+          undefined,
+          "FAST",
+        );
+        heightLeft -= printableHeight;
+
+        while (heightLeft > 0) {
+          position = margin - (imgHeight - heightLeft);
+          pdf.addPage();
+          pdf.addImage(
+            imgData,
+            "PNG",
+            margin,
+            position,
+            printableWidth,
+            imgHeight,
+            undefined,
+            "FAST",
+          );
+          heightLeft -= printableHeight;
+        }
+      }
+
       pdf.save(`VadTrans-Ticket-${finalBookingId}.pdf`);
       toast.success("Ticket downloaded successfully!");
     } catch (error) {
       console.error("Download error:", error);
-      toast.error("Failed to download ticket. Please use the Print option as an alternative.");
+      toast.error(
+        "Failed to download ticket. Please use the Print option as an alternative.",
+      );
     }
   };
 
