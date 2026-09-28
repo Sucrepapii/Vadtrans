@@ -4,6 +4,7 @@ import { toast } from "react-toastify";
 import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Modal from "../../components/Modal";
+import Button from "../../components/Button";
 import api, { bookingAPI, privateRideAPI } from "../../services/api";
 import {
   FaEye,
