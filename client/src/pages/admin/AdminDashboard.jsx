@@ -304,7 +304,7 @@ const AdminDashboard = () => {
                 <div className="bg-white/5 border border-white/10 rounded-2xl p-4 backdrop-blur-sm hover:bg-white/10 transition-colors">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                      Platform Commission (10%)
+                      Platform Commission
                     </span>
                     <div className="p-1.5 bg-emerald-500/20 text-emerald-400 rounded-lg">
                       <FaShieldAlt size={14} />
@@ -313,8 +313,7 @@ const AdminDashboard = () => {
                   <p className="text-xl sm:text-2xl font-black text-emerald-400 tracking-tight">
                     {formatNaira(
                       financeOverview?.platformCommission ??
-                        stats.finance?.platformCommission ??
-                        stats.totalRevenue * 0.1,
+                        stats.finance?.platformCommission ?? 0
                     )}
                   </p>
                   <p className="text-[11px] text-emerald-300/70 mt-1">

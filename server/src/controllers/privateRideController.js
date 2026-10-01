@@ -520,7 +520,7 @@ exports.verifyPayment = async (req, res) => {
 
       const finalPrice = request.agreedPrice || verifiedAmount || (acceptedBid?.bidAmount) || 0;
       request.agreedPrice = finalPrice;
-      request.commissionAmount = finalPrice * 0.10; // Standard 10% marketplace commission
+      request.commissionAmount = finalPrice * 0.20; // Standard 20% marketplace commission
       await request.save();
 
       // Automatically record in TransactionLedger and initialize ProviderPayable
@@ -647,7 +647,7 @@ exports.confirmPayment = async (req, res) => {
 
     const finalPrice = request.agreedPrice || acceptedBid?.bidAmount || 0;
     request.agreedPrice = finalPrice;
-    request.commissionAmount = finalPrice * 0.10; // Standard 10% commission
+    request.commissionAmount = finalPrice * 0.20; // Standard 20% commission
     await request.save();
 
     // Automatically record in TransactionLedger and initialize ProviderPayable

@@ -13,12 +13,16 @@ const { Op } = require("sequelize");
 const { sequelize } = require("../config/database");
 const { sendAccountDeletedEmail } = require("../utils/emailService");
 const { syncTripSeats } = require("./tripController");
+const { syncUnrecordedPayables } = require("./financeController");
 
 // @desc    Get dashboard statistics
 // @route   GET /api/admin/stats
 // @access  Private/Admin
 exports.getDashboardStats = async (req, res) => {
   try {
+    // Sync unrecorded payables first to ensure fresh financial data
+    await syncUnrecordedPayables().catch(() => {});
+
     // Get counts with individual try-catch to prevent complete failure
     let totalUsers = 0, totalCompanies = 0, totalTrips = 0, totalBookings = 0, totalShipments = 0;
     try { totalUsers = await User.count({ where: { role: "traveler" } }); } catch (e) { console.error("totalUsers err:", e.message); }
@@ -106,11 +110,23 @@ exports.getDashboardStats = async (req, res) => {
 
     // Calculate financial & automated payout engine metrics
     let grossInflow = totalRevenueNaira;
-    let platformCommission = Math.round(totalRevenueNaira * 0.10);
+    let platformCommission = 0;
     let escrowHeld = 0;
     let payoutsDisbursed = 0;
     let eligiblePayables = 0;
     let payoutsCount = 0;
+
+    try {
+      const commData = await sequelize.models.TransactionLedger.findAll({
+        where: { entryType: "COMMISSION_REVENUE" },
+        attributes: [[sequelize.fn("SUM", sequelize.col("amount")), "totalComm"]],
+        raw: true,
+      });
+      platformCommission = parseFloat(commData[0]?.totalComm) || 0;
+    } catch(e) {
+      // Fallback if ledger not initialized
+      platformCommission = Math.round(grossInflow * 0.10);
+    }
 
     try {
       const [payoutsData, payablesData, eligibleCount] = await Promise.all([

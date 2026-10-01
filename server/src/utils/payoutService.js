@@ -112,7 +112,8 @@ const recordBookingPayment = async ({
   const managedTransaction = !transaction;
 
   try {
-    const split = calculateMarketplaceSplit(grossAmount, 0.10, gatewayFee);
+    const commissionRate = privateRideId ? 0.20 : 0.05;
+    const split = calculateMarketplaceSplit(grossAmount, commissionRate, gatewayFee);
 
     // 1. Create or update Payment record
     const [paymentRecord, created] = await Payment.findOrCreate({
@@ -201,7 +202,7 @@ const recordBookingPayment = async ({
         direction: "CREDIT",
         amount: split.commissionAmount,
         currency: "NGN",
-        description: `Vadtrans 10% marketplace commission for ${prefix}`,
+        description: `Vadtrans ${split.commissionRate * 100}% marketplace commission for ${prefix}`,
         metadata: { commissionRate: split.commissionRate, commissionAmount: split.commissionAmount },
       },
       { transaction: t }

@@ -69,6 +69,7 @@ const syncUnrecordedPayables = async () => {
     console.warn("syncUnrecordedPayables note:", err.message);
   }
 };
+exports.syncUnrecordedPayables = syncUnrecordedPayables;
 
 /**
  * @desc    Get Financial KPI Overview (Admin)

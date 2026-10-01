@@ -239,7 +239,7 @@ const SettlementManagement = () => {
                 {formatNaira(overview.platformCommission)}
               </p>
               <p className="text-[11px] text-emerald-100/80 mt-1">
-                10% Marketplace Commission
+                Marketplace Commission
               </p>
             </Card>
 
@@ -387,7 +387,7 @@ const SettlementManagement = () => {
                         <th className="px-5 py-3.5">Booking / Ride Ref</th>
                         <th className="px-5 py-3.5">Provider / Driver</th>
                         <th className="px-5 py-3.5">Gross Amount</th>
-                        <th className="px-5 py-3.5">Vadtrans (10%)</th>
+                        <th className="px-5 py-3.5">Vadtrans Cut</th>
                         <th className="px-5 py-3.5">Net Driver Payable</th>
                         <th className="px-5 py-3.5">Status</th>
                         <th className="px-5 py-3.5 text-right">Automated Action</th>
@@ -759,7 +759,7 @@ const SettlementManagement = () => {
                 <span className="font-medium text-gray-800">{formatNaira(selectedPayableForPayout.grossAmount)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Vadtrans Cut (10%):</span>
+                <span className="text-gray-500">Vadtrans Cut:</span>
                 <span className="font-medium text-emerald-600">{formatNaira(selectedPayableForPayout.commissionAmount)}</span>
               </div>
               <div className="border-t border-gray-200 pt-2 flex justify-between font-bold text-sm">
