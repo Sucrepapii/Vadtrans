@@ -328,6 +328,7 @@ exports.login = async (req, res) => {
         routes: user.routes,
         bankDetails: user.bankDetails || {
           bankName: "",
+          bankCode: "",
           accountNumber: "",
           accountName: "",
         },
@@ -381,6 +382,7 @@ exports.getMe = async (req, res) => {
         routes: user.routes,
         bankDetails: user.bankDetails || {
           bankName: "",
+          bankCode: "",
           accountNumber: "",
           accountName: "",
         },
@@ -467,6 +469,7 @@ exports.updateProfile = async (req, res) => {
         user.freightCapabilities = freightCapabilities;
       user.bankDetails = {
         bankName: bankDetails?.bankName || user.bankDetails?.bankName || "",
+        bankCode: bankDetails?.bankCode || user.bankDetails?.bankCode || "",
         accountNumber:
           bankDetails?.accountNumber || user.bankDetails?.accountNumber || "",
         accountName:
@@ -509,6 +512,7 @@ exports.updateProfile = async (req, res) => {
         routes: user.routes,
         bankDetails: user.bankDetails || {
           bankName: "",
+          bankCode: "",
           accountNumber: "",
           accountName: "",
         },
