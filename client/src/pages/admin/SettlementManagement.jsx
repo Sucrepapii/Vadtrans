@@ -472,7 +472,21 @@ const SettlementManagement = () => {
                                   )}
                                   <span>{payable.status === "failed" ? "Retry Transfer" : "Disburse Payout"}</span>
                                 </Button>
-                              ) : payable.status === "completed" ? (
+                              ) : payable.status === "pending_trip" ? (
+                                <Button
+                                  onClick={() => setSelectedPayableForPayout(payable)}
+                                  disabled={executingPayableId === payable.id}
+                                  size="sm"
+                                  className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs py-1.5 px-3 rounded-lg flex items-center gap-1.5 ml-auto shadow-sm"
+                                >
+                                  {executingPayableId === payable.id ? (
+                                    <FaSpinner className="animate-spin text-xs" />
+                                  ) : (
+                                    <FaMoneyBillWave className="text-xs" />
+                                  )}
+                                  <span>Disburse Payout</span>
+                                </Button>
+                              ) : payable.status === "completed" || payable.status === "paid" ? (
                                 <div className="text-right">
                                   <span className="text-[11px] font-bold text-emerald-700 flex items-center justify-end gap-1">
                                     <FaCheckCircle /> Transferred

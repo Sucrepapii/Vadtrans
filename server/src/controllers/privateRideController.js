@@ -329,6 +329,17 @@ exports.getMyRides = async (req, res) => {
     let where;
 
     if (isCompany) {
+      if (req.query.assignedOnly === "true" || req.query.type === "passengers") {
+        const requests = await PrivateRideRequest.findAll({
+          where: { driverId: req.user.id },
+          include: [
+            { model: User, as: "passenger", attributes: ["id", "name", "email", "phone", "avatar"] },
+          ],
+          order: [["createdAt", "DESC"]],
+        });
+        return res.status(200).json({ success: true, requests });
+      }
+
       // Find request IDs where this driver has bid and not dismissed
       const driverBids = await RideBid.findAll({
         where: {

@@ -201,7 +201,13 @@ const ReviewConfirm = () => {
       }
 
       // If not marked paid yet, try verifying transaction with Paystack using saved reference
-      const lastTxRef = sessionStorage.getItem("lastPaystackRef") || paystackRef;
+      const lastTxRef =
+        sessionStorage.getItem("lastPaystackRef") ||
+        localStorage.getItem("lastPaystackRef") ||
+        paystackRef ||
+        ref ||
+        "direct_confirm";
+
       if (lastTxRef) {
         const verifyRes = await bookingAPI.verifyPayment(lastTxRef, id).catch(() => null);
         if (verifyRes?.data?.success) {
@@ -687,6 +693,9 @@ const ReviewConfirm = () => {
                                 try {
                                   await api.delete(`/bookings/${pendingBookingData.id}/abandon`);
                                 } catch (e) {}
+                                localStorage.removeItem("lastPendingBookingId");
+                                localStorage.removeItem("lastPendingBookingRef");
+                                localStorage.removeItem("lastPaystackRef");
                                 sessionStorage.removeItem("lastPendingBookingId");
                                 sessionStorage.removeItem("lastPendingBookingRef");
                                 sessionStorage.removeItem("lastPaystackRef");

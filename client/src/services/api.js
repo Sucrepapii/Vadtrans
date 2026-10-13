@@ -177,6 +177,7 @@ export const privateRideAPI = {
   updateRideStatus: (id, status) => api.put(`/private-rides/${id}/status`, { status }),
   updateLocation: (id, data) => api.put(`/private-rides/${id}/location`, data),
   getMyRides: () => api.get("/private-rides"),
+  getDriverAssignedRides: () => api.get("/private-rides", { params: { assignedOnly: "true" } }),
   getPrivateRide: (id) => api.get(`/private-rides/${id}`),
   cancelRequest: (id) => api.post(`/private-rides/${id}/cancel`),
 };
