@@ -461,6 +461,12 @@ const executeProviderPayout = async (payableId) => {
     payable.status = payout.status === "failed" ? "eligible" : "paid";
     if (payable.status === "paid") {
       payable.paidAt = new Date();
+      if (payable.bookingId) {
+        await Booking.update({ payoutStatus: "settled" }, { where: { id: payable.bookingId }, transaction });
+      }
+      if (payable.privateRideId) {
+        await PrivateRideRequest.update({ payoutStatus: "settled" }, { where: { id: payable.privateRideId }, transaction });
+      }
     }
     await payable.save({ transaction });
 
@@ -661,6 +667,16 @@ const handlePaystackWebhook = async (event, data) => {
             { status: "paid", paidAt: new Date() },
             { where: { payoutId: payout.id } }
           );
+
+          const payables = await ProviderPayable.findAll({ where: { payoutId: payout.id } });
+          for (const p of payables) {
+            if (p.bookingId) {
+              await Booking.update({ payoutStatus: "settled" }, { where: { id: p.bookingId } });
+            }
+            if (p.privateRideId) {
+              await PrivateRideRequest.update({ payoutStatus: "settled" }, { where: { id: p.privateRideId } });
+            }
+          }
         }
         break;
       }
