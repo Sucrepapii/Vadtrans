@@ -468,12 +468,28 @@ exports.updateProfile = async (req, res) => {
       if (freightCapabilities !== undefined)
         user.freightCapabilities = freightCapabilities;
       user.bankDetails = {
+        ...user.bankDetails,
         bankName: bankDetails?.bankName || user.bankDetails?.bankName || "",
         bankCode: bankDetails?.bankCode || user.bankDetails?.bankCode || "",
         accountNumber:
           bankDetails?.accountNumber || user.bankDetails?.accountNumber || "",
         accountName:
           bankDetails?.accountName || user.bankDetails?.accountName || "",
+        isBankVerified:
+          bankDetails?.isVerified ??
+          bankDetails?.isBankVerified ??
+          user.bankDetails?.isBankVerified ??
+          false,
+        isVerified:
+          bankDetails?.isVerified ??
+          bankDetails?.isBankVerified ??
+          user.bankDetails?.isBankVerified ??
+          false,
+        paystackRecipientCode:
+          bankDetails?.recipientCode ||
+          bankDetails?.paystackRecipientCode ||
+          user.bankDetails?.paystackRecipientCode ||
+          "",
       };
       if (isOnline !== undefined) user.isOnline = isOnline;
       if (ridePreference !== undefined) user.ridePreference = ridePreference;

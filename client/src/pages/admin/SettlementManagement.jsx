@@ -757,6 +757,18 @@ const SettlementManagement = () => {
               This will automatically initiate a live Paystack bank transfer for this completed booking directly to the provider's verified NUBAN account.
             </p>
 
+            {!selectedPayableForPayout.provider?.bankDetails?.accountNumber && (
+              <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2.5 mb-4">
+                <FaExclamationTriangle className="text-amber-600 flex-shrink-0 mt-0.5" />
+                <div>
+                  <p className="font-bold">Bank details not verified</p>
+                  <p className="text-[11px] text-amber-700 mt-0.5">
+                    This provider has not added a verified bank account yet. Payout cannot be disbursed until they verify their account in their profile settings.
+                  </p>
+                </div>
+              </div>
+            )}
+
             <div className="bg-gray-50 p-4 rounded-xl space-y-2 mb-6 text-xs border border-gray-100">
               <div className="flex justify-between">
                 <span className="text-gray-500">Provider:</span>
@@ -765,7 +777,9 @@ const SettlementManagement = () => {
               <div className="flex justify-between">
                 <span className="text-gray-500">Bank:</span>
                 <span className="font-medium text-gray-800">
-                  {selectedPayableForPayout.provider?.bankDetails?.bankName} ({selectedPayableForPayout.provider?.bankDetails?.accountNumber})
+                  {selectedPayableForPayout.provider?.bankDetails?.accountNumber
+                    ? `${selectedPayableForPayout.provider?.bankDetails?.bankName} (${selectedPayableForPayout.provider?.bankDetails?.accountNumber})`
+                    : "Not registered / unverified"}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -793,8 +807,13 @@ const SettlementManagement = () => {
               </Button>
               <Button
                 onClick={handleTriggerPayout}
+                disabled={!selectedPayableForPayout.provider?.bankDetails?.accountNumber || executingPayableId === selectedPayableForPayout.id}
                 size="sm"
-                className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-5 shadow-md flex items-center gap-2"
+                className={`font-bold text-xs px-5 shadow-md flex items-center gap-2 ${
+                  !selectedPayableForPayout.provider?.bankDetails?.accountNumber
+                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                    : "bg-emerald-600 hover:bg-emerald-700 text-white"
+                }`}
               >
                 <FaCheckCircle /> Confirm & Disburse Now
               </Button>

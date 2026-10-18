@@ -33,6 +33,7 @@ import {
   FaExternalLinkAlt,
   FaMoneyBillWave,
   FaStop,
+  FaExclamationTriangle,
 } from "react-icons/fa";
 import { westAfricanCountries, westAfricanCities } from "../../data/locations";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
@@ -189,12 +190,21 @@ const CompanyProfile = () => {
         vehicles: userData.vehicles || 0,
         routes: userData.routes || 0,
         verificationStatus: userData.verificationStatus || "pending",
-        bankDetails: userData.bankDetails || {
-          bankName: "",
-          bankCode: "",
-          accountNumber: "",
-          accountName: "",
-          isVerified: false,
+        bankDetails: {
+          bankName: userData.bankDetails?.bankName || "",
+          bankCode: userData.bankDetails?.bankCode || "",
+          accountNumber: userData.bankDetails?.accountNumber || "",
+          accountName: userData.bankDetails?.accountName || "",
+          isVerified: Boolean(
+            userData.bankDetails?.isVerified || userData.bankDetails?.isBankVerified
+          ),
+          isBankVerified: Boolean(
+            userData.bankDetails?.isVerified || userData.bankDetails?.isBankVerified
+          ),
+          recipientCode:
+            userData.bankDetails?.recipientCode ||
+            userData.bankDetails?.paystackRecipientCode ||
+            "",
         },
         freightCapabilities: userData.freightCapabilities || {
           vehicleTypes: "",
@@ -237,20 +247,61 @@ const CompanyProfile = () => {
     }
   };
 
-  const handleVerifyBank = async () => {
-    const bankName = editData.bankDetails?.bankName;
-    const bankCode = editData.bankDetails?.bankCode;
-    const accountNumber = editData.bankDetails?.accountNumber;
+  const resolveBank = (nameOrCode) => {
+    if (!nameOrCode) return null;
+    const str = String(nameOrCode).toLowerCase().trim();
+    return (
+      nigerianBanksList.find((b) => b.code === str) ||
+      nigerianBanksList.find((b) => b.name.toLowerCase() === str) ||
+      nigerianBanksList.find(
+        (b) =>
+          b.name.toLowerCase().includes(str) ||
+          str.includes(b.name.toLowerCase().split(" ")[0])
+      ) ||
+      (str.includes("gtb") ? nigerianBanksList.find((b) => b.code === "058") : null) ||
+      (str.includes("first") && str.includes("bank") ? nigerianBanksList.find((b) => b.code === "011") : null) ||
+      (str.includes("uba") ? nigerianBanksList.find((b) => b.code === "033") : null) ||
+      (str.includes("zenith") ? nigerianBanksList.find((b) => b.code === "057") : null) ||
+      (str.includes("access") ? nigerianBanksList.find((b) => b.code === "044") : null) ||
+      (str.includes("kuda") ? nigerianBanksList.find((b) => b.code === "50211") : null) ||
+      (str.includes("opay") ? nigerianBanksList.find((b) => b.code === "999992") : null) ||
+      (str.includes("palm") ? nigerianBanksList.find((b) => b.code === "999991") : null)
+    );
+  };
 
-    if (!bankCode || !accountNumber || accountNumber.length !== 10) {
-      toast.error("Please select a bank and enter a valid 10-digit NUBAN account number");
+  const handleVerifyBank = async () => {
+    let bankName = editData.bankDetails?.bankName;
+    let bankCode = editData.bankDetails?.bankCode;
+    const cleanAccount = String(editData.bankDetails?.accountNumber || "").replace(/\D/g, "").trim();
+
+    // Auto-resolve bank if bankCode was not selected directly
+    if (!bankCode && bankName) {
+      const found = resolveBank(bankName);
+      if (found) {
+        bankCode = found.code;
+        bankName = found.name;
+      }
+    }
+
+    if (!bankCode) {
+      toast.error("Please select your Nigerian bank from the dropdown.");
+      return;
+    }
+
+    if (!cleanAccount) {
+      toast.error("Please enter your 10-digit NUBAN account number.");
+      return;
+    }
+
+    if (cleanAccount.length !== 10) {
+      toast.error(`NUBAN account number must be exactly 10 digits (currently ${cleanAccount.length} digits).`);
       return;
     }
 
     try {
       setVerifyingBank(true);
       const res = await financeAPI.verifyBank({
-        accountNumber,
+        accountNumber: cleanAccount,
         bankCode,
         bankName,
       });
@@ -260,22 +311,26 @@ const CompanyProfile = () => {
           ...prev,
           bankDetails: {
             ...prev.bankDetails,
+            accountNumber: cleanAccount,
             accountName: resolved.accountName,
             bankCode: resolved.bankCode,
             bankName: resolved.bankName,
             recipientCode: resolved.recipientCode,
             isVerified: true,
+            isBankVerified: true,
           },
         }));
         setCompanyData((prev) => ({
           ...prev,
           bankDetails: {
             ...prev.bankDetails,
+            accountNumber: cleanAccount,
             accountName: resolved.accountName,
             bankCode: resolved.bankCode,
             bankName: resolved.bankName,
             recipientCode: resolved.recipientCode,
             isVerified: true,
+            isBankVerified: true,
           },
         }));
         toast.success(`Account verified: ${resolved.accountName}`);
@@ -916,7 +971,7 @@ const CompanyProfile = () => {
                         Bank Details & Automated Payouts
                       </h2>
                     </div>
-                    {companyData.bankDetails?.isVerified ? (
+                    {companyData.bankDetails?.isVerified || companyData.bankDetails?.isBankVerified ? (
                       <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                         <FaCheckCircle className="text-emerald-600" />
                         Verified for Instant Payouts
@@ -940,9 +995,7 @@ const CompanyProfile = () => {
                           <select
                             value={
                               editData.bankDetails?.bankCode ||
-                              nigerianBanksList.find(
-                                (b) => b.name.toLowerCase() === (editData.bankDetails?.bankName || "").toLowerCase()
-                              )?.code ||
+                              resolveBank(editData.bankDetails?.bankName)?.code ||
                               ""
                             }
                             onChange={(e) => {
@@ -993,13 +1046,8 @@ const CompanyProfile = () => {
                           <Button
                             type="button"
                             onClick={handleVerifyBank}
-                            disabled={
-                              verifyingBank ||
-                              !editData.bankDetails?.accountNumber ||
-                              editData.bankDetails.accountNumber.length !== 10 ||
-                              !(editData.bankDetails?.bankCode || editData.bankDetails?.bankName)
-                            }
-                            className="h-11 px-5 mb-1 whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 rounded-lg font-medium text-sm"
+                            disabled={verifyingBank || saving}
+                            className="h-11 px-5 mb-1 whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white flex items-center justify-center gap-2 rounded-lg font-medium text-sm shadow-sm"
                           >
                             {verifyingBank ? <FaSpinner className="animate-spin" /> : <FaCheckCircle />}
                             <span>{verifyingBank ? "Verifying..." : "Verify on Paystack"}</span>
@@ -1022,7 +1070,7 @@ const CompanyProfile = () => {
                             placeholder="Click 'Verify on Paystack' to auto-detect"
                             disabled={saving || verifyingBank}
                           />
-                          {editData.bankDetails?.isVerified && (
+                          {(editData.bankDetails?.isVerified || editData.bankDetails?.isBankVerified) && (
                             <p className="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
                               <FaCheckCircle /> Name officially verified against Nigerian banking network
                             </p>
@@ -1057,6 +1105,23 @@ const CompanyProfile = () => {
                             </p>
                           </div>
                         </div>
+
+                        {!(companyData.bankDetails?.isVerified || companyData.bankDetails?.isBankVerified) && (
+                          <div className="mt-3 flex flex-col sm:flex-row items-center justify-between gap-3 p-3.5 bg-amber-50 border border-amber-200 rounded-xl">
+                            <div className="flex items-center gap-2 text-amber-900 text-xs font-medium">
+                              <FaExclamationTriangle className="text-amber-600 flex-shrink-0 text-sm" />
+                              <span>Bank account is unverified. Verify on Paystack to receive automated payouts.</span>
+                            </div>
+                            <Button
+                              type="button"
+                              onClick={handleEdit}
+                              size="sm"
+                              className="whitespace-nowrap text-xs px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white flex items-center gap-1.5 font-bold shadow-sm rounded-lg"
+                            >
+                              <FaEdit /> Edit & Verify Bank Account
+                            </Button>
+                          </div>
+                        )}
                       </>
                     )}
                   </div>
