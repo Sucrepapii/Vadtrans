@@ -147,26 +147,52 @@ exports.getFinancialOverview = async (req, res) => {
     }
 
     // 4. Total Payouts Disbursed
-    const payoutsDisbursed = await Payout.findAll({
-      where: { status: "success" },
-      attributes: [[fn("SUM", col("amount")), "totalDisbursed"], [fn("COUNT", col("id")), "count"]],
-      raw: true,
-    });
-    const totalDisbursedAmount = parseFloat(payoutsDisbursed[0]?.totalDisbursed) || 0;
-    const totalPayoutsCount = parseInt(payoutsDisbursed[0]?.count) || 0;
+    // Check Payout records (status: success, processing, queued), paid ProviderPayables, and Ledger
+    const [payoutsStats, paidPayablesStats, ledgerDisbursedStats] = await Promise.all([
+      Payout.findAll({
+        where: { status: { [Op.in]: ["success", "processing", "queued"] } },
+        attributes: [[fn("SUM", col("amount")), "totalDisbursed"], [fn("COUNT", col("id")), "count"]],
+        raw: true,
+      }),
+      ProviderPayable.findAll({
+        where: { status: "paid" },
+        attributes: [[fn("SUM", col("netPayableAmount")), "totalDisbursed"], [fn("COUNT", col("id")), "count"]],
+        raw: true,
+      }),
+      TransactionLedger.findAll({
+        where: { entryType: "PAYOUT_DISBURSEMENT" },
+        attributes: [[fn("SUM", col("amount")), "totalDisbursed"], [fn("COUNT", col("id")), "count"]],
+        raw: true,
+      }),
+    ]);
+
+    const payoutAmountVal = parseFloat(payoutsStats[0]?.totalDisbursed) || 0;
+    const paidPayablesAmountVal = parseFloat(paidPayablesStats[0]?.totalDisbursed) || 0;
+    const ledgerDisbursedAmountVal = parseFloat(ledgerDisbursedStats[0]?.totalDisbursed) || 0;
+    const totalDisbursedAmount = Math.max(payoutAmountVal, paidPayablesAmountVal, ledgerDisbursedAmountVal);
+
+    const payoutCountVal = parseInt(payoutsStats[0]?.count) || 0;
+    const paidPayablesCountVal = parseInt(paidPayablesStats[0]?.count) || 0;
+    const ledgerCountVal = parseInt(ledgerDisbursedStats[0]?.count) || 0;
+    const totalPayoutsCount = Math.max(payoutCountVal, paidPayablesCountVal, ledgerCountVal);
 
     // 5. Escrow Balance / Pending Provider Payables
+    const totalPayablesCount = await ProviderPayable.count();
     const pendingPayables = await ProviderPayable.findAll({
       where: { status: { [Op.in]: ["pending_trip", "eligible", "queued"] } },
       attributes: [[fn("SUM", col("netPayableAmount")), "totalEscrow"], [fn("COUNT", col("id")), "count"]],
       raw: true,
     });
-    let totalEscrowBalance = parseFloat(pendingPayables[0]?.totalEscrow) || 0;
-    let pendingPayablesCount = parseInt(pendingPayables[0]?.count) || 0;
+    const pendingPayablesSum = parseFloat(pendingPayables[0]?.totalEscrow) || 0;
+    const pendingPayablesCount = parseInt(pendingPayables[0]?.count) || 0;
     const eligiblePayablesCount = await ProviderPayable.count({ where: { status: "eligible" } });
 
-    if (totalEscrowBalance === 0 && totalGrossVolume > 0) {
-      // 90% goes to provider escrow before disbursement
+    let totalEscrowBalance = 0;
+    if (totalPayablesCount > 0) {
+      // If ProviderPayables exist, escrow balance is strictly the sum of unpaid/pending payables
+      totalEscrowBalance = pendingPayablesSum;
+    } else if (totalGrossVolume > 0) {
+      // Fallback only if no ProviderPayable records exist at all yet
       totalEscrowBalance = Math.max(0, Math.round(totalGrossVolume * 0.90) - totalDisbursedAmount);
     }
 

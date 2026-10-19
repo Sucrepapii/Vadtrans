@@ -66,29 +66,60 @@ const SettlementManagement = () => {
         financeAPI.getPayouts({ status: payoutsFilter !== "all" ? payoutsFilter : undefined }),
       ]);
 
-      if (overviewRes.status === "fulfilled" && overviewRes.value.data.success) {
-        const raw = overviewRes.value.data.data;
-        const m = raw.metrics || raw;
-        setOverview({
-          grossInflow: Number(m.grossInflow ?? m.totalGrossVolume ?? 0),
-          platformCommission: Number(m.platformCommission ?? m.totalVadtransRevenue ?? 0),
-          gatewayFees: Number(m.gatewayFees ?? m.totalGatewayFees ?? 0),
-          payoutsDisbursed: Number(m.payoutsDisbursed ?? m.totalDisbursedAmount ?? 0),
-          escrowHeld: Number(m.escrowHeld ?? m.totalEscrowBalance ?? 0),
-          eligiblePayables: Number(m.eligiblePayables ?? m.pendingPayablesCount ?? 0),
-          successPayoutsCount: Number(m.successPayoutsCount ?? m.totalPayoutsCount ?? 0),
-          failedPayoutsCount: Number(m.failedPayoutsCount ?? 0),
-        });
-      }
+      let fetchedPayables = [];
+      let fetchedPayouts = [];
+
       if (payablesRes.status === "fulfilled" && payablesRes.value.data.success) {
-        setPayables(payablesRes.value.data.data.payables || []);
+        fetchedPayables = payablesRes.value.data.data.payables || [];
+        setPayables(fetchedPayables);
       }
       if (ledgerRes.status === "fulfilled" && ledgerRes.value.data.success) {
         const raw = ledgerRes.value.data.data;
         setLedgerEntries(raw.ledgerEntries || raw.entries || []);
       }
       if (payoutsRes.status === "fulfilled" && payoutsRes.value.data.success) {
-        setPayouts(payoutsRes.value.data.data.payouts || []);
+        fetchedPayouts = payoutsRes.value.data.data.payouts || [];
+        setPayouts(fetchedPayouts);
+      }
+
+      if (overviewRes.status === "fulfilled" && overviewRes.value.data.success) {
+        const raw = overviewRes.value.data.data;
+        const m = raw.metrics || raw;
+
+        // Calculate fallback totals directly from payables & payouts if needed
+        const paidPayablesSum = fetchedPayables
+          .filter((p) => p.status === "paid")
+          .reduce((sum, p) => sum + (Number(p.netPayableAmount || p.netAmount) || 0), 0);
+
+        const activePayoutsSum = fetchedPayouts
+          .filter((p) => ["success", "processing", "queued"].includes(p.status))
+          .reduce((sum, p) => sum + (Number(p.amount) || 0), 0);
+
+        const pendingPayablesSum = fetchedPayables
+          .filter((p) => ["pending_trip", "eligible", "queued"].includes(p.status))
+          .reduce((sum, p) => sum + (Number(p.netPayableAmount || p.netAmount) || 0), 0);
+
+        const backendDisbursed = Number(m.payoutsDisbursed ?? m.totalDisbursedAmount ?? 0);
+        const resolvedDisbursed = Math.max(backendDisbursed, paidPayablesSum, activePayoutsSum);
+
+        let resolvedEscrow = Number(m.escrowHeld ?? m.totalEscrowBalance ?? 0);
+        if (fetchedPayables.length > 0 && (payablesFilter === "all" || !payablesFilter)) {
+          resolvedEscrow = pendingPayablesSum;
+        }
+
+        setOverview({
+          grossInflow: Number(m.grossInflow ?? m.totalGrossVolume ?? 0),
+          platformCommission: Number(m.platformCommission ?? m.totalVadtransRevenue ?? 0),
+          gatewayFees: Number(m.gatewayFees ?? m.totalGatewayFees ?? 0),
+          payoutsDisbursed: resolvedDisbursed,
+          escrowHeld: resolvedEscrow,
+          eligiblePayables: Number(m.eligiblePayables ?? m.pendingPayablesCount ?? 0),
+          successPayoutsCount: Math.max(
+            Number(m.successPayoutsCount ?? m.totalPayoutsCount ?? 0),
+            fetchedPayouts.filter((p) => ["success", "processing"].includes(p.status)).length
+          ),
+          failedPayoutsCount: Number(m.failedPayoutsCount ?? 0),
+        });
       }
     } catch (error) {
       console.error("Error loading financial data:", error);

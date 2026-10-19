@@ -129,9 +129,9 @@ exports.getDashboardStats = async (req, res) => {
     }
 
     try {
-      const [payoutsData, payablesData, eligibleCount] = await Promise.all([
+      const [payoutsData, payablesData, eligibleCount, totalPayablesCount, paidPayablesData, ledgerPayoutData] = await Promise.all([
         Payout.findAll({
-          where: { status: "success" },
+          where: { status: { [Op.in]: ["success", "processing", "queued"] } },
           attributes: [
             [sequelize.fn("SUM", sequelize.col("amount")), "totalDisbursed"],
             [sequelize.fn("COUNT", sequelize.col("id")), "count"],
@@ -144,13 +144,33 @@ exports.getDashboardStats = async (req, res) => {
           raw: true,
         }),
         ProviderPayable.count({ where: { status: "eligible" } }),
+        ProviderPayable.count(),
+        ProviderPayable.findAll({
+          where: { status: "paid" },
+          attributes: [[sequelize.fn("SUM", sequelize.col("netPayableAmount")), "totalDisbursed"]],
+          raw: true,
+        }),
+        sequelize.models.TransactionLedger
+          ? sequelize.models.TransactionLedger.findAll({
+              where: { entryType: "PAYOUT_DISBURSEMENT" },
+              attributes: [[sequelize.fn("SUM", sequelize.col("amount")), "totalDisbursed"]],
+              raw: true,
+            })
+          : Promise.resolve([]),
       ]);
 
-      payoutsDisbursed = parseFloat(payoutsData[0]?.totalDisbursed) || 0;
-      payoutsCount = parseInt(payoutsData[0]?.count) || 0;
-      escrowHeld =
-        parseFloat(payablesData[0]?.totalEscrow) ||
-        Math.max(0, Math.round(grossInflow * 0.90) - payoutsDisbursed);
+      const pDisbursed = parseFloat(payoutsData[0]?.totalDisbursed) || 0;
+      const ppDisbursed = parseFloat(paidPayablesData[0]?.totalDisbursed) || 0;
+      const ledDisbursed = parseFloat(ledgerPayoutData[0]?.totalDisbursed) || 0;
+      payoutsDisbursed = Math.max(pDisbursed, ppDisbursed, ledDisbursed);
+      payoutsCount = parseInt(payoutsData[0]?.count) || (payoutsDisbursed > 0 ? 1 : 0);
+
+      const pendingEscrow = parseFloat(payablesData[0]?.totalEscrow) || 0;
+      if (totalPayablesCount > 0) {
+        escrowHeld = pendingEscrow;
+      } else {
+        escrowHeld = Math.max(0, Math.round(grossInflow * 0.90) - payoutsDisbursed);
+      }
       eligiblePayables = eligibleCount;
     } catch (e) {
       console.warn("Financial stats note in adminController:", e.message);
