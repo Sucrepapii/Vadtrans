@@ -218,6 +218,7 @@ const cancelExpiredBookings = async () => {
     const expiredBookings = await Booking.findAll({
       where: {
         bookingStatus: "pending",
+        paymentStatus: { [Op.ne]: "paid" },
         createdAt: { [Op.lt]: fifteenMinutesAgo }
       }
     });

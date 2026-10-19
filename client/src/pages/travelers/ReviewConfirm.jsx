@@ -63,33 +63,51 @@ const ReviewConfirm = () => {
   const depositAmount = total * 0.05; // 5% deposit
   const amountToPay = paymentOption === "deposit" ? depositAmount : total;
 
-  const [paystackRef, setPaystackRef] = useState(() => {
-    return (
-      localStorage.getItem("lastPaystackRef") ||
-      sessionStorage.getItem("lastPaystackRef") ||
-      new Date().getTime().toString()
-    );
-  });
+  const [paystackRef, setPaystackRef] = useState(() => `${Date.now()}`);
   const [isVerifying, setIsVerifying] = useState(false);
-  const [pendingBookingData, setPendingBookingData] = useState(() => {
-    const id =
-      localStorage.getItem("lastPendingBookingId") ||
-      sessionStorage.getItem("lastPendingBookingId");
-    const ref =
-      localStorage.getItem("lastPendingBookingRef") ||
-      sessionStorage.getItem("lastPendingBookingRef");
-    return id ? { id, ref } : null;
-  });
+  const [pendingBookingData, setPendingBookingData] = useState(null);
+
+  // On mount or trip/user change, clean up stale persistent keys and only keep current recent pending booking
+  useEffect(() => {
+    localStorage.removeItem("lastPendingBookingId");
+    localStorage.removeItem("lastPendingBookingRef");
+    localStorage.removeItem("lastPaystackRef");
+
+    const activeRaw = sessionStorage.getItem("activePendingBooking");
+    if (activeRaw) {
+      try {
+        const active = JSON.parse(activeRaw);
+        const isSameTrip = String(active.tripId) === String(tripData?.id);
+        const isSameUser = !active.userId || String(active.userId) === String(user?.id);
+        const isRecent = Date.now() - (active.createdAt || 0) < 15 * 60 * 1000;
+
+        if (isSameTrip && isSameUser && isRecent) {
+          setPendingBookingData(active);
+          setPaystackRef(active.txRef || `${Date.now()}`);
+          return;
+        }
+      } catch (e) {}
+    }
+
+    sessionStorage.removeItem("activePendingBooking");
+    sessionStorage.removeItem("lastPendingBookingId");
+    sessionStorage.removeItem("lastPendingBookingRef");
+    sessionStorage.removeItem("lastPaystackRef");
+    setPendingBookingData(null);
+  }, [tripData?.id, user?.id]);
 
   // Re-check when window/tab regains focus or visibility (e.g. user returns from bank app)
   useEffect(() => {
     const handleRecheck = () => {
       if (document.visibilityState === "visible" || document.hasFocus()) {
-        const pendingId =
-          localStorage.getItem("lastPendingBookingId") ||
-          sessionStorage.getItem("lastPendingBookingId");
-        if (pendingId) {
-          checkPendingPaymentStatus(pendingId, false);
+        const activeRaw = sessionStorage.getItem("activePendingBooking");
+        if (activeRaw) {
+          try {
+            const active = JSON.parse(activeRaw);
+            if (active?.id) {
+              checkPendingPaymentStatus(active.id, false);
+            }
+          } catch (e) {}
         }
       }
     };
@@ -99,16 +117,13 @@ const ReviewConfirm = () => {
       window.removeEventListener("focus", handleRecheck);
       document.removeEventListener("visibilitychange", handleRecheck);
     };
-  }, [paystackRef]);
+  }, []);
 
   // Stabilize the config to prevent hook re-initialization issues
   const paystackConfig = React.useMemo(() => {
     const email = user?.email || passengers?.[0]?.email || "";
     const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
-    const currentBookingId =
-      pendingBookingData?.id ||
-      localStorage.getItem("lastPendingBookingId") ||
-      sessionStorage.getItem("lastPendingBookingId");
+    const currentBookingId = pendingBookingData?.id;
 
     return {
       reference: paystackRef,
@@ -145,27 +160,26 @@ const ReviewConfirm = () => {
 
   // Helper to navigate to confirmation — always called after Paystack approval
   const goToConfirmation = (confirmedBooking = null) => {
-    const bookingId =
-      confirmedBooking?.id ||
-      localStorage.getItem("lastPendingBookingId") ||
-      sessionStorage.getItem("lastPendingBookingId");
-    const savedRef =
+    const bId = confirmedBooking?.id || pendingBookingData?.id;
+    const bRef =
       confirmedBooking?.bookingId ||
-      localStorage.getItem("lastPendingBookingRef") ||
-      sessionStorage.getItem("lastPendingBookingRef") ||
-      `BK-${bookingId || Date.now()}`;
+      pendingBookingData?.ref ||
+      `BK-${bId || Date.now()}`;
 
-    localStorage.removeItem("lastPendingBookingId");
-    localStorage.removeItem("lastPendingBookingRef");
-    localStorage.removeItem("lastPaystackRef");
+    sessionStorage.removeItem("activePendingBooking");
     sessionStorage.removeItem("lastPendingBookingId");
     sessionStorage.removeItem("lastPendingBookingRef");
     sessionStorage.removeItem("lastPaystackRef");
+    localStorage.removeItem("lastPendingBookingId");
+    localStorage.removeItem("lastPendingBookingRef");
+    localStorage.removeItem("lastPaystackRef");
+    setPendingBookingData(null);
 
     navigate("/booking/confirmation", {
       state: {
         trip: confirmedBooking?.trip || tripData,
-        bookingId: savedRef,
+        bookingId: bRef,
+        booking: confirmedBooking,
         passengers: confirmedBooking?.passengers || passengers,
         passengerDetails: confirmedBooking?.passengers || passengers,
         selectedSeats: confirmedBooking?.selectedSeats || selectedSeats,
@@ -186,8 +200,16 @@ const ReviewConfirm = () => {
 
   // Check if pending booking has already been paid or verify it
   const checkPendingPaymentStatus = async (bookingIdToCheck, manual = false) => {
-    const id = bookingIdToCheck || pendingBookingData?.id || sessionStorage.getItem("lastPendingBookingId");
-    const ref = pendingBookingData?.ref || sessionStorage.getItem("lastPendingBookingRef") || `BK-${id}`;
+    const activeBooking = pendingBookingData || (() => {
+      try {
+        return JSON.parse(sessionStorage.getItem("activePendingBooking") || "null");
+      } catch (e) {
+        return null;
+      }
+    })();
+
+    const id = bookingIdToCheck || activeBooking?.id;
+    const ref = activeBooking?.ref || `BK-${id}`;
     if (!id) return;
 
     try {
@@ -202,23 +224,22 @@ const ReviewConfirm = () => {
 
       // If not marked paid yet, try verifying transaction with Paystack using saved reference
       const lastTxRef =
+        activeBooking?.txRef ||
         sessionStorage.getItem("lastPaystackRef") ||
-        localStorage.getItem("lastPaystackRef") ||
         paystackRef ||
-        ref ||
-        "direct_confirm";
+        ref;
 
       if (lastTxRef) {
         const verifyRes = await bookingAPI.verifyPayment(lastTxRef, id).catch(() => null);
-        if (verifyRes?.data?.success) {
+        if (verifyRes?.data?.success && verifyRes?.data?.booking) {
           toast.success("Payment verified successfully! Generating your ticket...");
-          goToConfirmation(verifyRes.data.booking || { bookingId: ref, id });
+          goToConfirmation(verifyRes.data.booking);
           return;
         }
       }
 
       if (manual) {
-        toast.warning("Payment has not been confirmed yet. If you completed the bank transfer, please allow a moment and check again.");
+        toast.warning("Payment has not been confirmed yet. If you transferred in your bank app, please allow a moment and try again.");
       }
     } catch (err) {
       console.warn("Payment check warning:", err.message);
@@ -230,66 +251,93 @@ const ReviewConfirm = () => {
     }
   };
 
-  const handlePaystackSuccess = async (reference) => {
+  const handlePaystackSuccess = async (reference, currentBooking = null) => {
     setTransactionActive(false);
     setIsProcessing(true);
-    const bookingId = sessionStorage.getItem("lastPendingBookingId");
+    const bookingId = currentBooking?.id || pendingBookingData?.id || sessionStorage.getItem("lastPendingBookingId");
 
     try {
-      
-      
-      
-      
-
       if (!bookingId) {
-        // No booking ID but Paystack approved — still show ticket
-        console.warn("⚠️ No bookingId found in session storage, but payment was successful.");
         toast.success("Payment approved! Your booking is being processed.");
-        goToConfirmation();
+        goToConfirmation(currentBooking);
         return;
       }
 
-      // Verify payment on backend
-      
       const refString = reference?.reference || reference?.trxref || (typeof reference === "string" ? reference : "");
-      const verifyRes = await bookingAPI.verifyPayment(
-        refString,
-        bookingId,
-      );
+      const verifyRes = await bookingAPI.verifyPayment(refString, bookingId);
 
-      if (verifyRes.data.success) {
+      if (verifyRes?.data?.success) {
         toast.success("Booking confirmed successfully!");
       } else {
-        console.warn("⚠️ Backend returned success:false for verification");
         toast.warning("Payment received — booking confirmation pending.");
       }
-      goToConfirmation(verifyRes.data.booking);
+      goToConfirmation(verifyRes?.data?.booking || currentBooking);
     } catch (error) {
       console.error("❌ Payment verification error:", error);
-      console.error("📄 Error Response:", error.response?.data);
-      // Paystack already approved payment — still show ticket, don't block the user
-      toast.warning(
-        "Payment approved by Paystack! Booking confirmation is being processed.",
-      );
-      goToConfirmation();
+      toast.warning("Payment approved by Paystack! Booking confirmation is being processed.");
+      goToConfirmation(currentBooking);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const handlePaystackClose = () => {
+  const handlePaystackClose = (currentBooking = null) => {
     setTransactionActive(false);
     setIsProcessing(false);
 
-    // DO NOT DELETE BOOKING!
-    // When customer transfers from their bank app or USSD, the modal often closes or loses focus.
-    const bookingId = sessionStorage.getItem("lastPendingBookingId");
+    const bookingId = currentBooking?.id || pendingBookingData?.id;
     if (bookingId) {
       toast.info("Payment window closed. If you moved to your bank app to transfer, click 'I Have Paid / Confirm Ticket' below.");
-      // Check in background if payment succeeded
       checkPendingPaymentStatus(bookingId, false);
     } else {
       toast.info("Transaction cancelled");
+    }
+  };
+
+  const openPaystackPopup = (booking, txRef) => {
+    const email = user?.email || passengers?.[0]?.email || "";
+    const amountInKobo = Math.round(amountToPay * 100);
+    const publicKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY;
+    const bookingId = booking.id;
+    const bookingRef = booking.bookingId || `BK-${bookingId}`;
+
+    if (window.PaystackPop && typeof window.PaystackPop.setup === "function") {
+      setTransactionActive(true);
+      const handler = window.PaystackPop.setup({
+        key: publicKey,
+        email,
+        amount: amountInKobo,
+        ref: txRef,
+        metadata: {
+          bookingId,
+          bookingRef,
+          custom_fields: [
+            {
+              display_name: "Booking ID",
+              variable_name: "bookingId",
+              value: bookingId,
+            },
+            {
+              display_name: "Route",
+              variable_name: "route",
+              value: `${tripData?.from || ""} - ${tripData?.to || ""}`,
+            },
+          ],
+        },
+        callback: (paymentResponse) => {
+          handlePaystackSuccess(paymentResponse, booking);
+        },
+        onClose: () => {
+          handlePaystackClose(booking);
+        },
+      });
+      handler.openIframe();
+    } else {
+      setTransactionActive(true);
+      initializePayment({
+        onSuccess: (paymentResponse) => handlePaystackSuccess(paymentResponse, booking),
+        onClose: () => handlePaystackClose(booking),
+      });
     }
   };
 
@@ -297,7 +345,10 @@ const ReviewConfirm = () => {
     if (paymentMethod === "card") {
       try {
         setIsProcessing(true);
-        // 1. Create the booking on the backend first (status: pending)
+        const newTxRef = `${Date.now()}`;
+        setPaystackRef(newTxRef);
+
+        // 1. Create the booking on the backend with paymentReference pre-linked
         const bookingData = {
           tripId: tripData.id,
           passengers,
@@ -306,49 +357,37 @@ const ReviewConfirm = () => {
           totalAmount: total,
           paidAmount: amountToPay,
           isDeposit: paymentOption === "deposit",
+          paymentReference: newTxRef,
         };
 
         const response = await bookingAPI.createBooking(bookingData);
 
         if (response.data.success) {
-          const bookingId = response.data.booking.id;
-          const bookingRef =
-            response.data.booking.bookingId || `BK-${bookingId}`;
-          const newTxRef = new Date().getTime().toString();
-          setPaystackRef(newTxRef);
-          localStorage.setItem("lastPendingBookingId", bookingId);
-          localStorage.setItem("lastPendingBookingRef", bookingRef);
-          localStorage.setItem("lastPaystackRef", newTxRef);
+          const booking = response.data.booking;
+          const bookingId = booking.id;
+          const bookingRef = booking.bookingId || `BK-${bookingId}`;
+
+          const pendingInfo = {
+            id: bookingId,
+            ref: bookingRef,
+            tripId: tripData.id,
+            userId: user?.id,
+            txRef: newTxRef,
+            createdAt: Date.now(),
+          };
+
+          sessionStorage.setItem("activePendingBooking", JSON.stringify(pendingInfo));
           sessionStorage.setItem("lastPendingBookingId", bookingId);
           sessionStorage.setItem("lastPendingBookingRef", bookingRef);
           sessionStorage.setItem("lastPaystackRef", newTxRef);
-          setPendingBookingData({ id: bookingId, ref: bookingRef });
+          setPendingBookingData(pendingInfo);
 
-          // Validation before opening
-          if (!paystackConfig.publicKey) {
-            console.error("❌ Paystack Public Key is missing!");
-            toast.error("Payment configuration error. Please contact support.");
-            setIsProcessing(false);
-            return;
-          }
-
-          if (!paystackConfig.email) {
-            console.error("❌ Email is missing for Paystack!");
-            toast.error("Contact email is required for payment.");
-            setIsProcessing(false);
-            return;
-          }
-
-          // Use the hook-provided initialize function (react-paystack v6 syntax)
-          setTransactionActive(true);
-          initializePayment({
-            onSuccess: handlePaystackSuccess,
-            onClose: handlePaystackClose,
-          });
+          openPaystackPopup(booking, newTxRef);
         }
       } catch (error) {
         console.error("Booking creation error:", error);
         toast.error(error.response?.data?.message || "Booking failed");
+      } finally {
         setIsProcessing(false);
       }
     } else {
@@ -676,11 +715,10 @@ const ReviewConfirm = () => {
                           <button
                             type="button"
                             onClick={() => {
-                              setTransactionActive(true);
-                              initializePayment({
-                                onSuccess: handlePaystackSuccess,
-                                onClose: handlePaystackClose,
-                              });
+                              openPaystackPopup(
+                                { id: pendingBookingData.id, bookingId: pendingBookingData.ref },
+                                pendingBookingData.txRef || paystackRef
+                              );
                             }}
                             className="px-2.5 py-1.5 bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 font-medium text-xs rounded-lg transition"
                           >
@@ -693,12 +731,13 @@ const ReviewConfirm = () => {
                                 try {
                                   await api.delete(`/bookings/${pendingBookingData.id}/abandon`);
                                 } catch (e) {}
-                                localStorage.removeItem("lastPendingBookingId");
-                                localStorage.removeItem("lastPendingBookingRef");
-                                localStorage.removeItem("lastPaystackRef");
+                                sessionStorage.removeItem("activePendingBooking");
                                 sessionStorage.removeItem("lastPendingBookingId");
                                 sessionStorage.removeItem("lastPendingBookingRef");
                                 sessionStorage.removeItem("lastPaystackRef");
+                                localStorage.removeItem("lastPendingBookingId");
+                                localStorage.removeItem("lastPendingBookingRef");
+                                localStorage.removeItem("lastPaystackRef");
                                 setPendingBookingData(null);
                                 toast.info("Booking cancelled.");
                               }

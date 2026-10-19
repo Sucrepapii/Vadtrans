@@ -1,5 +1,6 @@
 const https = require("https");
 const { sequelize } = require("../config/database");
+const { Op } = require("sequelize");
 const Payment = require("../models/Payment");
 const TransactionLedger = require("../models/TransactionLedger");
 const ProviderPayable = require("../models/ProviderPayable");
@@ -567,6 +568,19 @@ const handlePaystackWebhook = async (event, data) => {
         }
         if (!booking && reference) {
           booking = await Booking.findOne({ where: { paymentReference: reference } });
+        }
+        if (!booking && data.customer?.email) {
+          const customerUser = await User.findOne({ where: { email: data.customer.email.toLowerCase().trim() } });
+          if (customerUser) {
+            booking = await Booking.findOne({
+              where: {
+                userId: customerUser.id,
+                paymentStatus: { [Op.ne]: "paid" },
+                createdAt: { [Op.gte]: new Date(Date.now() - 60 * 60 * 1000) },
+              },
+              order: [["createdAt", "DESC"]],
+            });
+          }
         }
 
         if (booking) {

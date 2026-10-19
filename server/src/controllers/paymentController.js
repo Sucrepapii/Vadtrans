@@ -3,6 +3,7 @@ const Booking = require("../models/Booking");
 const Trip = require("../models/Trip");
 const Notification = require("../models/Notification");
 const { sequelize } = require("../config/database");
+const { Op } = require("sequelize");
 const { syncTripSeats } = require("./tripController");
 const { recordBookingPayment, handlePaystackWebhook } = require("../utils/payoutService");
 
@@ -108,9 +109,15 @@ exports.verifyPayment = async (req, res) => {
         booking = isNumeric
           ? await Booking.findByPk(bookingId, { transaction })
           : await Booking.findOne({ where: { bookingId }, transaction });
+
+        // Ensure booking belongs to this user if not admin
+        if (booking && req.user?.id && booking.userId !== req.user.id && req.user.role !== "admin") {
+          console.warn(`⚠️ Booking #${booking.id} belongs to user #${booking.userId}, not caller #${req.user.id}. Clearing mismatch.`);
+          booking = null;
+        }
       }
 
-      // Fallback: look up by reference if not found by ID
+      // Fallback 1: look up by reference if not found by ID
       if (!booking && reference) {
         booking = await Booking.findOne({ where: { paymentReference: reference }, transaction });
       }
@@ -118,7 +125,10 @@ exports.verifyPayment = async (req, res) => {
       // Fallback 2: look up latest pending/unpaid booking for this user
       if (!booking && req.user?.id) {
         booking = await Booking.findOne({
-          where: { userId: req.user.id },
+          where: {
+            userId: req.user.id,
+            paymentStatus: { [Op.ne]: "paid" },
+          },
           order: [["createdAt", "DESC"]],
           transaction,
         });
