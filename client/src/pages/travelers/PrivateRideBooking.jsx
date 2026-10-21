@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import { usePaystackPayment } from "react-paystack";
 import api, { privateRideAPI } from "../../services/api";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
+import { trackPurchase } from "../../utils/metaPixel";
 import {
   FaCheckCircle,
   FaCar,
@@ -83,6 +84,12 @@ const PrivateRideBooking = () => {
         onSuccess: async (reference) => {
           const ref = reference?.reference || reference?.trxref || (typeof reference === "string" ? reference : null);
           const reqId = paymentIntent?.requestId || activeRequestRef.current?.id;
+
+          // Track Meta Pixel Purchase event
+          const amountInNaira = (paystackConfig.amount || 0) / 100;
+          if (amountInNaira > 0) {
+            trackPurchase(amountInNaira, "NGN", ref || `PR-${reqId}`);
+          }
 
           // 1. Optimistically mark activeRequest as paid & driver_assigned immediately
           setActiveRequest(prev => prev ? {

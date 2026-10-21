@@ -8,6 +8,7 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import Button from "../../components/Button";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
+import { trackPurchase } from "../../utils/metaPixel";
 import {
   FaUser,
   FaBox,
@@ -80,6 +81,12 @@ const FreightCheckout = () => {
     const goToConfirmation = () => {
       sessionStorage.removeItem("lastPendingShipmentId");
       sessionStorage.removeItem("lastPendingTrackingId");
+
+      // Meta Pixel Event: Purchase
+      if (paymentMethod === "paystack" && total > 0) {
+        trackPurchase(total, "NGN", trackingId);
+      }
+
       navigate("/booking/freight-confirmation", {
         state: {
           trip: tripData,

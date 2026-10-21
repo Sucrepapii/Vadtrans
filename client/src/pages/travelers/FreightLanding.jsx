@@ -8,6 +8,7 @@ import MaterialDatePicker from "../../components/MaterialDatePicker";
 import ReviewSection from "../../components/ReviewSection";
 import { westAfricanCountries } from "../../data/locations";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
+import { trackSearch } from "../../utils/metaPixel";
 import {
   FaMapMarkerAlt,
   FaCheckCircle,
@@ -138,6 +139,10 @@ const FreightLanding = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+    trackSearch({
+      search_string: `${searchData.from || ""} -> ${searchData.to || ""}`,
+      content_category: "freight",
+    });
     if (!showDetails) {
       setShowDetails(true);
       return;
