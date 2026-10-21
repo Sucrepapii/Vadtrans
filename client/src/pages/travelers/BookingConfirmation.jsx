@@ -8,6 +8,7 @@ import Card from "../../components/Card";
 import api, { bookingAPI, privateRideAPI } from "../../services/api";
 import { useAuth } from "../../context/AuthContext";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
+import { trackPurchase } from "../../utils/metaPixel";
 import {
   FaCheckCircle,
   FaDownload,
@@ -103,6 +104,26 @@ const BookingConfirmation = () => {
     };
     fetchBookingDetails();
   }, [trip, effectiveBookingId, isPrivate, user]);
+
+  // Meta Pixel Event: Purchase (fires only once for confirmed payment, never on page refresh)
+  useEffect(() => {
+    const booking = fetchedBooking || location.state?.booking;
+    const isConfirmedPaid =
+      booking?.paymentStatus === "paid" ||
+      booking?.bookingStatus === "confirmed" ||
+      Number(location.state?.paidAmount) > 0;
+
+    const ref = effectiveBookingId || booking?.bookingId;
+    const amount =
+      booking?.paidAmount ||
+      location.state?.paidAmount ||
+      booking?.totalAmount ||
+      location.state?.totalAmount;
+
+    if (isConfirmedPaid && ref && amount) {
+      trackPurchase(amount, "NGN", ref);
+    }
+  }, [fetchedBooking, effectiveBookingId, location.state]);
 
   // Use fetched data if available, otherwise use location state, otherwise fallback
   const finalTrip = fetchedBooking?.trip ||

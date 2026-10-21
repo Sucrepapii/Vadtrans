@@ -33,6 +33,7 @@ import {
 import Pagination from "../../components/Pagination";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 import { westAfricanCountries, westAfricanStates } from "../../data/locations";
+import { trackInitiateCheckout } from "../../utils/metaPixel";
 
 const SearchResults = () => {
   const navigate = useNavigate();
@@ -414,6 +415,15 @@ const SearchResults = () => {
       selectedDestination,
       selectedPrice
     };
+
+    // Meta Pixel Event: InitiateCheckout
+    const tripValue = Number(selectedPrice) || Number(trip.price) || 0;
+    trackInitiateCheckout({
+      content_name: `${trip.from} to ${selectedDestination}`,
+      content_category: trip.transportType || "inter-state",
+      value: tripValue,
+      currency: "NGN",
+    });
 
     if (trip.serviceCategory === "freight") {
       navigate("/booking/freight-info", {

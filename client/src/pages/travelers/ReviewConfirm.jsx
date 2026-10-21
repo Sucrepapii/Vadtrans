@@ -9,6 +9,7 @@ import Footer from "../../components/Footer";
 import Card from "../../components/Card";
 import Button from "../../components/Button";
 import { calculateServiceFee, calculateVAT } from "../../utils/pricing";
+import { trackPurchase } from "../../utils/metaPixel";
 import {
   FaUser,
   FaChair,
@@ -174,6 +175,10 @@ const ReviewConfirm = () => {
     localStorage.removeItem("lastPendingBookingRef");
     localStorage.removeItem("lastPaystackRef");
     setPendingBookingData(null);
+
+    // Meta Pixel Event: Purchase (fires only on confirmed payment, guarded against duplicates)
+    const purchaseAmount = confirmedBooking?.paidAmount || amountToPay || total || 0;
+    trackPurchase(purchaseAmount, "NGN", bRef);
 
     navigate("/booking/confirmation", {
       state: {

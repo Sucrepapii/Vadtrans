@@ -8,6 +8,7 @@ import Footer from "../../components/Footer";
 import Input from "../../components/Input";
 import { FaSpinner } from "react-icons/fa";
 import VisualShowcase from "../../components/VisualShowcase";
+import { trackCompleteRegistration } from "../../utils/metaPixel";
 
 const SignUp = () => {
   const [searchParams] = useSearchParams();
@@ -66,6 +67,12 @@ const SignUp = () => {
 
       // Show success message state instead of auto-redirect
       setIsSuccess(true);
+
+      // Meta Pixel Event: CompleteRegistration
+      trackCompleteRegistration({
+        content_name: userType === "company" ? "Driver / Transporter Registration" : "Traveler Registration",
+        status: "submitted",
+      });
     } catch (error) {
       console.error("Signup error:", error);
       toast.error(

@@ -11,6 +11,7 @@ import { westAfricanCountries, westAfricanStates } from "../../data/locations";
 import { useLocationsAPI } from "../../hooks/useLocationsAPI";
 import api from "../../services/api";
 import { subscribeUserToPush } from "../../utils/pushHelper";
+import { trackSearch } from "../../utils/metaPixel";
 import {
   FaMapMarkerAlt,
   FaCalendar,
@@ -129,6 +130,13 @@ const LandingPage = () => {
 
   const handleSearch = (e) => {
     e.preventDefault();
+
+    // Meta Pixel Event: Search
+    trackSearch({
+      search_string: `${searchData.from || searchData.fromState || ""} -> ${searchData.to || searchData.toState || ""}`,
+      content_category: searchData.transportType || "inter-state",
+    });
+
     if (searchData.rideType === "private") {
       navigate("/request-private-ride", { state: searchData });
     } else {

@@ -52,10 +52,12 @@ import ShipmentManagement from "./pages/admin/ShipmentManagement";
 import FAQManagement from "./pages/admin/FAQManagement";
 import StaffManagement from "./pages/admin/StaffManagement";
 import SettlementManagement from "./pages/admin/SettlementManagement";
+import MetaPixelTracker from "./components/MetaPixelTracker";
 
 const App = () => {
   return (
     <div className="min-h-screen">
+      <MetaPixelTracker />
       <ToastContainer position="top-right" autoClose={3000} />
       <ChatbotWidget />
       <Routes>
