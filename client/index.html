@@ -22,12 +22,8 @@
       t.src=v;s=b.getElementsByTagName(e)[0];
       s.parentNode.insertBefore(t,s)}(window, document,'script',
       'https://connect.facebook.net/en_US/fbevents.js');
-      
-      var metaPixelId = "%VITE_META_PIXEL_ID%";
-      if (metaPixelId && metaPixelId !== "%" + "VITE_META_PIXEL_ID" + "%") {
-        fbq('init', metaPixelId);
-        fbq('track', 'PageView');
-      }
+      fbq('init', '1780871629699606');
+      fbq('track', 'PageView');
     </script>
     <!-- End Meta Pixel Code -->
   </head>
@@ -35,7 +31,7 @@
     <!-- Meta Pixel noscript fallback -->
     <noscript>
       <img height="1" width="1" style="display:none"
-        src="https://www.facebook.com/tr?id=%VITE_META_PIXEL_ID%&ev=PageView&noscript=1" alt="" />
+        src="https://www.facebook.com/tr?id=1780871629699606&ev=PageView&noscript=1" alt="" />
     </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>

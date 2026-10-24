@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { initMetaPixel, trackPageView } from "../utils/metaPixel";
 
@@ -9,11 +9,19 @@ import { initMetaPixel, trackPageView } from "../utils/metaPixel";
  */
 const MetaPixelTracker = () => {
   const location = useLocation();
+  const isFirstRender = useRef(true);
 
   useEffect(() => {
     // Ensure Pixel is initialized
     initMetaPixel();
-    // Fire PageView on every route change
+
+    // The base code in <head> already tracks the initial PageView on page load.
+    // Only track PageView on subsequent SPA route transitions to prevent duplicate counts.
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     trackPageView();
   }, [location.pathname, location.search]);
 

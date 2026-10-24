@@ -3,12 +3,12 @@
  * Safely handles Pixel initialization, SPA route PageViews, and standard conversion events.
  */
 
-// Retrieve Pixel ID from environment or global window object
+// Retrieve Pixel ID from environment or fallback to verified ID
 export const getPixelId = () => {
   return (
     import.meta.env.VITE_META_PIXEL_ID ||
     (typeof window !== "undefined" && window.META_PIXEL_ID) ||
-    ""
+    "1780871629699606"
   );
 };
 
