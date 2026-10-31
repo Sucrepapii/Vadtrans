@@ -644,7 +644,7 @@ if (require.main === module) {
       const https = require("https");
       const SERVER_URL =
         process.env.SERVER_URL ||
-        "https://vadtrans-api.vercel.app";
+        "https://vadtrans-production-8efa.up.railway.app";
 
       setInterval(() => {
         const url = `${SERVER_URL}/api/health`;
