@@ -1,13 +1,13 @@
 import axios from "axios";
 
-// Use environment variable for API URL, fallback to localhost for development
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
+// Base API URL with auto-fallback to live Railway backend
+let rawUrl = import.meta.env.VITE_API_URL || "https://vadtrans-production-8efa.up.railway.app/api";
 
-if (import.meta.env.PROD && !import.meta.env.VITE_API_URL) {
-  console.warn(
-    "⚠️ Production build but VITE_API_URL is not set. API calls may fail.",
-  );
+if (!rawUrl || rawUrl.includes("onrender.com") || (import.meta.env.PROD && rawUrl.includes("localhost"))) {
+  rawUrl = "https://vadtrans-production-8efa.up.railway.app/api";
 }
+
+export const API_URL = rawUrl;
 
 // Create axios instance
 const api = axios.create({

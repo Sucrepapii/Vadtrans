@@ -15,15 +15,15 @@ import {
   FaFileAlt,
 } from "react-icons/fa";
 
+import { API_URL } from "../../services/api";
+
 const DocumentsTab = ({ user, onRefresh }) => {
   const [uploading, setUploading] = useState(null);
   const [uploadedDocuments, setUploadedDocuments] = useState(
     user?.documents || []
   );
 
-  const API_BASE =
-    import.meta.env.VITE_API_URL?.replace("/api", "") ||
-    "http://localhost:5000";
+  const API_BASE = API_URL.replace("/api", "");
 
   const documentTypes = [
     {

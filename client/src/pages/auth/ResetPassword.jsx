@@ -6,6 +6,8 @@ import Navbar from "../../components/Navbar";
 import Footer from "../../components/Footer";
 import axios from "axios";
 
+import { API_URL } from "../../services/api";
+
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -28,7 +30,7 @@ const ResetPassword = () => {
 
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/auth/reset-password/${token}`,
+        `${API_URL}/auth/reset-password/${token}`,
         { password },
       );
 
