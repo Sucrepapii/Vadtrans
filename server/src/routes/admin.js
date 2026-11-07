@@ -21,6 +21,7 @@ const {
   getAllStaff,
   createStaff,
   promptAllDrivers,
+  verifyUserEmail,
 } = require("../controllers/adminController");
 const {
   getNotifications,
@@ -49,6 +50,7 @@ router.put("/bookings/:id", updateBookingStatus);
 // User Management
 router.get("/users", getAllUsers);
 router.put("/users/:id", updateUser);
+router.put("/users/:id/verify-email", verifyUserEmail);
 router.delete("/users/:id", deleteUser);
 
 // Company Management

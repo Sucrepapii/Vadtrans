@@ -11,14 +11,18 @@ const PrivateRideRequest = require("../models/PrivateRideRequest");
 const Trip = require("../models/Trip");
 const Notification = require("../models/Notification");
 
-const PAYSTACK_SECRET = process.env.PAYSTACK_SECRET_KEY || "";
+const getPaystackSecret = () => {
+  const raw = process.env.PAYSTACK_SECRET_KEY || "";
+  return raw.replace(/^["']|["']$/g, "").trim();
+};
 
 /**
  * Make an HTTP request to Paystack API
  */
 const paystackRequest = (endpoint, method = "GET", data = null) => {
   return new Promise((resolve, reject) => {
-    if (!PAYSTACK_SECRET) {
+    const secret = getPaystackSecret();
+    if (!secret) {
       return resolve({ status: false, message: "PAYSTACK_SECRET_KEY is not configured" });
     }
 
@@ -28,7 +32,7 @@ const paystackRequest = (endpoint, method = "GET", data = null) => {
       path: endpoint,
       method: method,
       headers: {
-        Authorization: `Bearer ${PAYSTACK_SECRET}`,
+        Authorization: `Bearer ${secret}`,
         "Content-Type": "application/json",
       },
     };
@@ -427,7 +431,8 @@ const executeProviderPayout = async (payableId) => {
     let transferSuccess = false;
     let transferRes = null;
 
-    if (PAYSTACK_SECRET && !PAYSTACK_SECRET.includes("pk_test") && amountInKobo > 0) {
+    const secret = getPaystackSecret();
+    if (secret && !secret.includes("pk_test") && amountInKobo > 0) {
       transferRes = await paystackRequest("/transfer", "POST", {
         source: "balance",
         amount: amountInKobo,

@@ -695,6 +695,7 @@ exports.approveCompany = async (req, res) => {
     const { comment } = req.body;
     await company.update({ 
       verificationStatus: "verified",
+      isVerified: true,
       verificationComment: comment || "Congratulations! Your company has been verified."
     });
 
@@ -1070,3 +1071,35 @@ exports.promptAllDrivers = async (req, res) => {
     });
   }
 };
+
+// @desc    Admin manually verify user or driver email
+// @route   PUT /api/admin/users/:id/verify-email
+// @access  Private/Admin
+exports.verifyUserEmail = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+
+    user.isVerified = true;
+    user.verificationToken = null;
+    user.verificationTokenExpire = null;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      message: `User ${user.name} (${user.email}) email marked as verified successfully.`,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        isVerified: user.isVerified,
+      },
+    });
+  } catch (error) {
+    console.error("Admin verify user email error:", error);
+    res.status(500).json({ success: false, message: "Server error", error: error.message });
+  }
+};
+

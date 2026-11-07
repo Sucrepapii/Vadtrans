@@ -102,6 +102,7 @@ export const adminAPI = {
   // User Management
   getAllUsers: (params) => api.get("/admin/users", { params }),
   updateUser: (id, data) => api.put(`/admin/users/${id}`, data),
+  verifyUserEmail: (id) => api.put(`/admin/users/${id}/verify-email`),
   deleteUser: (id) => api.delete(`/admin/users/${id}`),
 
   // Fare Management

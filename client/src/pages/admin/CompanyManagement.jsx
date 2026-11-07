@@ -157,6 +157,26 @@ const CompanyManagement = () => {
     }
   };
 
+  const handleVerifyEmail = async (companyId) => {
+    try {
+      setProcessingId(companyId);
+      const response = await adminAPI.verifyUserEmail(companyId);
+      if (response.data.success) {
+        toast.success(response.data.message || "Email verified successfully");
+        setCompanies(
+          companies.map((c) =>
+            c.id === companyId ? { ...c, isVerified: true } : c,
+          ),
+        );
+      }
+    } catch (error) {
+      console.error("Error verifying email:", error);
+      toast.error(error.response?.data?.message || "Failed to verify email");
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
   const handlePromptMissingDocs = async () => {
     try {
       setPromptingDocs(true);
@@ -487,6 +507,23 @@ const CompanyManagement = () => {
                             </div>
                           </Button>
                         </>
+                      )}
+
+                      {!company.isVerified && (
+                        <Button
+                          variant="secondary"
+                          onClick={() => handleVerifyEmail(company.id)}
+                          disabled={processingId === company.id}
+                          className="w-full text-emerald-600 hover:bg-emerald-50 border border-emerald-300">
+                          <div className="flex items-center justify-center gap-2">
+                            {processingId === company.id ? (
+                              <FaSpinner className="animate-spin" />
+                            ) : (
+                              <FaCheckCircle />
+                            )}
+                            <span>Activate / Verify Email</span>
+                          </div>
+                        </Button>
                       )}
 
                       <Button

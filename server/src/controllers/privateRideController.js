@@ -403,7 +403,8 @@ exports.getMyRides = async (req, res) => {
   }
 };
 
-const paystack = require("paystack-api")(process.env.PAYSTACK_SECRET_KEY);
+const rawPaystackKey = (process.env.PAYSTACK_SECRET_KEY || "").replace(/^["']|["']$/g, "").trim();
+const paystack = require("paystack-api")(rawPaystackKey);
 
 // @desc    Initialize Paystack for Private Ride
 // @route   POST /api/private-rides/:id/pay

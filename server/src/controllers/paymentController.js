@@ -1,4 +1,5 @@
-const paystack = require("paystack-api")(process.env.PAYSTACK_SECRET_KEY);
+const rawPaystackKey = (process.env.PAYSTACK_SECRET_KEY || "").replace(/^["']|["']$/g, "").trim();
+const paystack = require("paystack-api")(rawPaystackKey);
 const Booking = require("../models/Booking");
 const Trip = require("../models/Trip");
 const Notification = require("../models/Notification");

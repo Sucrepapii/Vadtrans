@@ -4,21 +4,29 @@ const he = require("he");
 // Helper to escape HTML to prevent injection
 const esc = (text) => (text ? he.encode(String(text)) : "");
 
-// Initialize Resend
-// Use RESEND_API_KEY if available, otherwise fallback to SMTP_PASS
-const resendApiKey = process.env.RESEND_API_KEY || process.env.SMTP_PASS;
+const clean = (val) => (val || "").replace(/^["']|["']$/g, "").trim();
+
+const getResendApiKey = () => {
+  let key = clean(process.env.RESEND_API_KEY);
+  if (!key && process.env.SMTP_PASS && process.env.SMTP_PASS.startsWith("re_")) {
+    key = clean(process.env.SMTP_PASS);
+  }
+  return key;
+};
+
+const getFromEmail = () => {
+  const from = clean(process.env.SMTP_FROM);
+  // Never default to onboarding@resend.dev because Resend blocks sending to real user emails from that domain
+  return from || "VadTrans <support@vadtrans.com>";
+};
+
+// Initialize Resend with sanitized key (if available)
+const resendApiKey = getResendApiKey();
 const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // Helper to check if email service is configured
 const isConfigured = () => {
-  if (!resend) {
-    console.log(
-      "\n⚠️  RESEND API KEY NOT FOUND: Please set RESEND_API_KEY in .env",
-    );
-    console.log("   Emails will be logged to console only.\n");
-    return false;
-  }
-  return true;
+  return !!resend;
 };
 
 // Send welcome email
@@ -178,7 +186,7 @@ const sendWelcomeEmail = async (user) => {
     `;
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "VadTrans <onboarding@resend.dev>",
+      from: getFromEmail(),
       to: [user.email],
       subject: subject,
       html: isCompany ? companyHtml : travelerHtml,
@@ -208,7 +216,7 @@ const sendBookingConfirmationEmail = async (booking, user) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "onboarding@resend.dev",
+      from: getFromEmail(),
       to: [user.email],
       subject: `Booking Confirmation - ${esc(booking.bookingId)} 🎫`,
       html: `
@@ -297,7 +305,7 @@ const sendVerificationEmail = async (user, token) => {
     }/verify-email?token=${token}`;
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "onboarding@resend.dev",
+      from: getFromEmail(),
       to: [user.email],
       subject: "Verify Your Email - VadTrans",
       html: `
@@ -362,7 +370,7 @@ const sendPasswordResetEmail = async (user, resetUrl) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "onboarding@resend.dev",
+      from: getFromEmail(),
       to: [user.email],
       subject: "Reset Your Password - VadTrans",
       html: `
@@ -401,7 +409,7 @@ const sendPasswordSuccessEmail = async (user) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "onboarding@resend.dev",
+      from: getFromEmail(),
       to: [user.email],
       subject: "Password Changed Successfully - VadTrans",
       html: `
@@ -479,7 +487,7 @@ const sendAccountDeletedEmail = async (user) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "onboarding@resend.dev",
+      from: getFromEmail(),
       to: [user.email],
       subject: "Account Closure Notification - VadTrans",
       html: `
@@ -525,7 +533,7 @@ const sendDocumentReminderEmail = async (user) => {
     }
 
     const { data, error } = await resend.emails.send({
-      from: process.env.SMTP_FROM || "onboarding@resend.dev",
+      from: getFromEmail(),
       to: [user.email],
       subject: "Urgent Action Required: Upload Verification Documents 📄",
       html: `
