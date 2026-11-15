@@ -34,53 +34,49 @@ exports.signup = async (req, res) => {
       userExists.phone = phone;
       userExists.role = userRole;
 
-      // Generate New Verification Token
-      const verificationToken = crypto.randomBytes(20).toString("hex");
-      userExists.verificationToken = crypto
-        .createHash("sha256")
-        .update(verificationToken)
-        .digest("hex");
-      userExists.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000;
+      // Auto-verify on signup to allow immediate sign-in
+      userExists.isVerified = true;
+      userExists.verificationToken = null;
+      userExists.verificationTokenExpire = null;
 
       await userExists.save();
 
-      // Send verification email
-      await sendVerificationEmail(userExists, verificationToken);
+      // Attempt to send welcome email asynchronously (non-blocking)
+      sendWelcomeEmail(userExists).catch((err) =>
+        console.error("Welcome email error:", err.message)
+      );
+
+      // Generate token
+      const token = userExists.generateToken();
 
       return res.status(200).json({
         success: true,
-        message: "Account updated. Please check your email for verification link!",
+        message: "Account updated and activated successfully!",
+        token,
         user: {
           id: userExists.id,
           name: userExists.name,
           email: userExists.email,
           role: userExists.role,
+          isVerified: true,
         },
       });
     }
 
-    // Create new user
+    // Create new user - auto-verified so drivers and travelers can sign in immediately
     const user = await User.create({
       name,
       email,
       password,
       phone,
       role: userRole,
-      isVerified: false,
+      isVerified: true,
     });
 
-    // Generate Verification Token
-    const verificationToken = crypto.randomBytes(20).toString("hex");
-    user.verificationToken = crypto
-      .createHash("sha256")
-      .update(verificationToken)
-      .digest("hex");
-    user.verificationTokenExpire = Date.now() + 24 * 60 * 60 * 1000;
-
-    await user.save();
-
-    // Send verification email
-    await sendVerificationEmail(user, verificationToken);
+    // Send welcome email asynchronously without blocking registration flow
+    sendWelcomeEmail(user).catch((err) =>
+      console.error("Welcome email error:", err.message)
+    );
 
     // Generate token
     const token = user.generateToken();
@@ -88,14 +84,15 @@ exports.signup = async (req, res) => {
     res.status(201).json({
       success: true,
       message: `${
-        userRole === "company" ? "Company" : "User"
-      } registered successfully. Check your email for verification link!`,
+        userRole === "company" ? "Driver / Transporter" : "User"
+      } registered successfully!`,
       token,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
+        isVerified: true,
       },
     });
   } catch (error) {
@@ -286,12 +283,12 @@ exports.login = async (req, res) => {
       });
     }
 
-    // Check if email is verified (Skip for admin)
-    if (!user.isVerified && user.role !== "admin") {
-      return res.status(401).json({
-        success: false,
-        message: "Please verify your email address before logging in.",
-      });
+    // Auto-verify on login if user wasn't verified previously
+    if (!user.isVerified) {
+      user.isVerified = true;
+      user.verificationToken = null;
+      user.verificationTokenExpire = null;
+      await user.save().catch((err) => console.error("Error auto-verifying user on login:", err.message));
     }
 
     // Generate token

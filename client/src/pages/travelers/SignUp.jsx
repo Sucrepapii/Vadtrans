@@ -65,14 +65,28 @@ const SignUp = () => {
         role: userType, // Send the role (traveler or company)
       });
 
-      // Show success message state instead of auto-redirect
-      setIsSuccess(true);
+      // Auto sign-in and redirect immediately upon successful registration
+      if (response.data.token && response.data.user) {
+        sessionStorage.setItem("token", response.data.token);
+        localStorage.setItem("token", response.data.token);
+        login(response.data.user);
+        toast.success(`Welcome to VadTrans, ${response.data.user.name || "Partner"}!`);
 
-      // Meta Pixel Event: CompleteRegistration
-      trackCompleteRegistration({
-        content_name: userType === "company" ? "Driver / Transporter Registration" : "Traveler Registration",
-        status: "submitted",
-      });
+        // Meta Pixel Event: CompleteRegistration
+        trackCompleteRegistration({
+          content_name: userType === "company" ? "Driver / Transporter Registration" : "Traveler Registration",
+          status: "submitted",
+        });
+
+        if (response.data.user.role === "company") {
+          navigate("/company/tickets");
+        } else {
+          navigate("/search");
+        }
+        return;
+      }
+
+      setIsSuccess(true);
     } catch (error) {
       console.error("Signup error:", error);
       toast.error(
