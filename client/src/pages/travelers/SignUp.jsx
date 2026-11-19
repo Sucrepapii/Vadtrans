@@ -215,7 +215,7 @@ const SignUp = () => {
                 ) : (
                   <>
                     <Input
-                      label="Company Name"
+                      label="Driver/Company Name"
                       name="companyName"
                       placeholder="E.g. Transport Logistics Ltd"
                       value={formData.companyName}
